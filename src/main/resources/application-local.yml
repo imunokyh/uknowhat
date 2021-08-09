@@ -1,0 +1,15 @@
+
+spring:
+  devtools:
+    livereload:
+      enabled: true
+    restart:
+      enabled: true
+  main:
+    allow-bean-definition-overriding: true
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://3.37.90.96:3306/uknowhat?useSSL=false&useUnicode=true&autoReconnect=true&characterEncoding=utf8
+    username: uknowhatuser
+    password: uknowhat1q2w3e
+    
