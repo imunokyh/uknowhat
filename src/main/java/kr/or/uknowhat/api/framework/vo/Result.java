@@ -10,13 +10,17 @@ import lombok.Data;
 @Data
 public class Result {
 
-	//private int code;
+	private int code;
 	@JsonIgnore
 	private ErrorCode errorCode;
 	
 	private String message;
 	private Object result = new HashMap();
 	
+	public void setCode(ErrorCode errorCode) {
+		this.errorCode = errorCode;
+		this.code = errorCode.getCode();
+	}
 	public int getCode() {
 		return this.errorCode.getCode();
 	}

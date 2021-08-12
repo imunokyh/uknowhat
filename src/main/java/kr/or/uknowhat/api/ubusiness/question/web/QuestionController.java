@@ -11,7 +11,7 @@ import kr.or.uknowhat.api.ubusiness.question.service.QuestionService;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping(value = "/api/qsn")
+@RequestMapping(value = "/api/v1/qsn")
 @Slf4j
 public class QuestionController {
 

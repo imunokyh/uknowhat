@@ -1,6 +1,24 @@
+<!--
 <template>
   <div id="app">
     <img src="./assets/logo.png">
+    <router-view/>
+  </div>
+</template>
+-->
+
+<template>
+  <div id="app">
+    <div id="nav">
+      <router-link to="/">Home</router-link> |
+      <router-link to="/about">About</router-link> |
+      <router-link to="/login">Login</router-link> |
+      <router-link to="/oqsn">Obj</router-link> |
+      <router-link to="/sqsn">Sub</router-link> |
+      <router-link to="/tfqsn">TF</router-link> |
+      <router-link to="/basic">Basic</router-link> |
+      <router-link to="/carousel">Carousel</router-link> |
+    </div>
     <router-view/>
   </div>
 </template>

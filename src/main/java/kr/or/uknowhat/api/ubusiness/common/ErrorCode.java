@@ -3,7 +3,7 @@ package kr.or.uknowhat.api.ubusiness.common;
 public enum ErrorCode {
 
 	SUCCESS(0, "SUCCESS")
-	, FAIL(1, "FAIL");
+	, ERROR(1, "ERROR");
 	
 	private int code;
 	private String message;

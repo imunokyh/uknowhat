@@ -9,7 +9,7 @@ import kr.or.uknowhat.api.ubusiness.common.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping(value = "/api/sample")
+@RequestMapping(value = "/api/v1/sample")
 @Slf4j
 public class SampleController {
 
