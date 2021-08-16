@@ -1,5 +1,6 @@
 <template>
   <div>
+    <h1>hello</h1>
     <b-button size="sm" @click="toggle">
       {{ show ? "Hide" : "Show" }} Alert
     </b-button>
@@ -28,9 +29,9 @@ export default {
     },
     dismissed() {
       console.log("Alert dismissed");
-    }
-  }
-}
+    },
+  },
+};
 </script>
 <style lang="scss" scoped>
 </style>
