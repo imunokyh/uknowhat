@@ -2,8 +2,8 @@
   <div id="app">
     <div id="nav">
       <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link> |
-      <router-link to="/login">Login</router-link> |
+      <router-link to="/h2">Home2</router-link> |
+      <router-link to="/h3">Home3</router-link> |
       <router-link to="/oqsn">Obj</router-link> |
       <router-link to="/sqsn">Sub</router-link> |
       <router-link to="/tfqsn">TF</router-link> |

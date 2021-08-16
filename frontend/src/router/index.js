@@ -1,6 +1,8 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
+import Home2 from '../views/Home2.vue'
+import Home3 from '../views/Home3.vue'
 import Login from '../views/Login.vue'
 import ObjectiveQuestion from '../views/ObjectiveQuestion.vue'
 import SubjectiveQuestion from '../views/SubjectiveQuestion.vue'
@@ -24,7 +26,15 @@ const routes = [
     path: '/',
     name: 'Home',
     component: Home
+  },{
+    path: '/h2',
+    name: 'Home2',
+    component: Home2
   }, {
+    path: '/h3',
+    name: 'Home3',
+    component: Home3
+  },{
     path: '/about',
     name: 'About',
     // route level code-splitting
