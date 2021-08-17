@@ -7,23 +7,23 @@ import org.springframework.web.bind.annotation.RestController;
 
 import kr.or.uknowhat.api.framework.vo.Result;
 import kr.or.uknowhat.api.ubusiness.common.ErrorCode;
-import kr.or.uknowhat.api.ubusiness.question.service.QuestionService;
+import kr.or.uknowhat.api.ubusiness.question.service.RoomService;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping(value = "/api/v1/question")
+@RequestMapping(value = "/api/v1/room")
 @Slf4j
-public class QuestionController {
+public class RoomController {
 	
 	@Autowired
-	private QuestionService questionService;
+	private RoomService roomService;
 	
 	@GetMapping(value = "/list")
-	public Result listQuestion() throws Exception {
+	public Result listRoom() throws Exception {
 		Result res = new Result();
 		res.setErrorCode(ErrorCode.SUCCESS);
 		res.setMessage("code success");
-		res.setResult(questionService.listQuestion());
+		res.setResult(roomService.listRoom());
 		
 		return res;
 	}

@@ -5,9 +5,9 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import kr.or.uknowhat.api.ubusiness.question.domain.Question;
+import kr.or.uknowhat.api.ubusiness.question.domain.User;
 
 @Repository
-public interface QuestionRepository extends JpaRepository<Question, Long> {
-	List<Question> findAll();
+public interface UserRepository extends JpaRepository<User, String> {
+	List<User> findAll();
 }

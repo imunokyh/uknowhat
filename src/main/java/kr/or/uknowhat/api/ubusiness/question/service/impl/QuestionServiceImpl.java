@@ -15,12 +15,13 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Transactional
 @Slf4j
-public class QuestionServiceImpl implements QuestionService{
+public class QuestionServiceImpl implements QuestionService {
 
 	@Autowired
-	private QuestionRepository questionRepo;
+	private QuestionRepository questionRepository;
 	
-	public List<Question> listQuestion() throws Exception{
-		return questionRepo.findAll();
+	@Override
+	public List<Question> listQuestion() throws Exception {
+		return questionRepository.findAll();
 	}
 }
