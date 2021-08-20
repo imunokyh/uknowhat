@@ -20,128 +20,11 @@
 
         <!-- main content -->
         <b-col cols="8" class="vl">
-          <label hidden>{{ quizid }}</label>
-          <div>
-            <b-form-input
-              v-model="question"
-              placeholder="질문을 입력하세요"
-            ></b-form-input>
-            <div>&nbsp;</div>
-            <div>&nbsp;</div>
-            <b-row>
-              <b-col>
-                <!-- check -->
-                <b-row>
-                  <b-col cols="1">
-                    <b-form-checkbox
-                      id="checkbox-1"
-                      v-model="status1"
-                      name="checkbox-1"
-                      value="accepted"
-                      unchecked-value="not_accepted"
-                    >
-                    </b-form-checkbox>
-                  </b-col>
-                  <b-col cols="11">
-                    <b-form-textarea
-                      v-model="ans1"
-                      placeholder="1번 답을 입력하세요"
-                      rows="2"
-                    ></b-form-textarea>
-                  </b-col>
-                </b-row>
-                <!-- e.check -->
-              </b-col>
-              <b-col>
-                <b-row>
-                  <b-col cols="1">
-                    <b-form-checkbox
-                      id="checkbox-2"
-                      v-model="status2"
-                      name="checkbox-2"
-                      value="accepted"
-                      unchecked-value="not_accepted"
-                    >
-                    </b-form-checkbox>
-                  </b-col>
-                  <b-col cols="11">
-                    <b-form-textarea
-                      v-model="ans2"
-                      placeholder="2번 답을 입력하세요"
-                      rows="2"
-                    ></b-form-textarea>
-                  </b-col>
-                </b-row>
-              </b-col>
-            </b-row>
-            <b-row>
-              <b-col>
-                <b-row>
-                  <b-col cols="1">
-                    <b-form-checkbox
-                      id="checkbox-3"
-                      v-model="status3"
-                      name="checkbox-3"
-                      value="accepted"
-                      unchecked-value="not_accepted"
-                    >
-                    </b-form-checkbox>
-                  </b-col>
-                  <b-col cols="11">
-                    <b-form-textarea
-                      v-model="ans3"
-                      placeholder="3번 답을 입력하세요"
-                      rows="2"
-                    ></b-form-textarea>
-                  </b-col>
-                </b-row>
-              </b-col>
-              <b-col>
-                <b-row>
-                  <b-col cols="1">
-                    <b-form-checkbox
-                      id="checkbox-4"
-                      v-model="status4"
-                      name="checkbox-4"
-                      value="accepted"
-                      unchecked-value="not_accepted"
-                    >
-                    </b-form-checkbox>
-                  </b-col>
-                  <b-col cols="11">
-                    <b-form-textarea
-                      v-model="ans4"
-                      placeholder="4번 답을 입력하세요"
-                      rows="2"
-                    ></b-form-textarea>
-                  </b-col>
-                </b-row>
-              </b-col>
-            </b-row>
-          </div>
+          <quiz-comp></quiz-comp>
         </b-col>
         <!-- e.main content -->
         <b-col cols="2" class="vl">
-          <div>
-            <b-dropdown text="퀴즈타입" variant="outline-primary" class="m-2">
-              <b-dropdown-item href="#">객관식</b-dropdown-item>
-              <b-dropdown-item href="#">OX</b-dropdown-item>
-            </b-dropdown>
-
-            <b-dropdown text="시간제한" variant="outline-primary" class="m-2">
-              <b-dropdown-item href="#">20</b-dropdown-item>
-              <b-dropdown-item href="#">10</b-dropdown-item>
-              <b-dropdown-item href="#">0</b-dropdown-item>
-            </b-dropdown>
-
-            <b-dropdown text="포인트" variant="outline-primary" class="m-2">
-              <b-dropdown-item href="#">스탠다드</b-dropdown-item>
-              <b-dropdown-item href="#">더블</b-dropdown-item>
-              <b-dropdown-item href="#">없음</b-dropdown-item>
-            </b-dropdown>
-          </div>
-          <b-row>&nbsp;</b-row>
-          <b-row>&nbsp;</b-row>
+        
           <div><b-button>저장</b-button></div>
           <b-row>&nbsp;</b-row>
           <div><b-button>복제본</b-button></div>
@@ -154,7 +37,12 @@
 </template>
 
 <script>
+import QuizComp from "@/components/QuizComp";
+
 export default {
+  components: {
+    QuizComp,
+  },
   data() {
     return {
       status1: "not_accepted",
