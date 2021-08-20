@@ -1,9 +1,14 @@
 package kr.or.uknowhat.api.ubusiness.question.service;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
 
 import kr.or.uknowhat.api.ubusiness.question.domain.Question;
+import kr.or.uknowhat.api.ubusiness.question.vo.QuestionVo;
 
 public interface QuestionService {
-	List<Question> listQuestion() throws Exception;
+	Page<Question> listQuestion(int page, int size, String searchText);
+	Question getQuestion(Long id);
+	void insertQuestion(QuestionVo questionVo);
+	void updateQuestion(QuestionVo questionVo);
+	void deleteQuestion(Long id);
 }
