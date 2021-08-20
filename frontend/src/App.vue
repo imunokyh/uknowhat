@@ -1,13 +1,22 @@
 <template>
   <div id="app">
     <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/h2">Home2</router-link> |
-      <router-link to="/h3">Home3</router-link> |
-      <router-link to="/oqsn">Obj</router-link> |
-      <router-link to="/sqsn">Sub</router-link> |
-      <router-link to="/tfqsn">TF</router-link> |
+      <router-link to="/">Home</router-link> |      
+      <router-link to="/exam/regprob">문제등록</router-link> |      
     </div>
+    <div>
+      <router-link to="/exam/waiting">대기화면</router-link> |
+      <router-link to="/exam/tfprob">OX문제</router-link> |
+      <router-link to="/exam/tfchoice">OX선택</router-link> |
+      <router-link to="/exam/tfcheck">OX체크</router-link>
+    </div>
+    <div>
+      <router-link to="/exam/waiting">대기화면</router-link> |
+      <router-link to="/exam/obprob">객관문제</router-link> |
+      <router-link to="/exam/obchoice">객관선택</router-link> |
+      <router-link to="/exam/obcheck">객관체크</router-link>
+    </div>
+    <!--
     <div>
       <router-link to="/login/ppn">게임참가화면(핀번호)</router-link> |
       <router-link to="/login/nickname">닉네임입력</router-link> |
@@ -21,6 +30,7 @@
       <router-link to="/play/timeup">시간초과</router-link> |
       <router-link to="/play/finalrank">최종순위</router-link> |
     </div>
+    -->
     <router-view />
   </div>
 </template>
@@ -47,3 +57,4 @@
   color: #42b983;
 }
 </style>
+

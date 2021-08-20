@@ -19,6 +19,20 @@ import IncorrectAns from '../views/play/IncorrectAns.vue'
 import FinalRank from '../views/play/FinalRank.vue'
 import TimeUp from '../views/play/TimeUp.vue'
 
+// 출제자
+import WaitingProc from '../views/examiner/WaitingProc.vue'
+import TrueFalseProbProc from '../views/examiner/TrueFalseProbProc.vue'
+import TrueFalseChoiceProc from '../views/examiner/TrueFalseChoiceProc.vue'
+import TrueFalseCheckProc from '../views/examiner/TrueFalseCheckProc.vue'
+
+import ObjectiveProbProc from '../views/examiner/ObjectiveProbProc.vue'
+import ObjectiveChoiceProc from '../views/examiner/ObjectiveChoiceProc.vue'
+import ObjectiveCheckProc from '../views/examiner/ObjectiveCheckProc.vue'
+
+import RegProb from '../views/examiner/RegProb.vue'
+
+
+
 Vue.use(VueRouter)
 
 const routes = [
@@ -97,6 +111,40 @@ const routes = [
     path: '/play/finalrank',
     name: 'FinalRank',
     component: FinalRank
+  }
+  // 출제자
+  , {
+    path: '/exam/waiting',
+    name: 'WaitingProc',
+    component: WaitingProc
+  }, {
+    path: '/exam/tfprob',
+    name: 'TrueFalseProbProc',
+    component: TrueFalseProbProc
+  }, {
+    path: '/exam/tfchoice',
+    name: 'TrueFalseChoiceProc',
+    component: TrueFalseChoiceProc
+  }, {
+    path: '/exam/tfcheck',
+    name: 'TrueFalseCheckProc',
+    component: TrueFalseCheckProc
+  }, {
+    path: '/exam/obprob',
+    name: 'ObjectiveProbProc',
+    component: ObjectiveProbProc
+  }, {
+    path: '/exam/obchoice',
+    name: 'ObjectiveChoiceProc',
+    component: ObjectiveChoiceProc
+  }, {
+    path: '/exam/obcheck',
+    name: 'ObjectiveCheckProc',
+    component: ObjectiveCheckProc
+  }, {
+    path: '/exam/regprob',
+    name: 'RegProb',
+    component: RegProb
   }
 
 ]
