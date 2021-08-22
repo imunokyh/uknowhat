@@ -2,7 +2,8 @@
   <div id="app">
     <div id="nav">
       <router-link to="/">Home</router-link> |      
-      <router-link to="/exam/regprob">문제등록</router-link> |      
+       <router-link to="/exam/probgrpmng">문제그룹</router-link> |      
+      <router-link to="/exam/probreg">문제등록</router-link> |      
     </div>
     <div>
       <router-link to="/exam/waiting">대기화면</router-link> |

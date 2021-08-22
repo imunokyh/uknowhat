@@ -1,26 +1,35 @@
 <template>
   <div>
     <!-- main content -->
-    
+
+    <!--
+      data props
+      https://question0.tistory.com/20
+      https://sas-study.tistory.com/236
+      -->
 
     <!-- s -->
     <div>
-      <b-dropdown text="퀴즈타입" variant="outline-info" class="m-2">
-        <b-dropdown-item href="#">객관식</b-dropdown-item>
-        <b-dropdown-item href="#">OX</b-dropdown-item>
-      </b-dropdown>
-
-      <b-dropdown text="시간제한" variant="outline-info" class="m-2">
-        <b-dropdown-item href="#">20</b-dropdown-item>
-        <b-dropdown-item href="#">10</b-dropdown-item>
-        <b-dropdown-item href="#">0</b-dropdown-item>
-      </b-dropdown>
-
-      <b-dropdown text="포인트" variant="outline-info" class="m-2">
-        <b-dropdown-item href="#">스탠다드</b-dropdown-item>
-        <b-dropdown-item href="#">더블</b-dropdown-item>
-        <b-dropdown-item href="#">없음</b-dropdown-item>
-      </b-dropdown>
+      <b-row>
+        <b-col>
+          <b-form-select
+            v-model="selectedQuizType"
+            :options="optionsQuizType"
+          ></b-form-select>
+        </b-col>
+        <b-col
+          ><b-form-select
+            v-model="selectedTimeLimit"
+            :options="optionsTimeLimit"
+          ></b-form-select
+        ></b-col>
+        <b-col>
+          <b-form-select
+            v-model="selectedPoint"
+            :options="optionsPoint"
+          ></b-form-select
+        ></b-col>
+      </b-row>
     </div>
     <!-- e -->
     <label hidden>{{ quizid }}</label>
@@ -39,10 +48,10 @@
             <b-col cols="1">
               <b-form-checkbox
                 id="checkbox-1"
-                v-model="status1"
+                v-model="check1"
                 name="checkbox-1"
-                value="accepted"
-                unchecked-value="not_accepted"
+                value="1"
+                unchecked-value="0"
               >
               </b-form-checkbox>
             </b-col>
@@ -61,10 +70,10 @@
             <b-col cols="1">
               <b-form-checkbox
                 id="checkbox-2"
-                v-model="status2"
+                v-model="check2"
                 name="checkbox-2"
-                value="accepted"
-                unchecked-value="not_accepted"
+                value="1"
+                unchecked-value="0"
               >
               </b-form-checkbox>
             </b-col>
@@ -84,10 +93,10 @@
             <b-col cols="1">
               <b-form-checkbox
                 id="checkbox-3"
-                v-model="status3"
+                v-model="check3"
                 name="checkbox-3"
-                value="accepted"
-                unchecked-value="not_accepted"
+                value="1"
+                unchecked-value="0"
               >
               </b-form-checkbox>
             </b-col>
@@ -105,10 +114,10 @@
             <b-col cols="1">
               <b-form-checkbox
                 id="checkbox-4"
-                v-model="status4"
+                v-model="check4"
                 name="checkbox-4"
-                value="accepted"
-                unchecked-value="not_accepted"
+                value="1"
+                unchecked-value="0"
               >
               </b-form-checkbox>
             </b-col>
@@ -131,16 +140,39 @@
 export default {
   data() {
     return {
-      status1: "not_accepted",
-      status2: "not_accepted",
-      status3: "not_accepted",
-      status4: "not_accepted",
+      quizid: "",
       question: "",
       ans1: "",
       ans2: "",
       ans3: "",
       ans4: "",
-      quizid: "",
+      check1: "0",
+      check2: "0",
+      check3: "0",
+      check4: "0",
+      quizType: "0",
+      timeLimit: "0",
+      point: "0",
+      selectedQuizType: null,
+      selectedTimeLimit: null,
+      selectedPoint: null,
+      optionsQuizType: [
+        { value: null, text: "퀴즈타입" },
+        { value: "0", text: "객관식" },
+        { value: "1", text: "OX" },
+      ],
+      optionsTimeLimit: [
+        { value: null, text: "시간제한" },
+        { value: "20", text: "20초" },
+        { value: "5", text: "5초" },
+        { value: "0", text: "없음" },
+      ],
+      optionsPoint: [
+        { value: null, text: "포인트" },
+        { value: "0", text: "스탠다드" },
+        { value: "1", text: "더블" },
+        { value: "2", text: "없음" },
+      ],
     };
   },
   created() {
@@ -152,7 +184,7 @@ export default {
   },
   methods: {
     genQuizId() {
-      this.quizid = "quizid_" + this.uuidv4();
+      this.quizid = "quizid-" + this.uuidv4();
       //this.quizid = "55";
     },
     getRandomInt() {
@@ -167,6 +199,9 @@ export default {
           return v.toString(16);
         }
       );
+    },
+    save() {
+      this.$emit("child-event", 100);
     },
   },
 };

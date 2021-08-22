@@ -29,8 +29,8 @@ import ObjectiveProbProc from '../views/examiner/ObjectiveProbProc.vue'
 import ObjectiveChoiceProc from '../views/examiner/ObjectiveChoiceProc.vue'
 import ObjectiveCheckProc from '../views/examiner/ObjectiveCheckProc.vue'
 
-import RegProb from '../views/examiner/RegProb.vue'
-
+import ProbReg from '../views/examiner/ProbReg.vue'
+import ProbGrpMng from '../views/examiner/ProbGrpMng.vue'
 
 
 Vue.use(VueRouter)
@@ -142,9 +142,14 @@ const routes = [
     name: 'ObjectiveCheckProc',
     component: ObjectiveCheckProc
   }, {
-    path: '/exam/regprob',
-    name: 'RegProb',
-    component: RegProb
+    path: '/exam/probreg',
+    name: 'ProbReg',
+    component: ProbReg,
+    props: true
+  }  , {
+    path: '/exam/probgrpmng',
+    name: 'ProbGrpMng',
+    component: ProbGrpMng
   }
 
 ]
