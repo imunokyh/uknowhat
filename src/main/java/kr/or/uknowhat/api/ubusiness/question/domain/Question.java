@@ -35,9 +35,17 @@ public class Question {
 	@Column(nullable = true, length = 40)
 	private String questionCategory;
 	
-	@ApiModelProperty(value = "문제 유형: 1. OX 문제, 2. 객관식 문제, 3. 주관식 문제")
+	@ApiModelProperty(value = "문제 유형: 0. OX 문제, 1. 객관식 문제, 2. 주관식 문제")
 	@Column(nullable = false, length = 40)
 	private String questionType;
+	
+	@ApiModelProperty(value = "시간제한 유형: 20: 20초, 5: 5초 0: 없음")
+	@Column(nullable = false, length = 40)
+	private String timeLimitType;
+	
+	@ApiModelProperty(value = "포인트 유형: 0: 스탠다드, 1: 더블 2: 없음")
+	@Column(nullable = false, length = 40)
+	private String pointType;
 	
 	@ApiModelProperty(value = "문제 내용")
 	@Column(nullable = true, columnDefinition = "LONGTEXT")

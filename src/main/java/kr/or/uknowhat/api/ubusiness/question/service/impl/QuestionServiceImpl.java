@@ -48,8 +48,10 @@ public class QuestionServiceImpl implements QuestionService {
 	public void insertQuestion(QuestionVo questionVo) {
 		Question question = new Question();
 		question.setQuestionCategory(questionVo.getCategory());
-		question.setQuestionType(questionVo.getType());
-		question.setQuestionText(questionVo.getText());
+		question.setQuestionType(questionVo.getQuestionType());
+		question.setTimeLimitType(questionVo.getTimeLimitType());
+		question.setPointType(questionVo.getPointType());
+		question.setQuestionText(questionVo.getQuestionText());
 		question.setQuestionAnswer(questionVo.getAnswer());
 		question.setCreatedDate(new Date());
 		question.setCreatedUserId("admin");
@@ -62,8 +64,10 @@ public class QuestionServiceImpl implements QuestionService {
 		if (optionalQuestion.isPresent()) {
 			Question question = optionalQuestion.get();
 			question.setQuestionCategory(questionVo.getCategory());
-			question.setQuestionType(questionVo.getType());
-			question.setQuestionText(questionVo.getText());
+			question.setQuestionType(questionVo.getQuestionType());
+			question.setTimeLimitType(questionVo.getTimeLimitType());
+			question.setPointType(questionVo.getPointType());
+			question.setQuestionText(questionVo.getQuestionText());
 			question.setQuestionAnswer(questionVo.getAnswer());
 			question.setModifiedDate(new Date());
 			question.setModifiedUserId("admin");

@@ -18,6 +18,7 @@ import CorrectAns from '../views/play/CorrectAns.vue'
 import IncorrectAns from '../views/play/IncorrectAns.vue'
 import FinalRank from '../views/play/FinalRank.vue'
 import TimeUp from '../views/play/TimeUp.vue'
+import PtMain from '../views/play/PtMain.vue'
 
 // 출제자
 import WaitingProc from '../views/examiner/WaitingProc.vue'
@@ -30,8 +31,8 @@ import ObjectiveChoiceProc from '../views/examiner/ObjectiveChoiceProc.vue'
 import ObjectiveCheckProc from '../views/examiner/ObjectiveCheckProc.vue'
 
 import ProbReg from '../views/examiner/ProbReg.vue'
-import ProbGrpMng from '../views/examiner/ProbGrpMng.vue'
-
+import RoomMng from '../views/examiner/RoomMng.vue'
+import EmMain from '../views/examiner/EmMain.vue'
 
 Vue.use(VueRouter)
 
@@ -111,6 +112,10 @@ const routes = [
     path: '/play/finalrank',
     name: 'FinalRank',
     component: FinalRank
+  }, {
+    path: '/play/main',
+    name: 'PtMain',
+    component: PtMain
   }
   // 출제자
   , {
@@ -147,9 +152,13 @@ const routes = [
     component: ProbReg,
     props: true
   }  , {
-    path: '/exam/probgrpmng',
-    name: 'ProbGrpMng',
-    component: ProbGrpMng
+    path: '/exam/roommng',
+    name: 'RoomMng',
+    component: RoomMng
+  }, {
+    path: '/exam/main',
+    name: 'EmMain',
+    component: EmMain
   }
 
 ]

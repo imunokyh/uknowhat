@@ -13,8 +13,8 @@
       <b-row>
         <b-col>
           <b-form-select
-            v-model="selectedQuizType"
-            :options="optionsQuizType"
+            v-model="selectedQuestionType"
+            :options="optionsQuestionType"
           ></b-form-select>
         </b-col>
         <b-col
@@ -153,13 +153,13 @@ export default {
       quizType: "0",
       timeLimit: "0",
       point: "0",
-      selectedQuizType: null,
+      selectedQuestionType: null,
       selectedTimeLimit: null,
       selectedPoint: null,
-      optionsQuizType: [
+      optionsQuestionType: [
         { value: null, text: "퀴즈타입" },
-        { value: "0", text: "객관식" },
-        { value: "1", text: "OX" },
+        { value: "0", text: "OX" },
+        { value: "1", text: "객관식" },
       ],
       optionsTimeLimit: [
         { value: null, text: "시간제한" },

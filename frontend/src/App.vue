@@ -1,5 +1,6 @@
 <template>
   <div id="app">
+    <!--    
     <div id="nav">
       <router-link to="/">Home</router-link> |      
        <router-link to="/exam/probgrpmng">문제그룹</router-link> |      
@@ -17,6 +18,7 @@
       <router-link to="/exam/obchoice">객관선택</router-link> |
       <router-link to="/exam/obcheck">객관체크</router-link>
     </div>
+    -->
     <!--
     <div>
       <router-link to="/login/ppn">게임참가화면(핀번호)</router-link> |

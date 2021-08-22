@@ -1,14 +1,17 @@
 <template>
   <div style="height: 768px">
     <b-container>
+      <b-row>&nbsp;</b-row>
       <b-row>
         <b-col cols="2"></b-col>
-        <b-col cols="8"></b-col>
-        <b-col cols="2">
+        <b-col cols="7"><h1>방문제등록</h1></b-col>
+        <b-col cols="3">
+          <b-button>문제은행</b-button>
           <b-button>추가</b-button>
           <b-button>완료</b-button>
         </b-col>
       </b-row>
+      <b-row> roomId: {{ roomId }} / roomTitle: {{ roomTitle }} </b-row>
       <hr
         style="
           height: 2px;
@@ -21,7 +24,7 @@
       <b-row>&nbsp;</b-row>
       <b-row>
         <b-col cols="2">
-          <b-card title="quiz1"></b-card><b-card title="quiz2"></b-card>
+          <b-card v-for="index in cardCnt" :title="'quiz' + index"></b-card>
         </b-col>
 
         <!-- main content -->
@@ -49,13 +52,22 @@ export default {
     QuizComp,
   },
   props: {
-    probGrpId: {
+    newRoom: {
+      type: Number,
+      default: 1, // 1: yes 2: no
+    },
+    roomId: {
+      type: Number,
+      default: -1,
+    },
+    roomTitle: {
       type: String,
       default: "",
-    },    
+    },
   },
   data() {
     return {
+      cardCnt: 4,
       status1: "not_accepted",
       status2: "not_accepted",
       status3: "not_accepted",
@@ -74,8 +86,8 @@ export default {
   computed: {},
   mounted() {
     //this.genQuizId();
-    console.log("probGrpId:" + this.probGrpId);
-    if (this.probGrpId == "") {
+
+    if (this.newRoom == 1) {
       console.log("new prob group");
     } else {
       console.log("modify prob group");
@@ -102,6 +114,10 @@ export default {
     save() {
       let quizid = this.$refs.quizdata.quizid;
       let question = this.$refs.quizdata.question;
+      let questionType = this.selectedQuestion;
+      let timeLimitType = this.selectedTimeLimit;
+      let pointType = this.selectedPoint;
+      let timeLimit;
       let ans1 = this.$refs.quizdata.ans1;
       let ans2 = this.$refs.quizdata.ans2;
       let ans3 = this.$refs.quizdata.ans3;
@@ -110,40 +126,29 @@ export default {
       let check2 = this.$refs.quizdata.check2;
       let check3 = this.$refs.quizdata.check3;
       let check4 = this.$refs.quizdata.check4;
-      //console.log(quizid);
-      //console.log(question);
-      //console.log(ans1);
-
-      //   const axiosConfig = {
-      //     headers:{
-      //         "Content-Type": "application/json"
-      //     }
-      // }
 
       // ref: https://blog.naver.com/PostView.naver?blogId=varkiry05&logNo=221835597905&redirect=Dlog&widgetTypeCall=true&directAccess=false
+      // this.$http
+      //   .post("/api/v1/sample/post", {
+      //     id: 1,
+      //     question: question,
+      //     answer: ans1,
+      //   })
+      //   .then((res) => {
+
+      //   });
+
+      // 문제저장
       this.$http
-        .post("/api/v1/sample/post", {
-          id: 1,
-          question: question,
-          answer: ans1,
+        .post("/api/v1/question", {
+          roomId: this.roomId,
+          questionType: questionType,
+          timeLimitType: timeLimitType,
+          pointType: pointType,
+          questionText: question,
+          answer: check1 + "," + check2 + "," + check3 + "," + check4,
         })
-        .then((res) => {
-          //console.log(res)
-        });
-      /*
-          this.$http.request({
-            method : 'POST',
-            url: '/api/v1/sample/post',
-            headers: {'Content-type' : 'application/json'},
-            data: {
-                id: 1,
-                question: question,
-                answer: ans1
-            }
-        }).then(
-            alert("회원가입에 성공했습니다.")
-        )
-      */
+        .then((res) => {});
     },
     parentReceive(val) {
       console.log(val);

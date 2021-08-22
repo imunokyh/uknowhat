@@ -46,16 +46,16 @@ public class RoomServiceImpl implements RoomService {
 	}
 
 	@Override
-	public void insertRoom(RoomVo roomVo) {
+	public Room insertRoom(RoomVo roomVo) {
 		Room room = new Room();
 		room.setRoomTitle(roomVo.getTitle());
 		room.setCreatedDate(new Date());
 		room.setCreatedUserId("admin");
-		roomRepository.save(room);
+		return roomRepository.save(room);
 	}
 
 	@Override
-	public void updateRoom(RoomVo roomVo) {
+	public Room updateRoom(RoomVo roomVo) {
 		Optional<Room> optionalRoom = roomRepository.findById(roomVo.getId());
 		if (optionalRoom.isPresent()) {
 			Room room = optionalRoom.get();
@@ -70,8 +70,9 @@ public class RoomServiceImpl implements RoomService {
 			room.setModifiedDate(new Date());
 			room.setModifiedUserId("admin");
 			
-			roomRepository.save(room);
+			return roomRepository.save(room);
 		}
+		return null;
 	}
 
 	@Override

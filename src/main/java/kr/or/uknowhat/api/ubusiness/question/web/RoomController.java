@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import kr.or.uknowhat.api.framework.vo.Result;
 import kr.or.uknowhat.api.ubusiness.common.ErrorCode;
+import kr.or.uknowhat.api.ubusiness.question.domain.Room;
 import kr.or.uknowhat.api.ubusiness.question.service.RoomService;
 import kr.or.uknowhat.api.ubusiness.question.vo.RoomVo;
 import lombok.extern.slf4j.Slf4j;
@@ -47,17 +48,19 @@ public class RoomController {
 	
 	@PostMapping
 	public Result insertRoom(@RequestBody @Valid RoomVo roomVo) {
-		roomService.insertRoom(roomVo);
+		Room room = roomService.insertRoom(roomVo);
 		Result res = new Result();
 		res.setCode(ErrorCode.SUCCESS);
+		res.setResult(room);
 		return res;
 	}
 	
 	@PutMapping
 	public Result updateRoom(@RequestBody @Valid RoomVo roomVo) {
-		roomService.updateRoom(roomVo);
+		Room room = roomService.updateRoom(roomVo);
 		Result res = new Result();
 		res.setCode(ErrorCode.SUCCESS);
+		res.setResult(room);
 		return res;
 	}
 	
