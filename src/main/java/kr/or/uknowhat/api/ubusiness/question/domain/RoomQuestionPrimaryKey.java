@@ -23,11 +23,11 @@ public class RoomQuestionPrimaryKey implements Serializable {
 	 */
 	private static final long serialVersionUID = -3645444003357499768L;
 
-	@ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-	@JoinColumn(name = "room_id", nullable = false)
-	private Room room;
-	
-	@ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-	@JoinColumn(name = "question_id", nullable = false)
-	private Question question;
+//	@ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+//	@JoinColumn(name = "room_id", nullable = false)
+//	private Room room;
+//	
+//	@ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+//	@JoinColumn(name = "question_id", nullable = false)
+//	private Question question;
 }
