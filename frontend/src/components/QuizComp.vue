@@ -158,8 +158,8 @@ export default {
       selectedPoint: null,
       optionsQuestion: [
         { value: null, text: "퀴즈타입" },
-        { value: "0", text: "OX" },
-        { value: "1", text: "객관식" },
+        { value: "TF", text: "OX" },
+        { value: "OB", text: "객관식" },
       ],
       optionsTimeLimit: [
         { value: null, text: "시간제한" },
@@ -169,9 +169,9 @@ export default {
       ],
       optionsPoint: [
         { value: null, text: "포인트" },
-        { value: "0", text: "스탠다드" },
-        { value: "1", text: "더블" },
-        { value: "2", text: "없음" },
+        { value: "S", text: "스탠다드" },
+        { value: "D", text: "더블" },
+        { value: "N", text: "없음" },
       ],
     };
   },

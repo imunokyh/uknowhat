@@ -52,6 +52,10 @@ public class QuestionServiceImpl implements QuestionService {
 		question.setTimeLimitType(questionVo.getTimeLimitType());
 		question.setPointType(questionVo.getPointType());
 		question.setQuestionText(questionVo.getQuestionText());
+		question.setAnswer1Text(questionVo.getAnswer1Text());
+		question.setAnswer2Text(questionVo.getAnswer2Text());
+		question.setAnswer3Text(questionVo.getAnswer3Text());
+		question.setAnswer4Text(questionVo.getAnswer4Text());
 		question.setQuestionAnswer(questionVo.getAnswer());
 		question.setCreatedDate(new Date());
 		question.setCreatedUserId("admin");

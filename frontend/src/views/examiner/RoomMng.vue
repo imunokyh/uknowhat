@@ -4,8 +4,8 @@
       <section class="py-5 text-center container">
         <div class="row py-lg-5">
           <div class="col-lg-6 col-md-8 mx-auto">
-            <h1 class="fw-light">방관리</h1>
-            <p class="lead text-muted">방을 관리합니다</p>
+            <h1 class="fw-light">출제자메인</h1>
+            <p class="lead text-muted">출제자메인화면입니다</p>
             <p>
               <!--
               <a href="/exam/probreg" class="btn btn-success my-2"
@@ -19,6 +19,7 @@
                 <b-form-input v-model="roomTitle" placeholder="방제목입력"></b-form-input>
               </b-modal>
               -->
+              <b-button @click=goProbBank()>문제은행</b-button>
               <b-button v-b-modal.modal-room-create>방생성</b-button>
               <b-modal
                 id="modal-room-create"
@@ -157,6 +158,9 @@ export default {
   },
   mounted() {},
   methods: {
+    goProbBank(){
+      this.$router.push({ name: "ProbBank"})
+    },
     modifyGroup(probGrpId) {
       this.$router.push({ name: "ProbReg", params: { probGrpId: probGrpId } });
     },

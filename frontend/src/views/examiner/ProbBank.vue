@@ -1,17 +1,15 @@
 <template>
-  <div style="height: 768px">
+  <div style="height: 1000px">
     <b-container>
       <b-row>&nbsp;</b-row>
       <b-row>
         <b-col cols="2"></b-col>
-        <b-col cols="7"><h1>방문제등록</h1></b-col>
+        <b-col cols="7"><h1>문제은행</h1></b-col>
         <b-col cols="3">
-          <b-button>문제은행</b-button>
-          <b-button>추가</b-button>
-          <b-button>완료</b-button>
+          
         </b-col>
       </b-row>
-      <b-row> roomId: {{ roomId }} / roomTitle: {{ roomTitle }} </b-row>
+
       <hr
         style="
           height: 2px;
@@ -23,20 +21,24 @@
       <b-row>&nbsp;</b-row>
       <b-row>&nbsp;</b-row>
       <b-row>
-        <b-col cols="2">
-          <b-card v-for="index in cardCnt" :title="'quiz' + index"></b-card>
-        </b-col>
-
+        <b-button variant="primary" @click="tableRefresh()">추가</b-button>
+        <b-button variant="primary">편집</b-button>
+        <b-button variant="danger">삭제</b-button>
+      </b-row>
+      <b-row>
+        <b-table ref="quiztable"
+        :items="myProvider"
+        :fields="fields"
+      > 
+      </b-table></b-row>
+      <b-row>
         <!-- main content -->
-        <b-col cols="8" class="vl">
-          <!-- TOBE removed
+        <b-col cols="8">
           <quiz-comp ref="quizdata" @child-event="parentReceive"></quiz-comp>
-          -->
-          <h1>문제검색TODO</h1>
         </b-col>
         <!-- e.main content -->
-        <b-col cols="2" class="vl">
-          <div><b-button>저장</b-button></div>
+        <b-col cols="2">
+          <div><b-button @click="save()">저장</b-button></div>
           <b-row>&nbsp;</b-row>
           <div><b-button>복제본</b-button></div>
           <b-row>&nbsp;</b-row>
@@ -81,6 +83,13 @@ export default {
       ans3: "",
       ans4: "",
       quizid: "",
+      items:[],
+      fields:[
+        {key: 'questionId', label: 'ID'},
+        {key: 'questionType', label: '문제유형'},        
+        {key: 'questionText', label: '문제내용'},
+        {key: 'questionAnswer', label: '문제정답'},
+      ]
     };
   },
   created() {
@@ -88,15 +97,12 @@ export default {
   },
   computed: {},
   mounted() {
-    //this.genQuizId();
-
-    if (this.newRoom == 1) {
-      console.log("new prob group");
-    } else {
-      console.log("modify prob group");
-    }
+    this.listQuiz();
+    
+    
   },
   methods: {
+   
     genQuizId() {
       this.quizid = "quizid_" + this.uuidv4();
       //this.quizid = "55";
@@ -114,13 +120,30 @@ export default {
         }
       );
     },
+    tableRefresh(){
+      console.log('refresh')
+      this.$refs.quiztable.refresh()
+    },
+     listQuiz(){
+      this.$http.get('/api/v1/question')
+      .then(res=>{
+        this.items = []
+        this.items = this.items.concat(res.data.result.content);
+        
+      })
+    },
+    myProvider(ctx){
+      let promise = this.$http.get('/api/v1/question');
+            return promise.then((res) => {
+                return(res.data.result.content || []);
+            });
+    },
     save() {
       let quizid = this.$refs.quizdata.quizid;
       let question = this.$refs.quizdata.question;
-      let questionType = this.selectedQuestion;
-      let timeLimitType = this.selectedTimeLimit;
-      let pointType = this.selectedPoint;
-      let timeLimit;
+      let questionType = this.$refs.quizdata.selectedQuestion;
+      let timeLimitType = this.$refs.quizdata.selectedTimeLimit;
+      let pointType = this.$refs.quizdata.selectedPoint;
       let ans1 = this.$refs.quizdata.ans1;
       let ans2 = this.$refs.quizdata.ans2;
       let ans3 = this.$refs.quizdata.ans3;
@@ -129,6 +152,7 @@ export default {
       let check2 = this.$refs.quizdata.check2;
       let check3 = this.$refs.quizdata.check3;
       let check4 = this.$refs.quizdata.check4;
+      console.log(pointType, timeLimitType, questionType);
 
       // ref: https://blog.naver.com/PostView.naver?blogId=varkiry05&logNo=221835597905&redirect=Dlog&widgetTypeCall=true&directAccess=false
       // this.$http
@@ -142,16 +166,29 @@ export default {
       //   });
 
       // 문제저장
+      // ref: probbank http://namchengju.com/Board/Detail/52/1077
       this.$http
         .post("/api/v1/question", {
-          roomId: this.roomId,
+          //roomId: this.roomId,
           questionType: questionType,
           timeLimitType: timeLimitType,
           pointType: pointType,
           questionText: question,
-          answer: check1 + "," + check2 + "," + check3 + "," + check4,
+          answer1Text: ans1,
+          answer2Text: ans2,
+          answer3Text: ans3,
+          answer4Text: ans4,
+          answer: check1 + check2 + check3 + check4,
         })
-        .then((res) => {});
+        .then((res) => {
+          if(res.data.code == 0){
+            this.$refs.quiztable.refresh();
+            alert('저장했습니다')
+            
+          }else{
+            alert('저장시 문제가 발생했습니다')
+          }
+        });
     },
     parentReceive(val) {
       console.log(val);

@@ -31,6 +31,7 @@ import ObjectiveChoiceProc from '../views/examiner/ObjectiveChoiceProc.vue'
 import ObjectiveCheckProc from '../views/examiner/ObjectiveCheckProc.vue'
 
 import ProbReg from '../views/examiner/ProbReg.vue'
+import ProbBank from '../views/examiner/ProbBank.vue'
 import RoomMng from '../views/examiner/RoomMng.vue'
 import EmMain from '../views/examiner/EmMain.vue'
 
@@ -150,6 +151,11 @@ const routes = [
     path: '/exam/probreg',
     name: 'ProbReg',
     component: ProbReg,
+    props: true
+  } , {
+    path: '/exam/probbank',
+    name: 'ProbBank',
+    component: ProbBank,
     props: true
   }  , {
     path: '/exam/roommng',
