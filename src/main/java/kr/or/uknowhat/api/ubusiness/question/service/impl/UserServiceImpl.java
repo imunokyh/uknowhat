@@ -48,7 +48,7 @@ public class UserServiceImpl implements UserService {
 		User user = new User();
 		user.setId(userVo.getId());
 		user.setPassword(userVo.getPassword());
-		user.setRole(userVo.getRole());
+		user.setAuthority(userVo.getAuthority());
 		userRepository.save(user);
 	}
 
@@ -58,7 +58,7 @@ public class UserServiceImpl implements UserService {
 		if (optionalUser.isPresent()) {
 			User user = optionalUser.get();
 			user.setPassword(userVo.getPassword());
-			user.setRole(userVo.getRole());
+			user.setAuthority(userVo.getAuthority());
 			userRepository.save(user);
 		}
 	}

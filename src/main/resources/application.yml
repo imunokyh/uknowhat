@@ -30,4 +30,8 @@ spring:
     multipart:
       maxFileSize: 50000MB
       maxRequestSize: 5000MB
-
+      
+jwt:
+  header: Authorization
+  secret: c3ByaW5nLWJvb3Qtc2VjdXJpdHktand0LXR1dG9yaWFsLWppd29vbi1zcHJpbmctYm9vdC1zZWN1cml0eS1qd3QtdHV0b3JpYWwK
+  token-validity-in-seconds: 86400

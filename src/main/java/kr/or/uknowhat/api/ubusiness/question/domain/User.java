@@ -4,9 +4,12 @@ import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 
 import io.swagger.annotations.ApiModelProperty;
+import kr.or.uknowhat.api.ubusiness.common.Authority;
 import lombok.Data;
 
 /**
@@ -26,9 +29,10 @@ public class User {
 	@Column(nullable = false, length = 256)
 	private String password;
 	
-	@ApiModelProperty(value = "유저 역할")
+	@ApiModelProperty(value = "유저 권한")
+	@Enumerated(EnumType.STRING)
 	@Column(nullable = true, length = 40)
-	private String role;
+	private Authority authority;
 	
 	@ApiModelProperty(value = "마지막 접근 시간")
 	@Column(nullable = true)
