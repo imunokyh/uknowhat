@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 import kr.or.uknowhat.api.framework.vo.Result;
 import kr.or.uknowhat.api.ubusiness.common.ErrorCode;
 import kr.or.uknowhat.api.ubusiness.question.service.UserService;
+import kr.or.uknowhat.api.ubusiness.question.vo.JwtVo;
+import kr.or.uknowhat.api.ubusiness.question.vo.LoginVo;
 import kr.or.uknowhat.api.ubusiness.question.vo.UserVo;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,7 +34,6 @@ public class UserController {
 						   @RequestParam(defaultValue = "10") int size) {
 		Result res = new Result();
 		res.setErrorCode(ErrorCode.SUCCESS);
-		res.setMessage("code success");
 		res.setResult(userService.listUser(page, size));
 		return res;
 	}
@@ -45,27 +46,66 @@ public class UserController {
 		return res;
 	}
 	
-	@PostMapping
-	public Result insertUser(@RequestBody @Valid UserVo userVo) {
-		userService.insertUser(userVo);
-		Result res = new Result();
-		res.setCode(ErrorCode.SUCCESS);
-		return res;
-	}
-	
-	@PutMapping
+	@PutMapping(value = "/edit")
 	public Result updateUser(@RequestBody @Valid UserVo userVo) {
-		userService.updateUser(userVo);
 		Result res = new Result();
-		res.setCode(ErrorCode.SUCCESS);
+		
+		if (userService.updateUser(userVo) == ErrorCode.ERROR.getCode()) {
+			res.setCode(ErrorCode.ERROR);
+		} else {
+			res.setCode(ErrorCode.SUCCESS);
+		}
+		
 		return res;
 	}
 	
 	@DeleteMapping(value = "{id}")
 	public Result deleteUser(@PathVariable String id) {
-		userService.deleteUser(id);
 		Result res = new Result();
-		res.setCode(ErrorCode.SUCCESS);
+		
+		if (userService.deleteUser(id) == ErrorCode.ERROR.getCode()) {
+			res.setCode(ErrorCode.ERROR);
+		} else {
+			res.setCode(ErrorCode.SUCCESS);
+		}
+		
+		return res;
+	}
+	
+	@PostMapping(value = "/signup")
+	public Result signup(@RequestBody @Valid UserVo userVo) {
+		Result res = new Result();
+		
+		if (userService.insertUser(userVo) == ErrorCode.ERROR.getCode()) {
+			res.setCode(ErrorCode.ERROR);
+			res.setMessage("해당하는 유저 아이디가 이미 존재합니다.");
+		} else {
+			res.setCode(ErrorCode.SUCCESS);
+		}
+		
+		return res;
+	}
+	
+	@PostMapping(value = "/login")
+	public Result login(@RequestBody @Valid LoginVo loginVo) {
+		Result res = new Result();
+		
+		if (userService.getUser(loginVo.getId()) == null) {
+			res.setCode(ErrorCode.ERROR);
+			res.setMessage("아이디가 존재하지 않습니다.");
+		} else {
+			JwtVo jwt = null;
+			
+			jwt = userService.loginUser(loginVo);
+			if (jwt == null) {
+				res.setCode(ErrorCode.ERROR);
+				res.setMessage("비밀번호가 틀렸습니다.");
+			} else {
+				res.setCode(ErrorCode.SUCCESS);
+				res.setResult(jwt);
+			}
+		}
+		
 		return res;
 	}
 }

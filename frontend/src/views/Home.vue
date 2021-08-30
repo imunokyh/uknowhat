@@ -47,8 +47,8 @@ export default {
     },
     examiner() {
       // 출제자 메인
-      this.$router.push({name: 'RoomMng'});
-        
+      //this.$router.push({name: 'RoomMng'});
+      this.$router.push({name: 'Login'});
     },
     participation() {
       // 참가자 메인

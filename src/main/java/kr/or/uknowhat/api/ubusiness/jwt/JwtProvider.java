@@ -6,8 +6,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,11 +24,12 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import kr.or.uknowhat.api.ubusiness.question.vo.JwtVo;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-public class TokenProvider implements InitializingBean {
+public class JwtProvider implements InitializingBean {
 	
 	private static final String AUTHORITIES_KEY = "auth";
 
@@ -39,8 +38,8 @@ public class TokenProvider implements InitializingBean {
 	
 	private Key key;
 
-	public TokenProvider(@Value("${jwt.secret}") String secret,
-						 @Value("${jwt.token-validity-in-seconds}") long tokenValidityInSeconds) {
+	public JwtProvider(@Value("${jwt.secret}") String secret,
+					   @Value("${jwt.token-validity-in-seconds}") long tokenValidityInSeconds) {
 		this.secret = secret;
 		this.tokenValidityInMilliseconds = tokenValidityInSeconds * 1000;
 	}
@@ -51,7 +50,7 @@ public class TokenProvider implements InitializingBean {
 		this.key = Keys.hmacShaKeyFor(keyBytes);
 	}
 
-	public String createToken(Authentication authentication) {
+	public JwtVo createToken(Authentication authentication) {
 		// 권한들 가져오기
 		String authorities = authentication.getAuthorities().stream()
 				.map(GrantedAuthority::getAuthority)
@@ -61,37 +60,40 @@ public class TokenProvider implements InitializingBean {
 		Date validity = new Date(now + this.tokenValidityInMilliseconds);
 
 		// Access Token 생성
-		return Jwts.builder()
-				.setSubject(authentication.getName()) 		// payload "sub": "name"
+		String token = Jwts.builder()
+				.setSubject(authentication.getName()) 		// payload "sub" : "name"
 				.claim(AUTHORITIES_KEY, authorities) 		// payload "auth": "ROLE_USER"
-				.setExpiration(validity) 					// payload "exp": 1516239022 (예시)
-				.signWith(key, SignatureAlgorithm.HS512)	// header  "alg": "HS512"
+				.setExpiration(validity) 					// payload "exp" : 1516239022 (예시)
+				.signWith(key, SignatureAlgorithm.HS512)	// header  "alg" : "HS512"
 				.compact();
+		
+		return JwtVo.builder()
+				.token(token)
+				.build();
 	}
 
 	public Authentication getAuthentication(String token) {
-		Claims claims = Jwts
-	              .parserBuilder()
-	              .setSigningKey(key)
-	              .build()
-	              .parseClaimsJws(token)
-	              .getBody();
+		// 토큰 복호화
+		Claims claims = parseClaims(token);
 
 		// 클레임에서 권한 정보 가져오기
-		Collection<? extends GrantedAuthority> authorities = Arrays
-				.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
+		Collection<? extends GrantedAuthority> authorities = 
+				Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
 				.map(SimpleGrantedAuthority::new)
 				.collect(Collectors.toList());
 
 		// UserDetails 객체를 만들어서 Authentication 리턴
 		UserDetails principal = new User(claims.getSubject(), "", authorities);
 
-		return new UsernamePasswordAuthenticationToken(principal, token, authorities);
+		return new UsernamePasswordAuthenticationToken(principal, "", authorities);
 	}
 
 	public boolean validateToken(String token) {
 		try {
-			Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+			Jwts.parserBuilder()
+			 .setSigningKey(key)
+			 .build()
+			 .parseClaimsJws(token);
 			return true;
 		} catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
 			log.info("잘못된 JWT 서명입니다.");
@@ -103,5 +105,17 @@ public class TokenProvider implements InitializingBean {
 			log.info("JWT 토큰이 잘못되었습니다.");
 		}
 		return false;
+	}
+	
+	private Claims parseClaims(String token) {
+		try {
+			return Jwts.parserBuilder()
+		            .setSigningKey(key)
+		            .build()
+		            .parseClaimsJws(token)
+		            .getBody();
+		} catch (ExpiredJwtException e) {
+			return e.getClaims();
+		}
 	}
 }
