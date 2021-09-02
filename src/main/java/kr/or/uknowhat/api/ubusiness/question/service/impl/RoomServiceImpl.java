@@ -12,6 +12,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import kr.or.uknowhat.api.ubusiness.common.RandomNumberGenerator;
 import kr.or.uknowhat.api.ubusiness.question.domain.Room;
 import kr.or.uknowhat.api.ubusiness.question.repositories.RoomRepository;
 import kr.or.uknowhat.api.ubusiness.question.service.RoomService;
@@ -46,11 +47,28 @@ public class RoomServiceImpl implements RoomService {
 
 	@Override
 	public Room insertRoom(RoomVo roomVo) {
-		Room room = new Room();
-		room.setRoomTitle(roomVo.getTitle());
-		room.setCreatedDate(new Date());
-		room.setCreatedUserId("admin");
-		return roomRepository.save(room);
+		RandomNumberGenerator randomNumberGenerator = new RandomNumberGenerator();
+		
+		String roomNumber = "";
+		boolean generated = false;
+		for (int i = 0; i < 10; i++) {
+			roomNumber = randomNumberGenerator.generateNumber(4, true);
+			if (!existRoom(roomNumber))	{
+				generated = true;
+				break;
+			}
+		}
+		
+		if (generated) {
+			Room room = new Room();
+			room.setRoomTitle(roomVo.getTitle());
+			room.setRoomNumber(roomNumber);
+			room.setCreatedDate(new Date());
+			room.setCreatedUserId("admin");
+			return roomRepository.save(room);
+		} else {
+			return null;
+		}
 	}
 
 	@Override
@@ -79,6 +97,21 @@ public class RoomServiceImpl implements RoomService {
 		Optional<Room> optionalRoom = roomRepository.findById(id);
 		if (optionalRoom.isPresent()) {
 			roomRepository.delete(optionalRoom.get());
+		}
+	}
+
+	@Override
+	public boolean existRoom(String roomNumber) {
+		return roomRepository.existsByRoomNumber(roomNumber);
+	}
+
+	@Override
+	public Room getRoomByRoomNumber(String roomNumber) {
+		Optional<Room> optionalRoom = roomRepository.findByRoomNumber(roomNumber);
+		if (optionalRoom.isPresent()) {
+			return optionalRoom.get();
+		} else {
+			return null;
 		}
 	}
 }

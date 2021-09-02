@@ -11,4 +11,6 @@ public interface RoomService {
 	Room insertRoom(RoomVo roomVo);
 	Room updateRoom(RoomVo roomVo);
 	void deleteRoom(Long id);
+	boolean existRoom(String roomNumber);
+	Room getRoomByRoomNumber(String roomNumber);
 }

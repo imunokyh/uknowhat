@@ -65,6 +65,9 @@
               <b-button @click="deleteGroup('pgid1')" variant="danger"
                 >삭제</b-button
               >
+              <b-button @click="startGroup('pgid1')" variant="success"
+                >시작</b-button
+              >
             </b-card>
           </b-col>
           <b-col>
@@ -78,6 +81,9 @@
               >
               <b-button @click="deleteGroup('pgid2')" variant="danger"
                 >삭제</b-button
+              >
+              <b-button @click="startGroup('pgid2')" variant="success"
+                >시작</b-button
               >
             </b-card>
           </b-col>
@@ -93,6 +99,9 @@
               <b-button @click="deleteGroup('pgid3')" variant="danger"
                 >삭제</b-button
               >
+              <b-button @click="startGroup('pgid3')" variant="success"
+                >시작</b-button
+              >
             </b-card>
           </b-col>
           <b-col>
@@ -106,6 +115,9 @@
               >
               <b-button @click="deleteGroup('pgid4')" variant="danger"
                 >삭제</b-button
+              >
+              <b-button @click="startGroup('pgid4')" variant="success"
+                >시작</b-button
               >
             </b-card>
           </b-col>
@@ -123,6 +135,9 @@
               >
               <b-button @click="deleteGroup('pgid5')" variant="danger"
                 >삭제</b-button
+              >
+              <b-button @click="startGroup('pgid5')" variant="success"
+                >시작</b-button
               >
             </b-card>
           </b-col>
@@ -170,6 +185,9 @@ export default {
           probGrpId: probGrpId,
         })
         .then((res) => {});
+    },
+    startGroup(probGrdId) {
+      //
     },
     checkFormValidity() {
       const valid = this.$refs.form.checkValidity();

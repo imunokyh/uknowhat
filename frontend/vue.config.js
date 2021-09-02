@@ -5,6 +5,9 @@ module.exports = {
     proxy: {
       '/api': {
         target: 'http://localhost:9080'      
+      },
+      '/stomp': {
+        target: 'http://localhost:9080'
       }
     }
   }

@@ -29,9 +29,9 @@ public class RoomController {
 	private RoomService roomService;
 	
 	@GetMapping
-	public Result listRoom(@RequestParam(defaultValue = "0") int page,
-						   @RequestParam(defaultValue = "10") int size,
-						   @RequestParam(required = false, defaultValue = "") String user) {
+	public Result listRoom(@RequestParam(value = "page", defaultValue = "0") int page,
+						   @RequestParam(value = "size", defaultValue = "10") int size,
+						   @RequestParam(value = "user", required = false, defaultValue = "") String user) {
 		Result res = new Result();
 		res.setCode(ErrorCode.SUCCESS);
 		res.setResult(roomService.listRoom(page, size, user));
@@ -69,6 +69,26 @@ public class RoomController {
 		roomService.deleteRoom(id);
 		Result res = new Result();
 		res.setCode(ErrorCode.SUCCESS);
+		return res;
+	}
+	
+	@GetMapping(value = "/number/{number}")
+	public Result existRoom(@PathVariable String number) {
+		Result res = new Result();
+		if (roomService.existRoom(number)) {
+			Room room = null;
+			RoomVo roomVo = new RoomVo();
+			
+			room = roomService.getRoomByRoomNumber(number);
+			roomVo.setId(room.getRoomId());
+			roomVo.setTitle(room.getRoomTitle());
+			roomVo.setState(room.getRoomState());
+			res.setCode(ErrorCode.SUCCESS);
+			res.setResult(roomVo);
+		} else {
+			res.setCode(ErrorCode.ERROR);
+			res.setMessage("방을 찾을 수 없습니다.");
+		}
 		return res;
 	}
 }

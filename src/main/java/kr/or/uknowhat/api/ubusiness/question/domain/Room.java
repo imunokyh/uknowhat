@@ -35,6 +35,10 @@ public class Room {
 	@Column(nullable = false)
 	private Long roomId;
 	
+	@ApiModelProperty(value = "방 번호")
+	@Column(nullable = true, length = 4)
+	private String roomNumber;
+	
 	@ApiModelProperty(value = "방 제목")
 	@Column(nullable = false, length = 40)
 	private String roomTitle;
