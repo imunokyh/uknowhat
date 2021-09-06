@@ -24,6 +24,16 @@ import SockJS from 'sockjs-client'
 
 export default {
     name: 'Chat',
+    props: {
+        number: {
+            type: String,
+            default: ""
+        },
+        nickname: {
+            type: String,
+            default: ""
+        }
+    },
     data() {
         return {
             roomNum: "",
@@ -34,8 +44,10 @@ export default {
         }
     },
     created() {
-        this.roomNum = this.$route.query.number;
-        this.userName = this.$route.query.nickname;
+        this.roomNum = this.number;
+        this.userName = this.nickname;
+        console.log(this.number);
+        console.log(this.nickname);
         this.connect()
     },
     methods: {

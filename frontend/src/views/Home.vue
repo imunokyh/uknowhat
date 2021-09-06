@@ -1,5 +1,5 @@
 <template>
-  <div style="height: 768px">
+  <div style="height: 100%">
     <b-jumbotron
       class="h-100"
       bg-variant="dark"

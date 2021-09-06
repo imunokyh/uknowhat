@@ -1,34 +1,37 @@
 <template>
- <b-container>
-    <b-row>
-      <b-col>{{ question }}</b-col>
-    </b-row>
-    <b-row>
-      <b-col cols="6">{{ans1}}</b-col>
-      <b-col cols="6">{{ans2}}</b-col>
-    </b-row>
-    <b-row>
-      <b-col cols="6">{{ans3}}</b-col>
-      <b-col cols="6">{{ans4}}</b-col>
-    </b-row>
-  </b-container>  
+  <div class="h-100">
+    <div class="row h-50">
+        <b-button id="one" variant="primary" class="col-sm-6" @click="submit($event)">1</b-button>
+        <b-button id="two" variant="danger" class="col-sm-6" @click="submit($event)">2</b-button>
+    </div>
+    <div class="row h-50">
+        <b-button id="three" variant="success" class="col-sm-6" @click="submit($event)">3</b-button>
+        <b-button id="four" variant="warning" class="col-sm-6" @click="submit($event)">4</b-button>
+    </div>
+  </div>
 </template>
 
 <script>
 export default {
   data() {
     return {
-      name: "ObjectivePro",
-      question: "다음은 나다윗의 영어 이름은?",
-      ans1: "Paul",
-      ans2: "Queen",
-      ans3: "David",
-      ans4: "Matthew"
+      name: "ObjectiveProb",
     };
+  },
+  methods: {
+    submit(event) {
+      console.log(event.target.id);
+    },
   },
 };
 </script>
 
 <style>
+#one, #two, #three, #four {
+  color: white;
+  font-size: 100px;
+  font-weight: bold;
+}
+
 
 </style>

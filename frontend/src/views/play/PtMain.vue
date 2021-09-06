@@ -62,7 +62,7 @@ export default {
           })
           .catch((error) => {console.log(error); this.show = false;});
       } else {
-        this.$router.push({name: 'Chat', query: { number: this.roomNum, nickname: this.participantName}});
+        this.$router.push({name: 'Chat', params: { number: this.roomNum, nickname: this.participantName}});
       }
     },
   }

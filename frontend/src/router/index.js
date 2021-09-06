@@ -126,7 +126,8 @@ const routes = [
   }, {
     path: '/play/chat',
     name: 'Chat',
-    component: Chat
+    component: Chat,
+    props: true
   }
   // 출제자
   , {

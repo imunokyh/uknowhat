@@ -1,25 +1,28 @@
 <template>
-  <b-container>
-    <b-row>
-      <b-col>{{ question }}</b-col>
-    </b-row>
-    <b-row>
-      <b-col cols="6">O</b-col>
-      <b-col cols="6">X</b-col>
-    </b-row>
-  </b-container>
+  <div class="row h-100">
+    <b-button id="true" variant="primary" class="col-sm-6" @click="submit($event)">O</b-button>
+    <b-button id="false" variant="danger" class="col-sm-6" @click="submit($event)">X</b-button>
+  </div>
 </template>
 
 <script>
 export default {
   data() {
     return {
-      name: "TrueFalseProb",
-      question: "한국은 영어로 KOREA이다"
+      name: "TrueFalseProb"
     };
+  },
+  methods: {
+    submit(event) {
+      console.log(event.target.id);
+    },
   },
 };
 </script>
 
 <style>
+#true, #false {
+  font-size: 100px;
+  font-weight: bold;
+}
 </style>
