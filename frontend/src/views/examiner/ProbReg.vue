@@ -23,26 +23,35 @@
       <b-row>&nbsp;</b-row>
       <b-row>&nbsp;</b-row>
       <b-row>
-        <b-col cols="2">
-          <b-card v-for="index in cardCnt" :title="'quiz' + index"></b-card>
+        <b-col cols="6" class="vl">
+          Title:<b-form-input v-model="roomTitle"></b-form-input>
+          <b-table :fields="fields"></b-table>
         </b-col>
+        <b-col cols="6" class="vl"> 
+          <b-row>
+            <b-col sm="8">
+              <b-form-input v-model="searchText" placeholder="검색어"></b-form-input>
+            </b-col>
+            <b-col sm="4">
+              <b-button>검색</b-button>
+            </b-col>
+          </b-row>
+          <b-row>
+            <b-col sm="12">
+            <b-form-select v-model="selectedSearchType" :options="optionsSearchType">
+            </b-form-select>
+            </b-col>
+            </b-row> 
+            <b-row>
+              <b-table :fields="probFields">
 
-        <!-- main content -->
-        <b-col cols="8" class="vl">
-          <!-- TOBE removed
-          <quiz-comp ref="quizdata" @child-event="parentReceive"></quiz-comp>
-          -->
-          <h1>문제검색TODO</h1>
-        </b-col>
-        <!-- e.main content -->
-        <b-col cols="2" class="vl">
-          <div><b-button>저장</b-button></div>
-          <b-row>&nbsp;</b-row>
-          <div><b-button>복제본</b-button></div>
-          <b-row>&nbsp;</b-row>
-          <div><b-button>삭제</b-button></div>
-        </b-col>
+              </b-table>
+              </b-row>         
+
+          </b-col>
       </b-row>
+
+      
     </b-container>
   </div>
 </template>
@@ -70,6 +79,13 @@ export default {
   },
   data() {
     return {
+      searchText: "",
+      selectedSearchType: null,
+      optionsSearchType: [
+        { value: null, text: '문제타입' },
+          { value: 'tf', text: 'OX' },
+          { value: 'obj', text: '객관식' },
+      ],
       cardCnt: 4,
       status1: "not_accepted",
       status2: "not_accepted",
@@ -81,6 +97,18 @@ export default {
       ans3: "",
       ans4: "",
       quizid: "",
+      items:[],
+      fields:[
+        {key: 'quesOrder', label: '순서'},
+        {key: 'quesType', label: '문제유형'},        
+        {key: 'quesText', label: '문제내용'},
+        {key: 'quesScore', label: '점수'},
+        {key: 'quesTime', label: '시간'},
+      ],
+      probFields:[
+        {key: 'quesText', label: '문제내용'},
+        {key: 'detail', label: '자세히'},
+      ]
     };
   },
   created() {
@@ -95,6 +123,8 @@ export default {
     } else {
       console.log("modify prob group");
     }
+    this.roomId = 1
+    this.roomTitle = "test"
   },
   methods: {
     genQuizId() {
