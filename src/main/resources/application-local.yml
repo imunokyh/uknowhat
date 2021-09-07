@@ -12,4 +12,13 @@ spring:
     url: jdbc:mariadb://3.37.90.96:3306/uknowhat?useSSL=false&useUnicode=true&autoReconnect=true&characterEncoding=utf8
     username: uknowhatuser
     password: uknowhat1q2w3e
-    
+  redis:
+    lettuce:
+      pool:
+        max-active: 100
+        max-idle: 100
+        min-idle: 0
+    port: 6379
+    host: 3.37.90.96
+    password: uknowhat1q2w3e
+    timeout: 10000

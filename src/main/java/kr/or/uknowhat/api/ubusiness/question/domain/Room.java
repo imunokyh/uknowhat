@@ -76,9 +76,4 @@ public class Room {
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(nullable = true)
 	private Date endedDate;
-	
-	@ApiModelProperty(value = "참가자 목록")
-	@OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-	@JoinColumn(name = "room_id")
-	private List<Participant> participantList;
 }

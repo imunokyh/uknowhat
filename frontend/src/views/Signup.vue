@@ -2,7 +2,7 @@
   <div>
     <b-overlay :show="show" rounded="sm">
       <b-form>
-        <b-form-group id="input-group-1" label="Id:" label-for="input-1">
+        <b-form-group id="input-group-1" label="Id" label-for="input-1">
           <b-form-input
             id="input-1"
             v-model="form.id"
@@ -12,7 +12,7 @@
           ></b-form-input>
         </b-form-group>
 
-        <b-form-group id="input-group-2" label="Password:" label-for="input-2">
+        <b-form-group id="input-group-2" label="Password" label-for="input-2">
           <b-form-input
             id="input-2"
             v-model="form.password"
@@ -22,13 +22,14 @@
           ></b-form-input>
         </b-form-group>
 
-        <b-form-group id="input-group-3" label="Password Check:" label-for="input-3">
+        <b-form-group id="input-group-3" label="Check the Password" label-for="input-3">
           <b-form-input
             id="input-3"
             v-model="form.passwordCheck"
             type="password"
             placeholder="Enter Password"
             required
+            @keyup.enter="signup()"
           ></b-form-input>
         </b-form-group>
 

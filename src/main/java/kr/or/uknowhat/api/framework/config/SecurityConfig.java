@@ -49,8 +49,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .authorizeRequests()
             .antMatchers("/api/v1/user/signup").permitAll()
             .antMatchers("/api/v1/user/login").permitAll()
-            .antMatchers("/api/v1/room/number/**").permitAll()
-            //.regexMatchers("\\/api\\/v1\\/room\\?number\\=(.*)").permitAll()
+            .antMatchers("/api/v1/room/check/**").permitAll()
             .antMatchers("/stomp/**").permitAll()
             .anyRequest().authenticated()   // 나머지 API 는 전부 인증 필요
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="text-success bg-dark" style="height: 768px">
+  <div class="text-success bg-dark" style="height: 100%">
     <main>
       <section class="py-5 text-center container">
         <div class="row py-lg-5">

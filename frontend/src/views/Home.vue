@@ -6,7 +6,7 @@
       text-variant="white"
       border-variant="dark"
     >
-      <template #header>Uknowhat</template>
+      <template #header>Uknowhat?</template>
 
       <template #lead>
         재미있게 같이 문제를 풀어봐요.

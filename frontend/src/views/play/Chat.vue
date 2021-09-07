@@ -44,11 +44,28 @@ export default {
         }
     },
     created() {
+        window.addEventListener('beforeunload', this.unLoadEvent);
+
         this.roomNum = this.number;
         this.userName = this.nickname;
         console.log(this.number);
         console.log(this.nickname);
         this.connect()
+    },
+    destroyed() {
+        if (this.stompClient !== null) {
+            const msg = { 
+                roomNumber: this.roomNum,
+                participantName: this.userName,
+                content: "",
+                type: "UJOI"
+            };
+            this.stompClient.send('/publish/chat/join', JSON.stringify(msg));
+
+            this.stompClient.unsubscribe("/subscribe/chat/room/" + this.roomNum, {});
+            this.stompClient.disconnect();
+            this.stompClient = null;
+        }
     },
     methods: {
         connect() {
@@ -104,7 +121,22 @@ export default {
                 this.send();
                 this.message = '';
             }
-        },    
+        },
+        unLoadEvent(event) {
+            if (this.stompClient !== null) {
+                const msg = { 
+                    roomNumber: this.roomNum,
+                    participantName: this.userName,
+                    content: "",
+                    type: "UJOI"
+                };
+                this.stompClient.send('/publish/chat/join', JSON.stringify(msg));
+
+                this.stompClient.unsubscribe("/subscribe/chat/room/" + this.roomNum, {});
+                this.stompClient.disconnect();
+                this.stompClient = null;
+            }
+        },
     }
 }
 </script>

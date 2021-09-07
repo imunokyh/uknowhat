@@ -1,8 +1,8 @@
 <template>
-  <div>
-    <b-overlay :show="show" rounded="sm">
+  <div class="h-100">
+    <b-overlay :show="show" rounded="sm" class="h-100">
       <b-form>
-        <b-form-group id="input-group-1" label="Id:" label-for="input-1">
+        <b-form-group id="input-group-1" label="Id" label-for="input-1">
           <b-form-input
             id="input-1"
             v-model="form.id"
@@ -12,7 +12,7 @@
           ></b-form-input>
         </b-form-group>
 
-        <b-form-group id="input-group-2" label="Password:" label-for="input-2">
+        <b-form-group id="input-group-2" label="Password" label-for="input-2">
           <b-form-input
             id="input-2"
             v-model="form.password"
@@ -24,6 +24,7 @@
 
         <b-button variant="primary" @click="login()">Login</b-button>
         <b-button variant="success" @click="signup()">Signup</b-button>
+        <b-button variant="danger" @click="back()">Back</b-button>
       </b-form>
     </b-overlay>
   </div>
@@ -63,6 +64,9 @@
       },
       signup() {
         this.$router.push({name: 'Signup'});
+      },
+      back() {
+        this.$router.go(-1);
       },
     }
   }

@@ -3,6 +3,8 @@ package kr.or.uknowhat.api.ubusiness.question.web;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,6 +29,9 @@ public class RoomController {
 	
 	@Autowired
 	private RoomService roomService;
+	
+	@Autowired
+	private RedisTemplate<String, String> redisTemplate;
 	
 	@GetMapping
 	public Result listRoom(@RequestParam(value = "page", defaultValue = "0") int page,
@@ -72,14 +77,14 @@ public class RoomController {
 		return res;
 	}
 	
-	@GetMapping(value = "/number/{number}")
-	public Result existRoom(@PathVariable String number) {
+	@GetMapping(value = "/check/number/{number}")
+	public Result checkNumber(@PathVariable(value = "number") String roomNumber) {
 		Result res = new Result();
-		if (roomService.existRoom(number)) {
+		if (roomService.existRoom(roomNumber)) {
 			Room room = null;
 			RoomVo roomVo = new RoomVo();
 			
-			room = roomService.getRoomByRoomNumber(number);
+			room = roomService.getRoomByRoomNumber(roomNumber);
 			roomVo.setId(room.getRoomId());
 			roomVo.setTitle(room.getRoomTitle());
 			roomVo.setState(room.getRoomState());
@@ -89,6 +94,23 @@ public class RoomController {
 			res.setCode(ErrorCode.ERROR);
 			res.setMessage("방을 찾을 수 없습니다.");
 		}
+		return res;
+	}
+	
+	@GetMapping(value = "/check/nickname")
+	public Result checkNickname(@RequestParam(value = "number", defaultValue = "") String roomNumber,
+								@RequestParam(value = "nickname", defaultValue = "") String nickname) {
+		Result res = new Result();
+		
+		HashOperations<String, Object, Object> hashOperations = redisTemplate.opsForHash();
+		Object value = hashOperations.get(roomNumber, nickname);
+		if (value == null) {
+			res.setCode(ErrorCode.SUCCESS);
+		} else {
+			res.setCode(ErrorCode.ERROR);
+			res.setMessage("중복되는 닉네임이 존재합니다.");
+		}
+		
 		return res;
 	}
 }
