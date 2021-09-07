@@ -46,7 +46,7 @@ public class QuestionServiceImpl implements QuestionService {
 	@Override
 	public void insertQuestion(QuestionVo questionVo) {
 		Question question = new Question();
-		question.setQuestionCategory(questionVo.getCategory());
+		question.setQuestionCategory(questionVo.getQuestionCategory());
 		question.setQuestionType(questionVo.getQuestionType());
 		question.setTimeLimitType(questionVo.getTimeLimitType());
 		question.setPointType(questionVo.getPointType());
@@ -63,10 +63,10 @@ public class QuestionServiceImpl implements QuestionService {
 
 	@Override
 	public void updateQuestion(QuestionVo questionVo) {
-		Optional<Question> optionalQuestion = questionRepository.findById(questionVo.getId());
+		Optional<Question> optionalQuestion = questionRepository.findById(questionVo.getQuestionId());
 		if (optionalQuestion.isPresent()) {
 			Question question = optionalQuestion.get();
-			question.setQuestionCategory(questionVo.getCategory());
+			question.setQuestionCategory(questionVo.getQuestionCategory());
 			question.setQuestionType(questionVo.getQuestionType());
 			question.setTimeLimitType(questionVo.getTimeLimitType());
 			question.setPointType(questionVo.getPointType());

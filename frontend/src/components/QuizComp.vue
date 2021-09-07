@@ -13,10 +13,11 @@
       <b-row>
         <b-col>
           <b-form-select
-            v-model="selectedQuestion"
-            :options="optionsQuestion"
+            v-model="selectedType"
+            :options="optionsType"
           ></b-form-select>
         </b-col>
+        <!--
         <b-col
           ><b-form-select
             v-model="selectedTimeLimit"
@@ -29,10 +30,11 @@
             :options="optionsPoint"
           ></b-form-select
         ></b-col>
+        -->
       </b-row>
     </div>
     <!-- e -->
-    <label hidden>{{ quizid }}</label>
+    <label >{{ quizId }}</label>
     <div>&nbsp;</div>
     <div>
       <b-form-input
@@ -41,107 +43,66 @@
       ></b-form-input>
       <div>&nbsp;</div>
       <div>&nbsp;</div>
-      <b-row>
-        <b-col>
-          <!-- check -->
-          <b-row>
-            <b-col cols="1">
-              <b-form-checkbox
-                id="checkbox-1"
-                v-model="check1"
-                name="checkbox-1"
-                value="1"
-                unchecked-value="0"
-              >
-              </b-form-checkbox>
-            </b-col>
-            <b-col cols="11">
-              <b-form-textarea
-                v-model="ans1"
-                placeholder="1번 답을 입력하세요"
-                rows="2"
-              ></b-form-textarea>
-            </b-col>
-          </b-row>
-          <!-- e.check -->
-        </b-col>
-        <b-col>
-          <b-row>
-            <b-col cols="1">
-              <b-form-checkbox
-                id="checkbox-2"
-                v-model="check2"
-                name="checkbox-2"
-                value="1"
-                unchecked-value="0"
-              >
-              </b-form-checkbox>
-            </b-col>
-            <b-col cols="11">
-              <b-form-textarea
-                v-model="ans2"
-                placeholder="2번 답을 입력하세요"
-                rows="2"
-              ></b-form-textarea>
-            </b-col>
-          </b-row>
-        </b-col>
+
+      <!--s.tfprob -->
+      <b-row v-show="selectedType == 'TF'">
+        <b-form-group label="참-거짓 선택" v-slot="{ ariaDescribedby }">
+          <b-form-radio-group
+            v-model="selectedTf"
+            :options="optionsTf"
+            :aria-describedby="ariaDescribedby"
+            name="radio-inline"
+          ></b-form-radio-group>
+        </b-form-group>
       </b-row>
-      <b-row>
-        <b-col>
-          <b-row>
-            <b-col cols="1">
-              <b-form-checkbox
-                id="checkbox-3"
-                v-model="check3"
-                name="checkbox-3"
-                value="1"
-                unchecked-value="0"
-              >
-              </b-form-checkbox>
-            </b-col>
-            <b-col cols="11">
-              <b-form-textarea
-                v-model="ans3"
-                placeholder="3번 답을 입력하세요"
-                rows="2"
-              ></b-form-textarea>
-            </b-col>
-          </b-row>
-        </b-col>
-        <b-col>
-          <b-row>
-            <b-col cols="1">
-              <b-form-checkbox
-                id="checkbox-4"
-                v-model="check4"
-                name="checkbox-4"
-                value="1"
-                unchecked-value="0"
-              >
-              </b-form-checkbox>
-            </b-col>
-            <b-col cols="11">
-              <b-form-textarea
-                v-model="ans4"
-                placeholder="4번 답을 입력하세요"
-                rows="2"
-              ></b-form-textarea>
-            </b-col>
-          </b-row>
-        </b-col>
+      <!--e.tfprob-->
+
+      <b-row v-show="selectedType == 'OB'">
+        <!-- radio -->
+        <div v-for="inputRadio in radios" class="form-check form-group">
+          <input
+            class="form-check-input"
+            v-model="radioSelected"
+            type="radio"
+            :value="inputRadio.value"
+            :id="inputRadio.value"
+          />
+          <label class="form-check-label" :for="inputRadio.value">
+            {{ inputRadio.label }}
+          </label>
+          <b-form-textarea
+            v-model="ans[inputRadio.value]"
+            placeholder="답을 입력하세요"
+            rows="2"
+          ></b-form-textarea>
+          <br />
+        </div>
+
+        <!-- e.radio -->
       </b-row>
     </div>
+    <!-- debug
+    selected is: {{ selectedTf }} / {{ radioSelected }}
+    -->
     <!-- e.main content -->
   </div>
 </template>
 
 <script>
 export default {
+  
   data() {
     return {
-      quizid: "",
+      radios: [
+        { value: "1", label: "1번답" },
+        { value: "2", label: "2번답" },
+        { value: "3", label: "3번답" },
+        { value: "4", label: "4번답" },
+      ],
+      radioSelected: null,
+      quizId: "",
       question: "",
+      ans: [],
       ans1: "",
       ans2: "",
       ans3: "",
@@ -153,10 +114,17 @@ export default {
       quizType: "0",
       timeLimit: "0",
       point: "0",
-      selectedQuestion: null,
+
+      selectedTf: "1",
+      optionsTf: [
+        { text: "참", value: "1" },
+        { text: "거짓", value: "2" },
+      ],
+
+      selectedType: null,
       selectedTimeLimit: null,
       selectedPoint: null,
-      optionsQuestion: [
+      optionsType: [
         { value: null, text: "퀴즈타입" },
         { value: "TF", text: "OX" },
         { value: "OB", text: "객관식" },
@@ -175,18 +143,28 @@ export default {
       ],
     };
   },
+  watch: {
+    selectedQuestion: function (newVal, oldVal) {
+      if (newVal == "TF") {
+        showTfTypeInput();
+      } else if (newVal == "OB") {
+        showObjTypeInput();
+      } else {
+      }
+    },
+  },
+
   created() {
-    this.genQuizId();
+    //this.genQuizId();
   },
   computed: {},
   mounted() {
     //this.genQuizId();
   },
   methods: {
-    genQuizId() {
-      this.quizid = "quizid-" + this.uuidv4();
-      //this.quizid = "55";
-    },
+    showTfTypeInput() {},
+    showObjTypeInput() {},
+
     getRandomInt() {
       return Math.floor(Math.random() * (50 - 4)) + 5;
     },
@@ -201,6 +179,7 @@ export default {
       );
     },
     save() {
+      console.log(this.ans1);
       this.$emit("child-event", 100);
     },
   },

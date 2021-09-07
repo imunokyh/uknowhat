@@ -37,11 +37,11 @@ public class QuestionController {
 		return res;
 	}
 	
-	@GetMapping(value = "{id}")
-	public Result getQuestion(@PathVariable Long id) {
+	@GetMapping(value = "{questionId}")
+	public Result getQuestion(@PathVariable Long questionId) {
 		Result res = new Result();
 		res.setCode(ErrorCode.SUCCESS);
-		res.setResult(questionService.getQuestion(id));
+		res.setResult(questionService.getQuestion(questionId));
 		return res;
 	}
 	
@@ -61,9 +61,9 @@ public class QuestionController {
 		return res;
 	}
 	
-	@DeleteMapping(value = "{id}")
-	public Result deleteQuestion(@PathVariable Long id) {
-		questionService.deleteQuestion(id);
+	@DeleteMapping(value = "{questionId}")
+	public Result deleteQuestion(@PathVariable Long questionId) {
+		questionService.deleteQuestion(questionId);
 		Result res = new Result();
 		res.setCode(ErrorCode.SUCCESS);
 		return res;

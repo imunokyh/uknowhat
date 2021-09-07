@@ -6,9 +6,9 @@ import lombok.Data;
 @Data
 public class QuestionVo {
 	@ApiModelProperty(value = "문제 아이디")
-	private Long id;
+	private Long questionId;
 	@ApiModelProperty(value = "문제 범주")
-	private String category;
+	private String questionCategory;
 	@ApiModelProperty(value = "문제 유형")
 	private String questionType;
 	@ApiModelProperty(value = "시간 제한")
