@@ -1,6 +1,6 @@
 <template>
-  <div style="height: 1000px">
-    <b-container>
+  <div class="overflow-auto"   >
+    <b-container style="height: 900px">
       <b-row>&nbsp;</b-row>
       <b-row>
         <b-col cols="2"></b-col>
@@ -16,8 +16,6 @@
           background-color: gray;
         "
       />
-      <b-row>&nbsp;</b-row>
-      <b-row>&nbsp;</b-row>
       <b-row>
         <b-button variant="primary" @click="initVal()">추가</b-button>
         <b-button variant="danger" @click="delProb()">삭제</b-button>
@@ -94,9 +92,9 @@ export default {
       items: [],
       fields: [
         { key: "questionId", label: "ID" },
-        { key: "questionType", label: "문제유형" },
-        { key: "questionText", label: "문제내용" },
-        { key: "questionAnswer", label: "문제정답" },
+        { key: "questionType", label: "TYPE" },
+        { key: "questionText", label: "내용" },
+        { key: "questionAnswer", label: "답" },
       ],
     };
   },

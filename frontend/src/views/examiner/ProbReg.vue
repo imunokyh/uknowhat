@@ -1,17 +1,18 @@
 <template>
-  <div style="height: 768px">
+  <div class="topbar">
     <b-container>
-      <b-row>&nbsp;</b-row>
+      <!--      
       <b-row>
         <b-col cols="2"></b-col>
         <b-col cols="7"><h1>방문제등록</h1></b-col>
         <b-col cols="3">
           <b-button>문제은행</b-button>
-          <b-button>추가</b-button>
+      
           <b-button>완료</b-button>
         </b-col>
       </b-row>
       <b-row> roomId: {{ roomId }} / roomTitle: {{ roomTitle }} </b-row>
+      -->
       <hr
         style="
           height: 2px;
@@ -21,37 +22,81 @@
         "
       />
       <b-row>&nbsp;</b-row>
-      <b-row>&nbsp;</b-row>
-      <b-row>
+      
+      <b-row
+        ><!--left-->
+        
+        
+
+
         <b-col cols="6" class="vl">
           Title:<b-form-input v-model="roomTitle"></b-form-input>
-          <b-table :fields="fields"></b-table>
-        </b-col>
-        <b-col cols="6" class="vl"> 
+
           <b-row>
-            <b-col sm="8">
-              <b-form-input v-model="searchText" placeholder="검색어"></b-form-input>
+          <b-col sm="2">
+            <b-button @click="modProb()">편집</b-button>
+          </b-col>
+          <b-col sm="2">
+            <b-button @click="delProb()">삭제</b-button>
+          </b-col>
+          <b-col sm="4">
+            roomId: {{roomId}}/ probId:{{}}
+          </b-col>
+        </b-row>
+
+          <b-table
+            selectable
+            select-mode="single"
+            @row-selected="onProbSelected"
+            striped
+            hover
+            ref="probtable"
+            :items="probItems"
+            :fields="probFields"
+          ></b-table>
+        </b-col>
+        <b-col cols="6" class="vl">
+          <b-row>
+            <b-col sm="5">
+              <b-form-input
+                v-model="searchText"
+                placeholder="검색어"
+              ></b-form-input>
             </b-col>
-            <b-col sm="4">
+            <b-col sm="3">
+              <b-form-select
+                v-model="selectedSearchType"
+                :options="optionsSearchType"
+              >
+              </b-form-select
+            ></b-col>
+            <b-col sm="2">
               <b-button>검색</b-button>
             </b-col>
-          </b-row>
-          <b-row>
-            <b-col sm="12">
-            <b-form-select v-model="selectedSearchType" :options="optionsSearchType">
-            </b-form-select>
+            <b-col sm="2">
+              <b-button @click="add()">추가</b-button>
             </b-col>
-            </b-row> 
-            <b-row>
-              <b-table :fields="probFields">
-
-              </b-table>
-              </b-row>         
-
-          </b-col>
+          </b-row>
+          <br />
+          <b-row class="overflow-auto" style="height: 400px">
+            <b-table
+              selectable
+              select-mode="single"
+              @row-selected="onBankSelected"
+              striped
+              hover
+              ref="banktable"
+              :items="bankProvider"
+              :fields="bankFields"
+            >
+            </b-table>
+          </b-row>
+        </b-col>
       </b-row>
 
-      
+      <b-row>
+        <quiz-comp ref="quizdata"></quiz-comp>
+      </b-row>
     </b-container>
   </div>
 </template>
@@ -82,9 +127,9 @@ export default {
       searchText: "",
       selectedSearchType: null,
       optionsSearchType: [
-        { value: null, text: '문제타입' },
-          { value: 'tf', text: 'OX' },
-          { value: 'obj', text: '객관식' },
+        { value: null, text: "문제타입" },
+        { value: "tf", text: "OX" },
+        { value: "obj", text: "객관식" },
       ],
       cardCnt: 4,
       status1: "not_accepted",
@@ -97,18 +142,15 @@ export default {
       ans3: "",
       ans4: "",
       quizid: "",
-      items:[],
-      fields:[
-        {key: 'quesOrder', label: '순서'},
-        {key: 'quesType', label: '문제유형'},        
-        {key: 'quesText', label: '문제내용'},
-        {key: 'quesScore', label: '점수'},
-        {key: 'quesTime', label: '시간'},
+      probItems: [],
+      probFields: [
+        { key: "quesOrder", label: "순서" },
+        { key: "quesType", label: "문제유형" },
+        { key: "quesText", label: "문제내용" },
+        { key: "quesScore", label: "점수" },
+        { key: "quesTime", label: "시간" },
       ],
-      probFields:[
-        {key: 'quesText', label: '문제내용'},
-        {key: 'detail', label: '자세히'},
-      ]
+      bankFields: [{ key: "questionText", label: "내용" }],
     };
   },
   created() {
@@ -123,10 +165,65 @@ export default {
     } else {
       console.log("modify prob group");
     }
-    this.roomId = 1
-    this.roomTitle = "test"
+    this.roomId = 1;
+    this.roomTitle = "test";
   },
   methods: {
+    modProb(){
+
+    },
+    delProb(){
+
+    },
+    add() {
+      let roomId = this.roomId;
+      let quizId = this.$refs.quizdata.quizId;
+      let time = 5;
+      let point = 10;
+      this.$http({
+        method: method,
+        url:"/api/v1/roomquestion",
+        data: {
+          //roomId: this.roomId,
+          roomId: roomId,
+          quizId: quizId,
+          time: time,
+          point: point,
+        }})
+        .then((res) => {
+          if (res.data.code == 0) {
+            this.$refs.quiztable.refresh();
+            alert("저장했습니다");
+            this.initVal();
+          } else {
+            alert("저장시 문제가 발생했습니다");
+          }
+        });
+      this.probItems.push({ quesType: "TF", quesText: "문제다" });
+    },
+    onProbSelected(items) {},
+    onBankSelected(items) {
+      this.selected = items[0];
+      this.$refs.quizdata.question = this.selected.questionText;
+      this.$refs.quizdata.quizId = this.selected.questionId;
+      this.$refs.quizdata.selectedType = this.selected.questionType;
+
+      if (this.$refs.quizdata.selectedType == "TF") {
+        this.$refs.quizdata.selectedTf = this.selected.questionAnswer;
+      } else {
+        this.$refs.quizdata.radioSelected = this.selected.questionAnswer;
+        this.$refs.quizdata.ans[1] = this.selected.answer1Text;
+        this.$refs.quizdata.ans[2] = this.selected.answer2Text;
+        this.$refs.quizdata.ans[3] = this.selected.answer3Text;
+        this.$refs.quizdata.ans[4] = this.selected.answer4Text;
+      }
+    },
+    bankProvider(ctx) {
+      let promise = this.$http.get("/api/v1/question");
+      return promise.then((res) => {
+        return res.data.result.content || [];
+      });
+    },
     genQuizId() {
       this.quizid = "quizid_" + this.uuidv4();
       //this.quizid = "55";
@@ -195,5 +292,12 @@ export default {
 .vl {
   border-left: 2px solid gray;
   height: 500px;
+}
+.topbar {
+  display: block;
+  width: 100%;
+  height: 900px;
+  background-color: white;
+  overflow: scroll;
 }
 </style>

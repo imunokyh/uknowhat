@@ -34,7 +34,8 @@
       </b-row>
     </div>
     <!-- e -->
-    <label >{{ quizId }}</label>
+    <!--
+    <label >{{ quizId }}</label>-->
     <div>&nbsp;</div>
     <div>
       <b-form-input
