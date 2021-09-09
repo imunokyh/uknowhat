@@ -30,10 +30,14 @@ public class QuestionController {
 	@GetMapping
 	public Result listQuestion(@RequestParam(defaultValue = "0") int page,
 							   @RequestParam(defaultValue = "10") int size,
-							   @RequestParam(required = false, defaultValue = "") String searchText) {
+							   @RequestParam(defaultValue = "") String searchType,
+							   @RequestParam(defaultValue = "") String searchText
+							   ) {
 		Result res = new Result();
 		res.setCode(ErrorCode.SUCCESS);
-		res.setResult(questionService.listQuestion(page, size, searchText));
+		log.info(searchType);
+		log.info(searchText);
+		res.setResult(questionService.listQuestion(page, size, searchType, searchText));
 		return res;
 	}
 	
@@ -47,6 +51,7 @@ public class QuestionController {
 	
 	@PostMapping
 	public Result insertQuestion(@RequestBody @Valid QuestionVo questionVo) {
+
 		questionService.insertQuestion(questionVo);
 		Result res = new Result();
 		res.setCode(ErrorCode.SUCCESS);

@@ -17,20 +17,7 @@
             :options="optionsType"
           ></b-form-select>
         </b-col>
-        <!--
-        <b-col
-          ><b-form-select
-            v-model="selectedTimeLimit"
-            :options="optionsTimeLimit"
-          ></b-form-select
-        ></b-col>
-        <b-col>
-          <b-form-select
-            v-model="selectedPoint"
-            :options="optionsPoint"
-          ></b-form-select
-        ></b-col>
-        -->
+       
       </b-row>
     </div>
     <!-- e -->
@@ -39,14 +26,14 @@
     <div>&nbsp;</div>
     <div>
       <b-form-input
-        v-model="question"
+        v-model="questionText"
         placeholder="질문을 입력하세요"
       ></b-form-input>
       <div>&nbsp;</div>
       <div>&nbsp;</div>
 
       <!--s.tfprob -->
-      <b-row v-show="selectedType == 'TF'">
+      <b-row v-show="selectedType == 'OX'">
         <b-form-group label="참-거짓 선택" v-slot="{ ariaDescribedby }">
           <b-form-radio-group
             v-model="selectedTf"
@@ -101,8 +88,8 @@ export default {
         { value: "4", label: "4번답" },
       ],
       radioSelected: null,
-      quizId: "",
-      question: "",
+      questionId: "",
+      questionText: "",
       ans: [],
       ans1: "",
       ans2: "",
@@ -127,7 +114,7 @@ export default {
       selectedPoint: null,
       optionsType: [
         { value: null, text: "퀴즈타입" },
-        { value: "TF", text: "OX" },
+        { value: "OX", text: "OX" },
         { value: "OB", text: "객관식" },
       ],
       optionsTimeLimit: [
@@ -146,7 +133,7 @@ export default {
   },
   watch: {
     selectedQuestion: function (newVal, oldVal) {
-      if (newVal == "TF") {
+      if (newVal == "OX") {
         showTfTypeInput();
       } else if (newVal == "OB") {
         showObjTypeInput();

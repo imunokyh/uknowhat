@@ -12,8 +12,8 @@ public class RoomQuestionVo {
 	
 	@ApiModelProperty(value = "아이디")
 	private Long id;
-	private Room room;
-	private Question question;
+	private Long roomId;
+	private Long questionId;
 	@ApiModelProperty(value = "문제 순서")
 	private Integer	questionOrder;
 	@ApiModelProperty(value = "문제 점수")

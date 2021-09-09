@@ -156,7 +156,7 @@ export default {
 
       //console.log(pointType, timeLimitType, questionType);
       let answer =
-        questionType == "TF"
+        questionType == "OX"
           ? this.$refs.quizdata.selectedTf
           : this.$refs.quizdata.radioSelected;
 
@@ -220,11 +220,11 @@ export default {
     },
     onRowSelected(items) {
       this.selected = items[0];
-       this.$refs.quizdata.question = this.selected.questionText;
-       this.$refs.quizdata.quizId = this.selected.questionId;
+       this.$refs.quizdata.questionText = this.selected.questionText;
+       this.$refs.quizdata.questionId = this.selected.questionId;
        this.$refs.quizdata.selectedType = this.selected.questionType;
 
-       if (this.$refs.quizdata.selectedType  == 'TF'){
+       if (this.$refs.quizdata.selectedType  == 'OX'){
 this.$refs.quizdata.selectedTf = this.selected.questionAnswer;
        }else{
          this.$refs.quizdata.radioSelected = this.selected.questionAnswer;

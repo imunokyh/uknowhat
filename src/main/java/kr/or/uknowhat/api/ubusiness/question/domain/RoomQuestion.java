@@ -39,13 +39,18 @@ public class RoomQuestion {
 	@Column(nullable = false, length = 20)
 	private Long id;
 	
-	@OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-	@JoinColumn(name = "room_id", nullable = false)
-	private Room room;
+	//@OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+	//@JoinColumn(name = "room_id", nullable = false)
+	//private Room room;
+	@Column(nullable = false, length = 20)
+	private Long roomId;
 	
-	@ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-	@JoinColumn(name = "question_id", nullable = false)
-	private Question question;
+	//@ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+	//@JoinColumn(name = "question_id", nullable = false)
+	//private Question question;
+	@Column(nullable = false, length = 20)
+	private Long questionId;
+	
 	
 	@ApiModelProperty(value = "문제 순서")
 	@Column(nullable = false)

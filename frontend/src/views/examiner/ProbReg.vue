@@ -22,28 +22,26 @@
         "
       />
       <b-row>&nbsp;</b-row>
-      
+
       <b-row
         ><!--left-->
-        
-        
-
 
         <b-col cols="6" class="vl">
-          Title:{{roomTitle}}
+          
+          <!-- Title:{{ roomTitle }} -->
 
           <b-row>
-          <b-col sm="2">
-            <b-button @click="modProb()">편집</b-button>
-          </b-col>
-          <b-col sm="2">
-            <b-button @click="delProb()">삭제</b-button>
-          </b-col>
-          <b-col sm="4">
-            roomId: {{roomId}}/ probId:{{}}
-          </b-col>
-        </b-row>
-
+            <b-col sm="2">
+              <b-button @click="modProb()">편집</b-button>
+            </b-col>
+            <b-col sm="2">
+              <b-button @click="delProb()">삭제</b-button>
+            </b-col>
+            <!--
+            <b-col sm="4"> roomId: {{ fakeRoomId }}/ probId:{{}} </b-col>-->
+          </b-row>
+          <br>
+         <b-row class="overflow-auto" style="height: 400px">
           <b-table
             selectable
             select-mode="single"
@@ -51,9 +49,10 @@
             striped
             hover
             ref="probtable"
-            :items="probItems"
+            :items="probProvider"
             :fields="probFields"
           ></b-table>
+          </b-row>
         </b-col>
         <b-col cols="6" class="vl">
           <b-row>
@@ -71,7 +70,7 @@
               </b-form-select
             ></b-col>
             <b-col sm="2">
-              <b-button>검색</b-button>
+              <b-button @click="searchQuestion()">검색</b-button>
             </b-col>
             <b-col sm="2">
               <b-button @click="add()">추가</b-button>
@@ -86,7 +85,7 @@
               striped
               hover
               ref="banktable"
-              :items="bankProvider"
+              :items="bankItems"
               :fields="bankFields"
             >
             </b-table>
@@ -124,12 +123,13 @@ export default {
   },
   data() {
     return {
+      fakeRoomId: 11,
       searchText: "",
       selectedSearchType: null,
       optionsSearchType: [
         { value: null, text: "문제타입" },
-        { value: "tf", text: "OX" },
-        { value: "obj", text: "객관식" },
+        { value: "OX", text: "OX" },
+        { value: "OB", text: "객관식" },
       ],
       cardCnt: 4,
       status1: "not_accepted",
@@ -142,13 +142,14 @@ export default {
       ans3: "",
       ans4: "",
       quizid: "",
-      probItems: [],
+      //probItems: [],
+      bankItems: [],
       probFields: [
-        { key: "quesOrder", label: "순서" },
-        { key: "quesType", label: "문제유형" },
-        { key: "quesText", label: "문제내용" },
-        { key: "quesScore", label: "점수" },
-        { key: "quesTime", label: "시간" },
+        { key: "questionOrder", label: "순서" },
+        { key: "questionType", label: "문제유형" },
+        { key: "questionText", label: "문제내용" },
+        { key: "questionScore", label: "점수" },
+        { key: "questionTime", label: "시간" },
       ],
       bankFields: [{ key: "questionText", label: "내용" }],
     };
@@ -165,50 +166,67 @@ export default {
     } else {
       console.log("modify prob group");
     }
-    this.roomId = 1;
-    this.roomTitle = "test";
+    //this.roomId = 1;
+    //this.roomTitle = "test";
   },
   methods: {
-    modProb(){
-
-    },
-    delProb(){
-
-    },
+    modProb() {},
+    delProb() {},
     add() {
-      let roomId = this.roomId;
-      let quizId = this.$refs.quizdata.quizId;
-      let time = 5;
-      let point = 10;
+      let roomId = this.fakeRoomId;
+      let questionId = this.$refs.quizdata.questionId;
+      let questionType = this.$refs.quizdata.selectedType;
+      let questionText = this.$refs.quizdata.questionText;
+      let questionTime = 5;
+      let questionScore = 10;
+      let questionOrder = 0;
+      let method = "post";
       this.$http({
         method: method,
-        url:"/api/v1/roomquestion",
+        url: "/api/v1/rq",
         data: {
-          //roomId: this.roomId,
           roomId: roomId,
-          quizId: quizId,
-          time: time,
-          point: point,
-        }})
-        .then((res) => {
-          if (res.data.code == 0) {
-            this.$refs.quiztable.refresh();
-            alert("저장했습니다");
-            this.initVal();
-          } else {
-            alert("저장시 문제가 발생했습니다");
-          }
-        });
-      this.probItems.push({ quesType: "TF", quesText: "문제다" });
+          questionId: questionId,
+          questionTime: questionTime,
+          questionScore: questionScore,
+          questionOrder: questionOrder,
+        },
+      }).then((res) => {
+        if (res.data.code == 0) {
+          
+          //alert("저장했습니다");
+          this.$refs.probtable.refresh();
+          //this.initVal();
+        } else {
+          alert("저장시 문제가 발생했습니다");
+        }
+      });
+      // this.probItems.push({
+      //   questionType: questionType,
+      //   questionText: questionText,
+      // });
+    },
+    probProvider(ctx){
+      let promise = this.$http.get("/api/v1/rq",{params:{
+        roomId: this.fakeRoomId
+      }});
+      return promise.then((res) => {
+        //console.log(res.data.result)
+        return res.data.result || [];
+      });
     },
     onProbSelected(items) {},
     onBankSelected(items) {
+      if (items == null || items[0] == null) {
+        return;
+      }
+
       this.selected = items[0];
-      this.$refs.quizdata.question = this.selected.questionText;
-      this.$refs.quizdata.quizId = this.selected.questionId;
+      this.$refs.quizdata.questionText = this.selected.questionText;
+      this.$refs.quizdata.questionId = this.selected.questionId;
       this.$refs.quizdata.selectedType = this.selected.questionType;
 
-      if (this.$refs.quizdata.selectedType == "TF") {
+      if (this.$refs.quizdata.selectedType == "OX") {
         this.$refs.quizdata.selectedTf = this.selected.questionAnswer;
       } else {
         this.$refs.quizdata.radioSelected = this.selected.questionAnswer;
@@ -219,9 +237,32 @@ export default {
       }
     },
     bankProvider(ctx) {
-      let promise = this.$http.get("/api/v1/question");
+      let promise = this.$http.get("/api/v1/question", {
+        params: {
+          searchType: "",
+          searchText: "",
+        },
+      });
       return promise.then((res) => {
         return res.data.result.content || [];
+      });
+    },
+    searchQuestion() {
+      let promise = this.$http.get("/api/v1/question", {
+        params: {
+          searchType: this.selectedSearchType,
+          searchText: this.searchText,
+        },
+      });
+      promise.then((res) => {
+        this.bankItems = [];
+        let result = res.data.result.content || [];
+
+        result.forEach((item) => {
+          this.bankItems.push(item);
+        });
+
+        this.$refs.banktable.refresh();
       });
     },
     genQuizId() {

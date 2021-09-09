@@ -1,7 +1,6 @@
 package kr.or.uknowhat.api.ubusiness.question.service.impl;
 
-import java.util.Date;
-import java.util.Objects;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,8 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 import kr.or.uknowhat.api.ubusiness.question.domain.RoomQuestion;
 import kr.or.uknowhat.api.ubusiness.question.repositories.RoomQuestionRepository;
 import kr.or.uknowhat.api.ubusiness.question.service.RoomQuestionService;
+import kr.or.uknowhat.api.ubusiness.question.vo.RoomQuestionResMapping;
 import kr.or.uknowhat.api.ubusiness.question.vo.RoomQuestionVo;
-import kr.or.uknowhat.api.ubusiness.question.vo.RoomVo;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -23,6 +22,11 @@ public class RoomQuestionServiceImpl implements RoomQuestionService{
 	@Autowired
 	private RoomQuestionRepository roomQuestionRepo;
 	
+	@Override
+	public List<RoomQuestionResMapping> listQuestion(Long roomId) {
+		return roomQuestionRepo.findAllByRoomId(roomId);
+				
+	}
 
 	@Override
 	public RoomQuestion getQuestion(Long id) {

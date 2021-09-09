@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import kr.or.uknowhat.api.ubusiness.question.domain.Question;
 import kr.or.uknowhat.api.ubusiness.question.repositories.QuestionRepository;
@@ -26,9 +27,19 @@ public class QuestionServiceImpl implements QuestionService {
 	private QuestionRepository questionRepository;
 
 	@Override
-	public Page<Question> listQuestion(int page, int size, String searchText) {
+	public Page<Question> listQuestion(int page, int size, String searchType,  String searchText) {
 		Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
-		return questionRepository.findAllByQuestionTextContaining(pageable, searchText);
+		
+		Page<Question> questionPage = null;
+		if(StringUtils.hasText(searchType)&& StringUtils.hasText(searchText)) {
+			questionPage = questionRepository.findAllByQuestionTypeAndQuestionTextContaining(pageable, searchType, searchText);
+		}else if (StringUtils.hasText(searchType)) {
+			questionPage = questionRepository.findAllByQuestionType(pageable, searchType);
+		}else {
+			questionPage = questionRepository.findAllByQuestionTextContaining(pageable, searchText);
+		}
+		return questionPage;
+				
 	}
 
 	@Override
