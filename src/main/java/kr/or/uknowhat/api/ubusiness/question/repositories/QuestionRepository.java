@@ -10,4 +10,6 @@ import kr.or.uknowhat.api.ubusiness.question.domain.Question;
 @Repository
 public interface QuestionRepository extends JpaRepository<Question, Long> {
 	Page<Question> findAllByQuestionTextContaining(Pageable pageable, String searchText);
+	
+	Page<Question> findAllByQuestionTypeAndQuestionTextContaining(Pageable pageable, String searchType, String searchText);
 }

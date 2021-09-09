@@ -1,8 +1,9 @@
 package kr.or.uknowhat.api.ubusiness.question.domain;
 
+import java.util.Date;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
-import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -10,10 +11,17 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 import org.hibernate.annotations.ColumnDefault;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import io.swagger.annotations.ApiModelProperty;
+import kr.or.uknowhat.api.ubusiness.question.vo.RoomQuestionVo;
+import kr.or.uknowhat.api.ubusiness.util.ModelMapperUtils;
 import lombok.Data;
 
 /**
@@ -31,7 +39,7 @@ public class RoomQuestion {
 	@Column(nullable = false, length = 20)
 	private Long id;
 	
-	@ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+	@OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
 	@JoinColumn(name = "room_id", nullable = false)
 	private Room room;
 	
@@ -46,11 +54,16 @@ public class RoomQuestion {
 	
 	@ApiModelProperty(value = "문제 점수")
 	@Column(nullable = true)
-	@ColumnDefault("0")
+	@ColumnDefault("10")
 	private Integer questionScore;
 	
 	@ApiModelProperty(value = "문제 제한시간 (초)")
 	@Column(nullable = true)
-	@ColumnDefault("10")
+	@ColumnDefault("5")
 	private Integer questionTime;
+	
+    public static RoomQuestion ofRoomQuestionVo(RoomQuestionVo roomQuestionVo) {
+    	RoomQuestion roomQuestion = ModelMapperUtils.getModelMapper().map(roomQuestionVo, RoomQuestion.class);
+        return roomQuestion;
+    }
 }

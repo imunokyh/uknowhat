@@ -30,7 +30,7 @@
 
 
         <b-col cols="6" class="vl">
-          Title:<b-form-input v-model="roomTitle"></b-form-input>
+          Title:{{roomTitle}}
 
           <b-row>
           <b-col sm="2">

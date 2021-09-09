@@ -35,7 +35,7 @@ public class Question {
 	@Column(nullable = true, length = 40)
 	private String questionCategory;
 	
-	@ApiModelProperty(value = "문제 유형: TF. OX 문제, OB. 객관식 문제, SB. 주관식 문제")
+	@ApiModelProperty(value = "문제 유형: OX. OX 문제, OB. 객관식 문제, SB. 주관식 문제")
 	@Column(nullable = false, length = 40)
 	private String questionType;
 	
