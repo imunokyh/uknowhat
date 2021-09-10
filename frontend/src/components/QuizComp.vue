@@ -11,7 +11,7 @@
     <!-- s -->
     <div>
       <b-row>
-        <b-col>
+        <b-col sm="12">
           <b-form-select
             v-model="selectedType"
             :options="optionsType"
@@ -25,10 +25,14 @@
     <label >{{ quizId }}</label>-->
     <div>&nbsp;</div>
     <div>
-      <b-form-input
+      <b-row>
+        <b-col sm="12">
+      <b-form-textarea
         v-model="questionText"
-        placeholder="질문을 입력하세요"
-      ></b-form-input>
+        placeholder="질문을 입력하세요" rows=2
+      ></b-form-textarea>
+      </b-col>
+      </b-row>
       <div>&nbsp;</div>
       <div>&nbsp;</div>
 

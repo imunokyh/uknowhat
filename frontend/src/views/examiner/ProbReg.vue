@@ -27,12 +27,69 @@
         ><!--left-->
 
         <b-col cols="6" class="vl">
-          
           <!-- Title:{{ roomTitle }} -->
 
           <b-row>
             <b-col sm="2">
-              <b-button @click="modProb()">편집</b-button>
+              <!-- edit -->
+              <b-button v-b-modal.modal-prob-modify>편집</b-button>
+              <b-modal
+                id="modal-prob-modify"
+                ref="modal"
+                title="문제 정보 편집"
+                @show="resetModal"
+                @hidden="resetModal"
+                @ok="handleMdfyProb"
+              >
+                <form ref="formProb" @submit.stop.prevent="handleSubmit">
+                  
+                   <b-row >
+                    
+                    <b-col sm="3">아이디</b-col>
+                    <b-col sm="9">
+                      <b-form-input id="rq-id" v-model="formProb.id" disabled>
+                    </b-form-input>
+                    </b-col>
+                  </b-row>
+
+                  <b-row class="my-1">
+                    
+                    <b-col sm="3">점수</b-col>
+                    <b-col sm="9">
+                      <b-form-input
+                      id="question-score-input"
+                      v-model="formProb.questionScore" type="number"
+                    ></b-form-input>
+                    </b-col>
+                  </b-row>
+
+                  <b-row class="my-1">
+                    
+                    <b-col sm="3">시간</b-col>
+                    <b-col sm="9">
+                      <b-form-input
+                      id="question-time-input"
+                      v-model="formProb.questionTime" type="number"
+                    ></b-form-input>
+                    </b-col>
+                  </b-row>
+
+                  <b-row class="my-1">
+                    
+                    <b-col sm="3">순서</b-col>
+                    <b-col sm="9">
+                      <b-form-input
+                      id="question-time-input"
+                      v-model="formProb.questionOrder" type="number"
+                    ></b-form-input>
+                    </b-col>
+                  </b-row>
+                    
+                    
+                    
+                </form>
+              </b-modal>
+              <!-- e.edit-->
             </b-col>
             <b-col sm="2">
               <b-button @click="delProb()">삭제</b-button>
@@ -40,18 +97,18 @@
             <!--
             <b-col sm="4"> roomId: {{ fakeRoomId }}/ probId:{{}} </b-col>-->
           </b-row>
-          <br>
-         <b-row class="overflow-auto" style="height: 400px">
-          <b-table
-            selectable
-            select-mode="single"
-            @row-selected="onProbSelected"
-            striped
-            hover
-            ref="probtable"
-            :items="probProvider"
-            :fields="probFields"
-          ></b-table>
+          <br />
+          <b-row class="overflow-auto" style="height: 400px">
+            <b-table
+              selectable
+              select-mode="single"
+              @row-selected="onProbSelected"
+              striped
+              hover
+              ref="probtable"
+              :items="probProvider"
+              :fields="probFields"
+            ></b-table>
           </b-row>
         </b-col>
         <b-col cols="6" class="vl">
@@ -73,7 +130,7 @@
               <b-button @click="searchQuestion()">검색</b-button>
             </b-col>
             <b-col sm="2">
-              <b-button @click="add()">추가</b-button>
+              <b-button @click="addRoomQuestion()">방문제추가</b-button>
             </b-col>
           </b-row>
           <br />
@@ -123,6 +180,14 @@ export default {
   },
   data() {
     return {
+      formProb: {
+        id:'',
+        questionOrder:'',
+        questionScore: '',
+        questionTime: '',
+
+      },
+      
       fakeRoomId: 11,
       searchText: "",
       selectedSearchType: null,
@@ -159,7 +224,22 @@ export default {
   },
   computed: {},
   mounted() {
-    //this.genQuizId();
+    
+    this.$root.$on('bv::modal::show', (bvEvent, modalId) => {
+      //console.log(bvEvent)
+      //console.log(bvEvent.type );
+      //console.log(modalId );
+       if (bvEvent.type == 'show' && modalId == 'modal-prob-modify' ){
+        
+         if(this.formProb.id == null || this.formProb.id == ''){
+            bvEvent.preventDefault();
+            alert('편집할 문제를 선택해 주세요');
+            return;
+         }
+       }
+      
+      //console.log('Modal is about to be shown', bvEvent, modalId);
+    })
 
     if (this.newRoom == 1) {
       console.log("new prob group");
@@ -170,19 +250,57 @@ export default {
     //this.roomTitle = "test";
   },
   methods: {
-    modProb() {},
+    initProbForm(){
+      /* 폼의값 초기화 */
+      this.formProb.id = '';
+      this.formProb.questionOrder = '';
+      this.formProb.questionScore = '';
+      this.formProb.questionTime = '';
+
+
+    },
+    resetModal(){
+
+    },
+    handleMdfyProb(bvModalEvt) {
+      // Prevent modal from closing
+      bvModalEvt.preventDefault();
+      // Trigger submit handler
+      this.handleSubmit();
+    },
+    handleSubmit() {
+      // Exit when the form isn't valid
+      // if (!this.checkFormValidity()) {
+      //   return;
+      // }
+      // score, time, order
+      let _roomId = 11;
+      this.$http.put("/api/v1/rq", {
+          roomId: _roomId,
+          id : this.formProb.id,
+          questionScore: this.formProb.questionScore,
+          questionTime : this.formProb.questionTime,
+          questionOrder: this.formProb.questionOrder
+
+      }).then((res) => {
+        // Hide the modal manually
+        this.$nextTick(() => {
+          this.$bvModal.hide("modal-prob-modify");
+        });
+        this.$refs.probtable.refresh();
+        
+      });
+    },
     delProb() {},
-    add() {
+    addRoomQuestion() {
+      /* 방문제에 추가 */
       let roomId = this.fakeRoomId;
       let questionId = this.$refs.quizdata.questionId;
-      let questionType = this.$refs.quizdata.selectedType;
-      let questionText = this.$refs.quizdata.questionText;
       let questionTime = 5;
       let questionScore = 10;
       let questionOrder = 0;
-      let method = "post";
       this.$http({
-        method: method,
+        method: "post",
         url: "/api/v1/rq",
         data: {
           roomId: roomId,
@@ -193,10 +311,8 @@ export default {
         },
       }).then((res) => {
         if (res.data.code == 0) {
-          
-          //alert("저장했습니다");
           this.$refs.probtable.refresh();
-          //this.initVal();
+          this.initProbForm();
         } else {
           alert("저장시 문제가 발생했습니다");
         }
@@ -206,16 +322,34 @@ export default {
       //   questionText: questionText,
       // });
     },
-    probProvider(ctx){
-      let promise = this.$http.get("/api/v1/rq",{params:{
-        roomId: this.fakeRoomId
-      }});
+    probProvider(ctx) {
+      let promise = this.$http.get("/api/v1/rq", {
+        params: {
+          roomId: this.fakeRoomId,
+        },
+      });
       return promise.then((res) => {
         //console.log(res.data.result)
         return res.data.result || [];
       });
     },
-    onProbSelected(items) {},
+    onProbSelected(items) {
+      //console.log('probselected');
+      //console.log(items);
+      if (items == null || items[0] == null) {
+        return;
+      }
+      let ps = items[0]; // problem selected
+      
+      this.formProb.id = ps.id;
+      
+      this.formProb.questionScore = ps.questionScore
+      this.formProb.questionTime = ps.questionTime
+      this.formProb.questionOrder = ps.questionOrder
+      
+
+
+    },
     onBankSelected(items) {
       if (items == null || items[0] == null) {
         return;
