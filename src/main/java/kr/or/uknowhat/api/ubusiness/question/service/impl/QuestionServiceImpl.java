@@ -16,6 +16,7 @@ import kr.or.uknowhat.api.ubusiness.question.domain.Question;
 import kr.or.uknowhat.api.ubusiness.question.repositories.QuestionRepository;
 import kr.or.uknowhat.api.ubusiness.question.service.QuestionService;
 import kr.or.uknowhat.api.ubusiness.question.vo.QuestionVo;
+import kr.or.uknowhat.api.ubusiness.util.SecurityUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -68,7 +69,7 @@ public class QuestionServiceImpl implements QuestionService {
 		question.setAnswer4Text(questionVo.getAnswer4Text());
 		question.setQuestionAnswer(questionVo.getAnswer());
 		question.setCreatedDate(new Date());
-		question.setCreatedUserId("admin");
+		question.setCreatedUserId(SecurityUtil.getUserId());
 		questionRepository.save(question);
 	}
 
@@ -84,7 +85,7 @@ public class QuestionServiceImpl implements QuestionService {
 			question.setQuestionText(questionVo.getQuestionText());
 			question.setQuestionAnswer(questionVo.getAnswer());
 			question.setModifiedDate(new Date());
-			question.setModifiedUserId("admin");
+			question.setModifiedUserId(SecurityUtil.getUserId());
 			questionRepository.save(question);
 		}
 	}

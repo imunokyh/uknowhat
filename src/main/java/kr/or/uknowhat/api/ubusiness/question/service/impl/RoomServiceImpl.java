@@ -97,7 +97,7 @@ public class RoomServiceImpl implements RoomService {
 			room.setRoomTitle(roomVo.getTitle());
 			room.setRoomState(roomVo.getState());
 			room.setModifiedDate(new Date());
-			room.setModifiedUserId("admin");
+			room.setModifiedUserId(SecurityUtil.getUserId());
 			
 			return roomRepository.save(room);
 		}
