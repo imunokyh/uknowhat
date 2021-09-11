@@ -1,18 +1,17 @@
 <template>
-  <div class="topbar">
+  <div >
     <b-container>
-      <!--      
-      <b-row>
-        <b-col cols="2"></b-col>
-        <b-col cols="7"><h1>방문제등록</h1></b-col>
-        <b-col cols="3">
-          <b-button>문제은행</b-button>
+      <br>
       
-          <b-button>완료</b-button>
+      <b-row>
+        <b-col cols="2"><b-button @click="goRoomMng()">방관리로</b-button></b-col>
+        <b-col cols="7"><h2>방문제등록 / ID: {{ getRoomId }}</h2></b-col>
+        <b-col cols="3">
+          <b-button @click="goProbBank()">문제은행</b-button>
+      
         </b-col>
       </b-row>
-      <b-row> roomId: {{ roomId }} / roomTitle: {{ roomTitle }} </b-row>
-      -->
+      
       <hr
         style="
           height: 2px;
@@ -94,8 +93,7 @@
             <b-col sm="2">
               <b-button @click="delProb()">삭제</b-button>
             </b-col>
-            <!--
-            <b-col sm="4"> roomId: {{ fakeRoomId }}/ probId:{{}} </b-col>-->
+            
           </b-row>
           <br />
           <b-row class="overflow-auto" style="height: 400px">
@@ -130,7 +128,7 @@
               <b-button @click="searchQuestion()">검색</b-button>
             </b-col>
             <b-col sm="2">
-              <b-button @click="addRoomQuestion()">방문제추가</b-button>
+              <b-button @click="addRoomQuestion()">추가</b-button>
             </b-col>
           </b-row>
           <br />
@@ -159,15 +157,16 @@
 
 <script>
 import QuizComp from "@/components/QuizComp";
+import {mapGetters, mapMutations, mapActions} from 'vuex'
 
 export default {
   components: {
     QuizComp,
   },
   props: {
-    newRoom: {
-      type: Number,
-      default: 1, // 1: yes 2: no
+    newRoomYn: {
+      type: String,
+      default: "", // Y/N
     },
     roomId: {
       type: Number,
@@ -187,8 +186,10 @@ export default {
         questionTime: '',
 
       },
+      oRoomId:'',
+      oRoomTitle:'',
       
-      fakeRoomId: 11,
+      
       searchText: "",
       selectedSearchType: null,
       optionsSearchType: [
@@ -220,44 +221,68 @@ export default {
     };
   },
   created() {
-    this.genQuizId();
-  },
-  computed: {},
-  mounted() {
+    //this.genQuizId();
     
-    this.$root.$on('bv::modal::show', (bvEvent, modalId) => {
-      //console.log(bvEvent)
-      //console.log(bvEvent.type );
-      //console.log(modalId );
-       if (bvEvent.type == 'show' && modalId == 'modal-prob-modify' ){
-        
-         if(this.formProb.id == null || this.formProb.id == ''){
-            bvEvent.preventDefault();
-            alert('편집할 문제를 선택해 주세요');
-            return;
-         }
-       }
-      
-      //console.log('Modal is about to be shown', bvEvent, modalId);
-    })
-
-    if (this.newRoom == 1) {
-      console.log("new prob group");
-    } else {
-      console.log("modify prob group");
+    if(this.roomId != -1){ // refresh 인경우값
+      this.setRoomId(this.roomId);
     }
-    //this.roomId = 1;
-    //this.roomTitle = "test";
+    
+  },
+  computed: {
+    test1(){
+      //return this.$store.getters['roomStore']
+      return 0
+    },
+    ...mapGetters([
+      'getRoomId'
+    ])
+  },
+  mounted() {
+    this.oRoomId = this.roomId;
+    this.oRoomTitle = this.roomTitle
+    // this.$root.$on('bv::modal::show', (bvEvent, modalId) => {
+    //   if (bvEvent.type == 'show' && modalId == 'modal-prob-modify' ){
+    //     console.log('event:' + this.formProb.id);
+    //     if(this.formProb.id == null || this.formProb.id == ''){
+    //       bvEvent.preventDefault();
+    //       alert('편집할 문제를 선택해 주세요');
+    //       return;
+    //     }
+    //   }
+    // })
+
+    if (this.newRoomYn == 'Y') {
+
+    } else if(this.newRoomYn == 'N') {
+
+    } else{
+    }
+    
   },
   methods: {
+    goRoomMng(){
+      // 방관리로 이동
+      this.$router.push({ name: "RoomMng" });
+    },
+    goProbBank(){ 
+      // 문제은행으로 이동
+      this.$router.push({ name: "ProbBank" });
+    },
+    setRoomId(roomId){
+      this.$store.commit('updateRoomId', roomId);
+    },
+    ...mapMutations([
+      'updateRoomId'
+    ]),
+    ...mapActions([
+      'asyncUpdateRoomId'
+    ]),
     initProbForm(){
       /* 폼의값 초기화 */
       this.formProb.id = '';
       this.formProb.questionOrder = '';
       this.formProb.questionScore = '';
       this.formProb.questionTime = '';
-
-
     },
     resetModal(){
 
@@ -269,20 +294,18 @@ export default {
       this.handleSubmit();
     },
     handleSubmit() {
-      // Exit when the form isn't valid
-      // if (!this.checkFormValidity()) {
-      //   return;
-      // }
-      // score, time, order
-      let _roomId = 11;
+      const config = {
+        headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
+      };
+
       this.$http.put("/api/v1/rq", {
-          roomId: _roomId,
+          roomId: this.getRoomId,
           id : this.formProb.id,
           questionScore: this.formProb.questionScore,
           questionTime : this.formProb.questionTime,
           questionOrder: this.formProb.questionOrder
 
-      }).then((res) => {
+      },config).then((res) => {
         // Hide the modal manually
         this.$nextTick(() => {
           this.$bvModal.hide("modal-prob-modify");
@@ -291,10 +314,39 @@ export default {
         
       });
     },
-    delProb() {},
+    delProb() {
+      if(this.formProb.id == null || this.formProb.id == ''){
+            
+        alert('삭제할 문제를 선택해 주세요');
+        return;
+      }
+      /* 방문제삭제*/
+      if(confirm("문제를 삭제하시겠습니까?")!=true){
+        return;
+      }
+      const config = {
+        headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
+      };
+      this.$http({
+        method: "delete",
+        url: "/api/v1/rq/" + this.formProb.id,
+        headers: config.headers
+      }).then((res) => {
+        if (res.data.code == 0) {
+          this.$refs.probtable.refresh();
+          this.initProbForm();
+        } else {
+          alert("삭제시 문제가 발생했습니다");
+        }
+      });
+
+    },
     addRoomQuestion() {
       /* 방문제에 추가 */
-      let roomId = this.fakeRoomId;
+      const config = {
+        headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
+      };
+      let roomId = this.getRoomId;
       let questionId = this.$refs.quizdata.questionId;
       let questionTime = 5;
       let questionScore = 10;
@@ -308,53 +360,51 @@ export default {
           questionTime: questionTime,
           questionScore: questionScore,
           questionOrder: questionOrder,
+          
         },
+        headers: config.headers
       }).then((res) => {
         if (res.data.code == 0) {
           this.$refs.probtable.refresh();
           this.initProbForm();
         } else {
-          alert("저장시 문제가 발생했습니다");
+          alert("문제 추가시 문제가 발생했습니다");
         }
       });
-      // this.probItems.push({
-      //   questionType: questionType,
-      //   questionText: questionText,
-      // });
     },
     probProvider(ctx) {
-      let promise = this.$http.get("/api/v1/rq", {
+      const config = {
+        headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
         params: {
-          roomId: this.fakeRoomId,
-        },
-      });
+          roomId: this.getRoomId,
+        }
+      };
+      //console.log(sessionStorage.getItem("token"))
+      let promise = this.$http.get("/api/v1/rq",config);
       return promise.then((res) => {
-        //console.log(res.data.result)
         return res.data.result || [];
       });
     },
     onProbSelected(items) {
-      //console.log('probselected');
-      //console.log(items);
+      console.log(items);
       if (items == null || items[0] == null) {
+        console.log('empty')
+        this.initProbForm();
         return;
       }
       let ps = items[0]; // problem selected
+      console.log('prob selected');
+      console.log(ps);
       
       this.formProb.id = ps.id;
-      
       this.formProb.questionScore = ps.questionScore
       this.formProb.questionTime = ps.questionTime
       this.formProb.questionOrder = ps.questionOrder
-      
-
-
     },
     onBankSelected(items) {
       if (items == null || items[0] == null) {
         return;
       }
-
       this.selected = items[0];
       this.$refs.quizdata.questionText = this.selected.questionText;
       this.$refs.quizdata.questionId = this.selected.questionId;
@@ -376,13 +426,16 @@ export default {
           searchType: "",
           searchText: "",
         },
-      });
+      },config);
       return promise.then((res) => {
         return res.data.result.content || [];
       });
     },
     searchQuestion() {
-      let promise = this.$http.get("/api/v1/question", {
+      const config = {
+        headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
+      };
+      let promise = this.$http.get("/api/v1/question", config,{
         params: {
           searchType: this.selectedSearchType,
           searchText: this.searchText,
@@ -401,7 +454,6 @@ export default {
     },
     genQuizId() {
       this.quizid = "quizid_" + this.uuidv4();
-      //this.quizid = "55";
     },
     getRandomInt() {
       return Math.floor(Math.random() * (50 - 4)) + 5;
@@ -416,47 +468,8 @@ export default {
         }
       );
     },
-    save() {
-      let quizid = this.$refs.quizdata.quizid;
-      let question = this.$refs.quizdata.question;
-      let questionType = this.selectedQuestion;
-      let timeLimitType = this.selectedTimeLimit;
-      let pointType = this.selectedPoint;
-      let timeLimit;
-      let ans1 = this.$refs.quizdata.ans1;
-      let ans2 = this.$refs.quizdata.ans2;
-      let ans3 = this.$refs.quizdata.ans3;
-      let ans4 = this.$refs.quizdata.ans4;
-      let check1 = this.$refs.quizdata.check1;
-      let check2 = this.$refs.quizdata.check2;
-      let check3 = this.$refs.quizdata.check3;
-      let check4 = this.$refs.quizdata.check4;
-
-      // ref: https://blog.naver.com/PostView.naver?blogId=varkiry05&logNo=221835597905&redirect=Dlog&widgetTypeCall=true&directAccess=false
-      // this.$http
-      //   .post("/api/v1/sample/post", {
-      //     id: 1,
-      //     question: question,
-      //     answer: ans1,
-      //   })
-      //   .then((res) => {
-
-      //   });
-
-      // 문제저장
-      this.$http
-        .post("/api/v1/question", {
-          roomId: this.roomId,
-          questionType: questionType,
-          timeLimitType: timeLimitType,
-          pointType: pointType,
-          questionText: question,
-          answer: check1 + "," + check2 + "," + check3 + "," + check4,
-        })
-        .then((res) => {});
-    },
+    
     parentReceive(val) {
-      console.log(val);
       console.log("parentReceive");
     },
   },

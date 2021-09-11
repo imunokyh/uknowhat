@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
+import HelloWorld from '../components/HelloWorld.vue'
 import Home2 from '../views/Home2.vue'
 import Home3 from '../views/Home3.vue'
 import Login from '../views/Login.vue'
@@ -44,6 +45,10 @@ const routes = [
     path: '/',
     name: 'Home',
     component: Home
+  },{
+    path: '/h',
+    name: 'HelloWorld',
+    component: HelloWorld
   },{
     path: '/h2',
     name: 'Home2',

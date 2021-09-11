@@ -52,8 +52,10 @@
           })
           .then((res) => {
             if (res.data.code === 0) {
-              alert(res.data.result.token);
-              this.$http.defaults.headers.common['Authorization'] = 'Bearer ' + res.data.result.token;
+              //alert(res.data.result.token);
+              //this.$http.defaults.headers.common['Authorization'] = 'Bearer ' + res.data.result.token;
+              
+              sessionStorage.setItem('token', res.data.result.token);
               this.$router.push({name: 'RoomMng'});
             } else {
               alert(res.data.message);

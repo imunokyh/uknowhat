@@ -67,6 +67,10 @@ public class RoomQuestion {
 	@ColumnDefault("5")
 	private Integer questionTime;
 	
+	@ApiModelProperty(value = "유저 아이디")
+	@Column(nullable = false, length = 40)
+	private String userId;
+	
     public static RoomQuestion ofRoomQuestionVo(RoomQuestionVo roomQuestionVo) {
     	RoomQuestion roomQuestion = ModelMapperUtils.getModelMapper().map(roomQuestionVo, RoomQuestion.class);
         return roomQuestion;

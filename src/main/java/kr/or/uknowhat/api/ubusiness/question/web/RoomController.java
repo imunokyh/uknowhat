@@ -43,6 +43,18 @@ public class RoomController {
 		return res;
 	}
 	
+	/**
+	 * 나의룸가져오기
+	 * @return
+	 */
+	@GetMapping(value = "/me")
+	public Result listMyRoom() {
+		Result res = new Result();
+		res.setCode(ErrorCode.SUCCESS);
+		res.setResult(roomService.listMyRoom());
+		return res;
+	}
+	
 	@GetMapping(value = "{id}")
 	public Result getRoom(@PathVariable Long id) {
 		Result res = new Result();

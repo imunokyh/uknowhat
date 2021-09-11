@@ -12,6 +12,7 @@ import kr.or.uknowhat.api.ubusiness.question.repositories.RoomQuestionRepository
 import kr.or.uknowhat.api.ubusiness.question.service.RoomQuestionService;
 import kr.or.uknowhat.api.ubusiness.question.vo.RoomQuestionResMapping;
 import kr.or.uknowhat.api.ubusiness.question.vo.RoomQuestionVo;
+import kr.or.uknowhat.api.ubusiness.util.SecurityUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -44,6 +45,7 @@ public class RoomQuestionServiceImpl implements RoomQuestionService{
 	public RoomQuestionVo insertQuestion(RoomQuestionVo rqVo) {
 		
 		RoomQuestion rq = RoomQuestion.ofRoomQuestionVo(rqVo);
+		rq.setUserId(SecurityUtil.getUserId());
 		rq = roomQuestionRepo.save(rq);
 		RoomQuestionVo rqVoRet = RoomQuestionVo.ofRoomQuestion(rq);
 		return rqVoRet;

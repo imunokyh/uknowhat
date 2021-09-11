@@ -1,5 +1,7 @@
 package kr.or.uknowhat.api.ubusiness.question.vo;
 
+import javax.persistence.Column;
+
 import io.swagger.annotations.ApiModelProperty;
 import kr.or.uknowhat.api.ubusiness.question.domain.Question;
 import kr.or.uknowhat.api.ubusiness.question.domain.Room;

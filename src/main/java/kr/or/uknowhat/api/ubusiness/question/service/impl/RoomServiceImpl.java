@@ -1,6 +1,8 @@
 package kr.or.uknowhat.api.ubusiness.question.service.impl;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -17,6 +19,7 @@ import kr.or.uknowhat.api.ubusiness.question.domain.Room;
 import kr.or.uknowhat.api.ubusiness.question.repositories.RoomRepository;
 import kr.or.uknowhat.api.ubusiness.question.service.RoomService;
 import kr.or.uknowhat.api.ubusiness.question.vo.RoomVo;
+import kr.or.uknowhat.api.ubusiness.util.SecurityUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -31,6 +34,13 @@ public class RoomServiceImpl implements RoomService {
 	public Page<Room> listRoom(int page, int size, String searchUser) {
 		Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
 		return roomRepository.findAllByCreatedUserId(pageable, searchUser);
+	}
+	
+	@Override
+	public List<Room> listMyRoom() {
+		
+		String userId = SecurityUtil.getUserId();
+		return roomRepository.findAllByCreatedUserId(userId);
 	}
 
 	@Override
@@ -59,12 +69,14 @@ public class RoomServiceImpl implements RoomService {
 			}
 		}
 		
+		String userId = SecurityUtil.getUserId();
+		
 		if (generated) {
 			Room room = new Room();
 			room.setRoomTitle(roomVo.getTitle());
 			room.setRoomNumber(roomNumber);
 			room.setCreatedDate(new Date());
-			room.setCreatedUserId("admin");
+			room.setCreatedUserId(userId);
 			return roomRepository.save(room);
 		} else {
 			return null;

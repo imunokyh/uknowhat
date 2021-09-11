@@ -19,7 +19,7 @@
                 <b-form-input v-model="roomTitle" placeholder="방제목입력"></b-form-input>
               </b-modal>
               -->
-              <b-button @click=goProbBank()>문제은행</b-button>
+              <b-button @click="goProbBank()">문제은행</b-button>
               <b-button v-b-modal.modal-room-create>방생성</b-button>
               <b-modal
                 id="modal-room-create"
@@ -51,99 +51,25 @@
       </section>
 
       <!-- card container -->
-      <b-container>
-        <b-row>
-          <b-col>
-            <b-card id="pgid1" :title="pg1Title">
-              <b-card-text>
-                {{ pg1Text }}
-              </b-card-text>
+      <b-container fluid="md">
+        <b-row cols="3">
+          <b-col v-for="room in roomData" :key="room.id">
+            <b-card :id="room.roomId" :title="room.roomTitle">
+              <b-card-text> 문제 </b-card-text>
 
-              <b-button @click="modifyGroup('pgid1')" variant="primary"
+              <b-button
+                @click="modifyGroup(room.roomId, room.roomTitle)"
+                variant="primary"
                 >수정</b-button
               >
-              <b-button @click="deleteGroup('pgid1')" variant="danger"
+              <b-button @click="deleteGroup(room.roomId)" variant="danger"
                 >삭제</b-button
               >
-              <b-button @click="startGroup('pgid1')" variant="success"
+              <b-button @click="startGroup(room.roomId)" variant="success"
                 >시작</b-button
               >
             </b-card>
           </b-col>
-          <b-col>
-            <b-card id="pgid2" :title="pg2Title">
-              <b-card-text>
-                {{ pg2Text }}
-              </b-card-text>
-
-              <b-button @click="modifyGroup('pgid2')" variant="primary"
-                >수정</b-button
-              >
-              <b-button @click="deleteGroup('pgid2')" variant="danger"
-                >삭제</b-button
-              >
-              <b-button @click="startGroup('pgid2')" variant="success"
-                >시작</b-button
-              >
-            </b-card>
-          </b-col>
-          <b-col>
-            <b-card id="pgid3" :title="pg3Title">
-              <b-card-text>
-                {{ pg3Text }}
-              </b-card-text>
-
-              <b-button @click="modifyGroup('pgid3')" variant="primary"
-                >수정</b-button
-              >
-              <b-button @click="deleteGroup('pgid3')" variant="danger"
-                >삭제</b-button
-              >
-              <b-button @click="startGroup('pgid3')" variant="success"
-                >시작</b-button
-              >
-            </b-card>
-          </b-col>
-          <b-col>
-            <b-card id="pgid4" :title="pg4Title">
-              <b-card-text>
-                {{ pg4Text }}
-              </b-card-text>
-
-              <b-button @click="modifyGroup('pgid4')" variant="primary"
-                >수정</b-button
-              >
-              <b-button @click="deleteGroup('pgid4')" variant="danger"
-                >삭제</b-button
-              >
-              <b-button @click="startGroup('pgid4')" variant="success"
-                >시작</b-button
-              >
-            </b-card>
-          </b-col>
-        </b-row>
-        <b-row>&nbsp;</b-row>
-        <b-row>
-          <b-col>
-            <b-card id="pgid5" :title="pg5Title">
-              <b-card-text>
-                {{ pg5Text }}
-              </b-card-text>
-
-              <b-button @click="modifyGroup('pgid5')" variant="primary"
-                >수정</b-button
-              >
-              <b-button @click="deleteGroup('pgid5')" variant="danger"
-                >삭제</b-button
-              >
-              <b-button @click="startGroup('pgid5')" variant="success"
-                >시작</b-button
-              >
-            </b-card>
-          </b-col>
-          <b-col></b-col>
-          <b-col></b-col>
-          <b-col></b-col>
         </b-row>
       </b-container>
       <!-- e.card container -->
@@ -155,36 +81,52 @@
 export default {
   data() {
     return {
-      pg1Title: "문제그룹1",
-      pg2Title: "문제그룹2",
-      pg3Title: "문제그룹3",
-      pg4Title: "문제그룹4",
-      pg5Title: "문제그룹5",
-      pg1Text: "문제그룹1설명",
-      pg2Text: "문제그룹2설명",
-      pg3Text: "문제그룹3설명",
-      pg4Text: "문제그룹4설명",
-      pg5Text: "문제그룹5설명",
+      roomData: [],
       roomTitle: "",
       name: "",
       nameState: null,
       submittedNames: [],
     };
   },
-  mounted() {},
+  mounted() {
+    this.getRoomData();
+  },
   methods: {
-    goProbBank(){
-      this.$router.push({ name: "ProbBank"})
+    getRoomData() {
+      const config = {
+        headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
+      };
+      let promise = this.$http.get("/api/v1/room/me", config);
+      promise.then((res) => {
+        this.roomData = [];
+        this.roomData = res.data.result;
+      });
     },
-    modifyGroup(probGrpId) {
-      this.$router.push({ name: "ProbReg", params: { probGrpId: probGrpId } });
+    goProbBank() {
+      this.$router.push({ name: "ProbBank" });
     },
-    deleteGroup(probGrpId) {
-      this.$http
-        .post("/api/v1/sample/deleteGroup", {
-          probGrpId: probGrpId,
-        })
-        .then((res) => {});
+    modifyGroup(roomId, roomTitle) {
+      this.$router.push({
+        name: "ProbReg",
+        params: {
+          roomId: roomId,
+          roomTitle: roomTitle,
+          newRoomYn: "N",
+        },
+      });
+    },
+    deleteGroup(roomId) {
+      if (confirm("방을 삭제하시겠습니까?") == false) {
+        return;
+      }
+      const config = {
+        headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
+      };
+      this.$http.delete("/api/v1/room/" + roomId, config).then((res) => {
+        
+        alert("삭제 되었습니다");
+        this.getRoomData();
+      });
     },
     startGroup(probGrdId) {
       //
@@ -211,16 +153,31 @@ export default {
       }
       // Push the name to submitted names
       //this.submittedNames.push(this.name)
-      this.$http.post("/api/v1/room", {
-          title: this.name
-      }).then((res) => {
-        // Hide the modal manually
-        console.log(res);
-        this.$nextTick(() => {
-          this.$bvModal.hide("modal-room-create");
+      const config = {
+        headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
+      };
+      this.$http
+        .post(
+          "/api/v1/room",
+          {
+            title: this.name,
+          },
+          config
+        )
+        .then((res) => {
+          // Hide the modal manually
+          this.$nextTick(() => {
+            this.$bvModal.hide("modal-room-create");
+          });
+          this.$router.push({
+            name: "ProbReg",
+            params: {
+              roomId: res.data.result.roomId,
+              roomTitle: res.data.result.roomTitle,
+              newRoomYn: "Y",
+            },
+          });
         });
-        this.$router.push({name: 'ProbReg', params:{roomId :res.data.result.roomId, roomTitle: res.data.result.roomTitle, newRoom: 1}});
-      });
     },
   },
 };

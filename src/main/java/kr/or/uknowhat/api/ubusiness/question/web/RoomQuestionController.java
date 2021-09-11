@@ -33,11 +33,13 @@ public class RoomQuestionController {
 	@GetMapping
 	public Result listQuestion(@RequestParam(value = "page", defaultValue = "0") int page,
 						   @RequestParam(value = "size", defaultValue = "10") int size,
-						   @RequestParam(value = "roomId", required = false, defaultValue = "") Long roomId) {
+						   @RequestParam(value = "roomId", defaultValue = "10") int roomId) {
 		Result res = new Result();
 		res.setCode(ErrorCode.SUCCESS);
 		log.info("roomId:" + roomId);
-		res.setResult(rqService.listQuestion(roomId));
+		log.info("page:" + page);
+		log.info("size:" + size);
+		res.setResult(rqService.listQuestion(Long.valueOf(roomId)));
 		return res;
 	}
 	

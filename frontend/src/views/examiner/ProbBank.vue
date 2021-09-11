@@ -3,7 +3,7 @@
     <b-container style="height: 900px">
       <b-row>&nbsp;</b-row>
       <b-row>
-        <b-col cols="2"></b-col>
+        <b-col cols="2"><b-button @click="goRoomMng()">방관리로</b-button></b-col>
         <b-col cols="7"><h1>문제은행</h1></b-col>
         <b-col cols="3"> </b-col>
       </b-row>
@@ -106,9 +106,12 @@ export default {
     this.listQuiz();
   },
   methods: {
+    goRoomMng(){
+      // 방관리로 이동
+      this.$router.push({ name: "RoomMng" });
+    },
     genQuizId() {
       this.quizid = "quizid_" + this.uuidv4();
-      //this.quizid = "55";
     },
     getRandomInt() {
       return Math.floor(Math.random() * (50 - 4)) + 5;
@@ -124,24 +127,29 @@ export default {
       );
     },
     tableRefresh() {
-      console.log("refresh");
       this.$refs.quiztable.refresh();
     },
     listQuiz() {
-      this.$http.get("/api/v1/question").then((res) => {
+      const config = {
+        headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
+      };
+      this.$http.get("/api/v1/question",config).then((res) => {
         this.items = [];
         this.items = this.items.concat(res.data.result.content);
       });
     },
     myProvider(ctx) {
-      let promise = this.$http.get("/api/v1/question");
+      const config = {
+        headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
+      };
+      let promise = this.$http.get("/api/v1/question",config);
       return promise.then((res) => {
         return res.data.result.content || [];
       });
     },
     save() {
-      let quizId = this.$refs.quizdata.quizId;
-      let question = this.$refs.quizdata.question;
+      let questionId = this.$refs.quizdata.questionId;
+      let questionText = this.$refs.quizdata.questionText;
       let questionType = this.$refs.quizdata.selectedType;
       if (questionType == null) {
         alert("퀴즈타입을 선택해주세요");
@@ -160,26 +168,31 @@ export default {
           ? this.$refs.quizdata.selectedTf
           : this.$refs.quizdata.radioSelected;
 
-    let method = quizId > 0 ? 'put': 'post';
+      let method = questionId > 0 ? 'put': 'post';
 
+      const config = {
+        headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
+      };
       // 문제저장
       // ref: probbank http://namchengju.com/Board/Detail/52/1077
       this.$http({
         method: method,
         url:"/api/v1/question",
+        headers: config.headers,
         data: {
           //roomId: this.roomId,
-          questionId: quizId,
+          questionId: questionId,
           questionType: questionType,
           timeLimitType: "",
           pointType: "",
-          questionText: question,
+          questionText: questionText,
           answer1Text: ans1,
           answer2Text: ans2,
           answer3Text: ans3,
           answer4Text: ans4,
           answer: answer,
-        }})
+        }
+        })
         .then((res) => {
           if (res.data.code == 0) {
             this.$refs.quiztable.refresh();
@@ -203,10 +216,13 @@ export default {
       if(confirm('해당 문제를 삭제하시겠습니까?') == false){
         return;
       }
-
+      const config = {
+        headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
+      };
       this.$http({
         method: 'delete',
         url:"/api/v1/question/" + this.selected.questionId,
+        headers: config.headers
         })
         .then((res) => {
           if (res.data.code == 0) {
@@ -219,13 +235,16 @@ export default {
         });
     },
     onRowSelected(items) {
+      if (items == null || items[0] == null) {
+        return;
+      }
       this.selected = items[0];
        this.$refs.quizdata.questionText = this.selected.questionText;
        this.$refs.quizdata.questionId = this.selected.questionId;
        this.$refs.quizdata.selectedType = this.selected.questionType;
 
        if (this.$refs.quizdata.selectedType  == 'OX'){
-this.$refs.quizdata.selectedTf = this.selected.questionAnswer;
+         this.$refs.quizdata.selectedTf = this.selected.questionAnswer;
        }else{
          this.$refs.quizdata.radioSelected = this.selected.questionAnswer;
          this.$refs.quizdata.ans[1] = this.selected.answer1Text;
@@ -236,7 +255,6 @@ this.$refs.quizdata.selectedTf = this.selected.questionAnswer;
 
     },
     parentReceive(val) {
-      console.log(val);
       console.log("parentReceive");
     },
   },

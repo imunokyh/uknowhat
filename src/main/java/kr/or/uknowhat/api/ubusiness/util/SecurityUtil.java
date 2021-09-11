@@ -32,4 +32,12 @@ public class SecurityUtil {
 		
 		return Optional.ofNullable(userId);
 	}
+	
+	public static String getUserId() {
+		Optional<String> oUserId = getCurrentUserId();
+		if(oUserId.isEmpty()) {
+			return "";
+		}
+		return oUserId.get();
+	}
 }
