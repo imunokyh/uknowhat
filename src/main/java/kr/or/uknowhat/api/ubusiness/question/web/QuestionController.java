@@ -35,8 +35,6 @@ public class QuestionController {
 							   ) {
 		Result res = new Result();
 		res.setCode(ErrorCode.SUCCESS);
-		log.info(searchType);
-		log.info(searchText);
 		res.setResult(questionService.listQuestion(page, size, searchType, searchText));
 		return res;
 	}

@@ -1,9 +1,11 @@
 <template>
-  <div class="overflow-auto"   >
+  <div class="overflow-auto">
     <b-container style="height: 900px">
       <b-row>&nbsp;</b-row>
       <b-row>
-        <b-col cols="2"><b-button @click="goRoomMng()">방관리로</b-button></b-col>
+        <b-col cols="2"
+          ><b-button @click="goRoomMng()">방관리로</b-button></b-col
+        >
         <b-col cols="7"><h1>문제은행</h1></b-col>
         <b-col cols="3"> </b-col>
       </b-row>
@@ -17,9 +19,19 @@
         "
       />
       <b-row>
-        <b-button variant="primary" @click="initVal()">추가</b-button>
-        <b-button variant="danger" @click="delProb()">삭제</b-button>
+        <b-col cols="1"><b-button variant="primary" @click="initVal()">추가</b-button></b-col>
+        <b-col cols="1"><b-button variant="danger" @click="delProb()">삭제</b-button></b-col>
+        <b-col cols="2"></b-col>
+        <b-col cols="8"><b-pagination
+          v-model="currentPage"
+          :total-rows="totalRows"
+          :per-page="perPage"
+          aria-controls="my-table"
+        ></b-pagination></b-col>
+        
+        
       </b-row>
+
       <b-row>
         <b-table
           selectable
@@ -30,6 +42,8 @@
           ref="quiztable"
           :items="myProvider"
           :fields="fields"
+          :per-page="perPage"
+          :current-page="currentPage"
         >
         </b-table
       ></b-row>
@@ -44,7 +58,7 @@
         </b-col>
       </b-row>
 
-    <!-- debug
+      <!-- debug
       <p>
         Selected Rows:<br />
         {{ selected }}
@@ -77,6 +91,9 @@ export default {
   },
   data() {
     return {
+      perPage: 10,
+      currentPage: 1,
+      totalRows: 0,
       selected: [],
       cardCnt: 4,
       status1: "not_accepted",
@@ -101,12 +118,15 @@ export default {
   created() {
     this.genQuizId();
   },
-  computed: {},
+  computed: {
+
+  },
   mounted() {
-    this.listQuiz();
+    //this.listQuiz();
   },
   methods: {
-    goRoomMng(){
+    
+    goRoomMng() {
       // 방관리로 이동
       this.$router.push({ name: "RoomMng" });
     },
@@ -132,8 +152,12 @@ export default {
     listQuiz() {
       const config = {
         headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
+        params:{
+          page: 0,
+          size: 100000
+        }
       };
-      this.$http.get("/api/v1/question",config).then((res) => {
+      this.$http.get("/api/v1/question", config).then((res) => {
         this.items = [];
         this.items = this.items.concat(res.data.result.content);
       });
@@ -141,9 +165,14 @@ export default {
     myProvider(ctx) {
       const config = {
         headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
+        params:{
+          page: ctx.currentPage - 1,
+          size: ctx.perPage
+        }
       };
-      let promise = this.$http.get("/api/v1/question",config);
+      let promise = this.$http.get("/api/v1/question", config);
       return promise.then((res) => {
+        this.totalRows = res.data.result.totalElements
         return res.data.result.content || [];
       });
     },
@@ -168,7 +197,7 @@ export default {
           ? this.$refs.quizdata.selectedTf
           : this.$refs.quizdata.radioSelected;
 
-      let method = questionId > 0 ? 'put': 'post';
+      let method = questionId > 0 ? "put" : "post";
 
       const config = {
         headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
@@ -177,7 +206,7 @@ export default {
       // ref: probbank http://namchengju.com/Board/Detail/52/1077
       this.$http({
         method: method,
-        url:"/api/v1/question",
+        url: "/api/v1/question",
         headers: config.headers,
         data: {
           //roomId: this.roomId,
@@ -191,68 +220,65 @@ export default {
           answer3Text: ans3,
           answer4Text: ans4,
           answer: answer,
+        },
+      }).then((res) => {
+        if (res.data.code == 0) {
+          this.$refs.quiztable.refresh();
+          alert("저장했습니다");
+          this.initVal();
+        } else {
+          alert("저장시 문제가 발생했습니다");
         }
-        })
-        .then((res) => {
-          if (res.data.code == 0) {
-            this.$refs.quiztable.refresh();
-            alert("저장했습니다");
-            this.initVal();
-          } else {
-            alert("저장시 문제가 발생했습니다");
-          }
-        });
+      });
     },
     initVal() {
       this.$refs.quizdata.quizId = null;
       this.$refs.quizdata.question = null;
       this.$refs.quizdata.selectedType = null;
     },
-    delProb(){
-      if ( this.selected == null){
-        alert('삭제할 문제를 선택해 주십시오.')
+    delProb() {
+      if (this.selected == null) {
+        alert("삭제할 문제를 선택해 주십시오.");
         return;
       }
-      if(confirm('해당 문제를 삭제하시겠습니까?') == false){
+      if (confirm("해당 문제를 삭제하시겠습니까?") == false) {
         return;
       }
       const config = {
         headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
       };
       this.$http({
-        method: 'delete',
-        url:"/api/v1/question/" + this.selected.questionId,
-        headers: config.headers
-        })
-        .then((res) => {
-          if (res.data.code == 0) {
-            this.$refs.quiztable.refresh();
-            alert("삭제했습니다");
-            this.initVal();
-          } else {
-            alert("삭제시 문제가 발생했습니다");
-          }
-        });
+        method: "delete",
+        url: "/api/v1/question/" + this.selected.questionId,
+        headers: config.headers,
+      }).then((res) => {
+        if (res.data.code == 0) {
+          this.$refs.quiztable.refresh();
+          alert("삭제했습니다");
+          this.initVal();
+        } else {
+          alert("삭제시 문제가 발생했습니다");
+        }
+      });
     },
     onRowSelected(items) {
       if (items == null || items[0] == null) {
         return;
       }
       this.selected = items[0];
-       this.$refs.quizdata.questionText = this.selected.questionText;
-       this.$refs.quizdata.questionId = this.selected.questionId;
-       this.$refs.quizdata.selectedType = this.selected.questionType;
+      this.$refs.quizdata.questionText = this.selected.questionText;
+      this.$refs.quizdata.questionId = this.selected.questionId;
+      this.$refs.quizdata.selectedType = this.selected.questionType;
 
-       if (this.$refs.quizdata.selectedType  == 'OX'){
-         this.$refs.quizdata.selectedTf = this.selected.questionAnswer;
-       }else{
-         this.$refs.quizdata.radioSelected = this.selected.questionAnswer;
-         this.$refs.quizdata.ans[1] = this.selected.answer1Text;
-         this.$refs.quizdata.ans[2] = this.selected.answer2Text;
-         this.$refs.quizdata.ans[3] = this.selected.answer3Text;
-         this.$refs.quizdata.ans[4] = this.selected.answer4Text;
-       }
-
+      if (this.$refs.quizdata.selectedType == "OX") {
+        this.$refs.quizdata.selectedTf = this.selected.questionAnswer;
+      } else {
+        this.$refs.quizdata.radioSelected = this.selected.questionAnswer;
+        this.$refs.quizdata.ans[1] = this.selected.answer1Text;
+        this.$refs.quizdata.ans[2] = this.selected.answer2Text;
+        this.$refs.quizdata.ans[3] = this.selected.answer3Text;
+        this.$refs.quizdata.ans[4] = this.selected.answer4Text;
+      }
     },
     parentReceive(val) {
       console.log("parentReceive");
