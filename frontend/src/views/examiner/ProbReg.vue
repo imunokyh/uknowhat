@@ -434,13 +434,14 @@ export default {
     searchQuestion() {
       const config = {
         headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
-      };
-      let promise = this.$http.get("/api/v1/question", config,{
         params: {
+          page: 0,
+          size: 100000,
           searchType: this.selectedSearchType,
           searchText: this.searchText,
         },
-      });
+      };
+      let promise = this.$http.get("/api/v1/question", config);
       promise.then((res) => {
         this.bankItems = [];
         let result = res.data.result.content || [];
