@@ -12,7 +12,6 @@ import TrueFalseQuestion from '../views/TrueFalseQuestion.vue'
 // login
 import Participation from '../views/login/Participation.vue'
 import Nickname from '../views/login/Nickname.vue'
-import Waiting from '../views/login/Waiting.vue'
 // play
 import TrueFalseProb from '../views/play/TrueFalseProb.vue'
 import ObjectiveProb from '../views/play/ObjectiveProb.vue'
@@ -97,10 +96,6 @@ const routes = [
     path: '/login/nickname',
     name: 'Nickname',
     component: Nickname
-  }, {
-    path: '/login/waiting',
-    name: 'Waiting',
-    component: Waiting
   }
   // play
   , {

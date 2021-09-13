@@ -40,7 +40,6 @@ public class MessageController {
 		
 	@MessageMapping(value = "/play/message")
 	public void message(@Payload MessageVo message) {
-		
 		if(message.getType() == MessageType.CHAT){
 
 		}else if (message.getType() == MessageType.ANSWER){

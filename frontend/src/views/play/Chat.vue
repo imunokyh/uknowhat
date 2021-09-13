@@ -58,7 +58,7 @@ export default {
                 roomNumber: this.roomNum,
                 participantName: this.userName,
                 content: "",
-                type: "UJOI"
+                type: "UNJOIN"
             };
             this.stompClient.send('/publish/chat/join', JSON.stringify(msg));
 
@@ -128,7 +128,7 @@ export default {
                     roomNumber: this.roomNum,
                     participantName: this.userName,
                     content: "",
-                    type: "UJOI"
+                    type: "UNJOIN"
                 };
                 this.stompClient.send('/publish/chat/join', JSON.stringify(msg));
 

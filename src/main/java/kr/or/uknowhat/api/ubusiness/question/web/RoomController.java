@@ -1,5 +1,10 @@
 package kr.or.uknowhat.api.ubusiness.question.web;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +36,7 @@ public class RoomController {
 	private RoomService roomService;
 	
 	@Autowired
-	private RedisTemplate<String, String> redisTemplate;
+	private RedisTemplate<String, Object> redisTemplate;
 	
 	@GetMapping
 	public Result listRoom(@RequestParam(value = "page", defaultValue = "0") int page,
@@ -122,6 +127,24 @@ public class RoomController {
 			res.setCode(ErrorCode.ERROR);
 			res.setMessage("중복되는 닉네임이 존재합니다.");
 		}
+		
+		return res;
+	}
+	
+	@GetMapping(value = "/check/ptlist")
+	public Result checkParticipantList(@RequestParam(value = "number", defaultValue = "") String roomNumber) {
+		Result res = new Result();
+		List list = new ArrayList();
+		
+		HashOperations<String, Object, Object> hashOperations = redisTemplate.opsForHash();
+		Map<Object, Object> mapList = hashOperations.entries(roomNumber);
+		
+		for (Entry<Object, Object> entry : mapList.entrySet()) {
+			list.add(entry.getKey());
+		}
+		
+		res.setCode(ErrorCode.SUCCESS);
+		res.setResult(list);
 		
 		return res;
 	}
