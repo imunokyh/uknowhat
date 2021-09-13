@@ -40,6 +40,33 @@ public class MessageController {
 		
 	@MessageMapping(value = "/chat/message")
 	public void message(@Payload MessageVo message) {
+		log.info(message.toString());
+		if(message.getType() == MessageType.CHAT){
+
+		}else if (message.getType() == MessageType.ANSW){
+			
+		}else if (message.getType() == MessageType.START){
+			
+		}else if (message.getType() == MessageType.READPROB){
+			
+		}else if (message.getType() == MessageType.OXP){
+			
+		}else if (message.getType() == MessageType.SBP){
+			
+		}else if (message.getType() == MessageType.TIMECNT){
+			
+		}else if (message.getType() == MessageType.TIMEOUT){
+			
+		}else if (message.getType() == MessageType.ANSCHK){
+			
+		}else if (message.getType() == MessageType.ANSCHART){
+			
+		}else if (message.getType() == MessageType.PWAITING){
+			
+		}else if (message.getType() == MessageType.SENDANS){
+			
+		}
+		
 		simpMessageTemplate.convertAndSend("/subscribe/chat/room/" + message.getRoomNumber(), message);
 	}
 }

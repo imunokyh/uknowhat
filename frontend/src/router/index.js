@@ -22,6 +22,7 @@ import FinalRank from '../views/play/FinalRank.vue'
 import TimeUp from '../views/play/TimeUp.vue'
 import PtMain from '../views/play/PtMain.vue'
 import Chat from '../views/play/Chat.vue'
+import PlayChat from '../views/play/PlayChat.vue'
 
 // 출제자
 import WaitingProc from '../views/examiner/WaitingProc.vue'
@@ -37,6 +38,7 @@ import ProbReg from '../views/examiner/ProbReg.vue'
 import ProbBank from '../views/examiner/ProbBank.vue'
 import RoomMng from '../views/examiner/RoomMng.vue'
 import EmMain from '../views/examiner/EmMain.vue'
+import ExamChat from '../views/examiner/ExamChat.vue'
 
 Vue.use(VueRouter)
 
@@ -133,6 +135,11 @@ const routes = [
     name: 'Chat',
     component: Chat,
     props: true
+  }, {
+    path: '/play/playchat',
+    name: 'PlayChat',
+    component: PlayChat,
+    props: true
   }
   // 출제자
   , {
@@ -181,6 +188,11 @@ const routes = [
     path: '/exam/main',
     name: 'EmMain',
     component: EmMain
+  }, {
+    path: '/exam/examchat',
+    name: 'ExamChat',
+    component: ExamChat,
+    props: true
   }
 
 ]

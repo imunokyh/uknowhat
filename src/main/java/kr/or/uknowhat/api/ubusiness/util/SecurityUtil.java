@@ -35,7 +35,10 @@ public class SecurityUtil {
 	
 	public static String getUserId() {
 		Optional<String> oUserId = getCurrentUserId();
-		if(oUserId.isEmpty()) {
+		int i = 0;
+		log.info("aaa");
+
+		if(oUserId.isPresent()!=true) {
 			return "";
 		}
 		return oUserId.get();
