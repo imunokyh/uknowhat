@@ -20,8 +20,9 @@ import CorrectAns from '../views/play/CorrectAns.vue'
 import IncorrectAns from '../views/play/IncorrectAns.vue'
 import FinalRank from '../views/play/FinalRank.vue'
 import TimeUp from '../views/play/TimeUp.vue'
-import PtMain from '../views/play/PtMain.vue'
+import PtEnter from '../views/play/PtEnter.vue'
 import Chat from '../views/play/Chat.vue'
+import PlayMain from '../views/play/PlayMain.vue'
 import PlayChat from '../views/play/PlayChat.vue'
 
 // 출제자
@@ -127,9 +128,14 @@ const routes = [
     name: 'FinalRank',
     component: FinalRank
   }, {
+    path: '/play/enter',
+    name: 'PtEnter',
+    component: PtEnter
+  }, {
     path: '/play/main',
-    name: 'PtMain',
-    component: PtMain
+    name: 'PlayMain',
+    component: PlayMain,
+    props: true
   }, {
     path: '/play/chat',
     name: 'Chat',

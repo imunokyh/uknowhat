@@ -42,6 +42,8 @@
 
           <b-button variant="primary" @click="enter()">Enter</b-button>
           <b-button variant="danger" @click="cancel()">Cancel</b-button>
+          <b-button variant="primary" @click="goExaminer()">출제자로</b-button>
+          <b-button variant="primary" @click="goPlayer()">참가자로</b-button>
         </b-form>
       </b-jumbotron>
     </b-overlay>
@@ -81,6 +83,13 @@ export default {
     };
   },
   methods: {
+    goExaminer(){
+      this.$router.push({name: 'ExamChat', params: { number: "1234", nickname: "hygjob"}});
+    },
+    goPlayer(){
+      this.$router.push({name: 'PlayChat', params: { number: "1234", nickname: "player1"}});
+    },
+
     enter() {
       if (this.typeRoomNumber) {
         if (this.roomNum === '') {

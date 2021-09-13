@@ -21,29 +21,29 @@ public class MessageController {
 	private SimpMessagingTemplate simpMessageTemplate;
 	
 	@Autowired
-	private RedisTemplate<String, String> redisTemplate;
+	private RedisTemplate<String, Object> redisTemplate;
 	
-	@MessageMapping(value = "/chat/join")
+	@MessageMapping(value = "/play/join")
 	public void join(@Payload MessageVo message) {
 		HashOperations<String, Object, Object> hashOperations = redisTemplate.opsForHash();
 		
 		if (message.getType() == MessageType.JOIN) {
-			hashOperations.put(message.getRoomNumber(), message.getParticipantName(), "0");
+			hashOperations.put(message.getRoomNumber(), message.getParticipantName(), 0);
 			message.setContent(message.getParticipantName() + "님이 입장하셨습니다.");
-		} else if (message.getType() == MessageType.UJOI){
+		} else if (message.getType() == MessageType.UNJOIN){
 			hashOperations.delete(message.getRoomNumber(), message.getParticipantName());
 			message.setContent(message.getParticipantName() + "님이 퇴장하셨습니다.");
 		}
 		
-		simpMessageTemplate.convertAndSend("/subscribe/chat/room/" + message.getRoomNumber(), message);
+		simpMessageTemplate.convertAndSend("/subscribe/play/room/" + message.getRoomNumber(), message);
 	}
 		
-	@MessageMapping(value = "/chat/message")
+	@MessageMapping(value = "/play/message")
 	public void message(@Payload MessageVo message) {
-		log.info(message.toString());
+		
 		if(message.getType() == MessageType.CHAT){
 
-		}else if (message.getType() == MessageType.ANSW){
+		}else if (message.getType() == MessageType.ANSWER){
 			
 		}else if (message.getType() == MessageType.START){
 			
@@ -66,7 +66,6 @@ public class MessageController {
 		}else if (message.getType() == MessageType.SENDANS){
 			
 		}
-		
-		simpMessageTemplate.convertAndSend("/subscribe/chat/room/" + message.getRoomNumber(), message);
+		simpMessageTemplate.convertAndSend("/subscribe/play/room/" + message.getRoomNumber(), message);
 	}
 }
