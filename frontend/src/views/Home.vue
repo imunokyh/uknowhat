@@ -52,7 +52,7 @@ export default {
     },
     participation() {
       // 참가자 메인
-      this.$router.push({name:'PtMain'});
+      this.$router.push({name:'PtEnter'});
         
     },
   },

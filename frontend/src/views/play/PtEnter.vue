@@ -23,6 +23,8 @@
               placeholder="Enter Room Number"
               :state="roomNumberState"
               required
+              class="col-sm-3 text-center"
+              style="float: none; margin: 0 auto;"
             ></b-form-input>
           </b-form-group>
           <b-form-group 
@@ -37,11 +39,13 @@
               placeholder="Enter Nickname"
               :state="nicknameState"
               required
+              class="col-sm-3 text-center"
+              style="float: none; margin: 0 auto;"
             ></b-form-input>
           </b-form-group>
 
-          <b-button variant="primary" @click="enter()">Enter</b-button>
           <b-button variant="danger" @click="cancel()">Cancel</b-button>
+          <b-button variant="primary" @click="enter()">Enter</b-button>
         </b-form>
       </b-jumbotron>
     </b-overlay>
@@ -73,7 +77,7 @@ export default {
   },
   data() {
     return {
-      name: "PtMain",
+      name: "PtEnter",
       roomNum: "",
       participantName: "",
       typeRoomNumber: true,
@@ -111,7 +115,7 @@ export default {
           .get("/api/v1/room/check/nickname?number=" + this.roomNum + "&nickname=" + this.participantName)
           .then((res) => {
             if (res.data.code === 0) {
-              this.$router.push({name: 'Chat', params: { number: this.roomNum, nickname: this.participantName}});
+              this.$router.push({name: 'PlayMain', params: { number: this.roomNum, nickname: this.participantName}});
             } else {
               alert(res.data.message);
             }

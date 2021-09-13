@@ -12,7 +12,6 @@ import TrueFalseQuestion from '../views/TrueFalseQuestion.vue'
 // login
 import Participation from '../views/login/Participation.vue'
 import Nickname from '../views/login/Nickname.vue'
-import Waiting from '../views/login/Waiting.vue'
 // play
 import TrueFalseProb from '../views/play/TrueFalseProb.vue'
 import ObjectiveProb from '../views/play/ObjectiveProb.vue'
@@ -20,8 +19,9 @@ import CorrectAns from '../views/play/CorrectAns.vue'
 import IncorrectAns from '../views/play/IncorrectAns.vue'
 import FinalRank from '../views/play/FinalRank.vue'
 import TimeUp from '../views/play/TimeUp.vue'
-import PtMain from '../views/play/PtMain.vue'
+import PtEnter from '../views/play/PtEnter.vue'
 import Chat from '../views/play/Chat.vue'
+import PlayMain from '../views/play/PlayMain.vue'
 
 // 출제자
 import WaitingProc from '../views/examiner/WaitingProc.vue'
@@ -94,10 +94,6 @@ const routes = [
     path: '/login/nickname',
     name: 'Nickname',
     component: Nickname
-  }, {
-    path: '/login/waiting',
-    name: 'Waiting',
-    component: Waiting
   }
   // play
   , {
@@ -125,9 +121,14 @@ const routes = [
     name: 'FinalRank',
     component: FinalRank
   }, {
+    path: '/play/enter',
+    name: 'PtEnter',
+    component: PtEnter
+  }, {
     path: '/play/main',
-    name: 'PtMain',
-    component: PtMain
+    name: 'PlayMain',
+    component: PlayMain,
+    props: true
   }, {
     path: '/play/chat',
     name: 'Chat',
