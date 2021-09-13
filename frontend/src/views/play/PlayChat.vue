@@ -97,11 +97,11 @@ export default {
         roomNumber: this.roomNum,
         participantName: this.userName,
         content: "",
-        type: "UJOI",
+        type: "UNJOIN",
       };
-      this.stompClient.send("/publish/chat/join", JSON.stringify(msg));
+      this.stompClient.send("/publish/play/join", JSON.stringify(msg));
 
-      this.stompClient.unsubscribe("/subscribe/chat/room/" + this.roomNum, {});
+      this.stompClient.unsubscribe("/subscribe/play/room/" + this.roomNum, {});
       this.stompClient.disconnect();
       this.stompClient = null;
     }
@@ -120,7 +120,7 @@ export default {
           // 서버의 메시지 전송 endpoint를 구독합니다.
           // 이런형태를 pub sub 구조라고 합니다.
           this.stompClient.subscribe(
-            "/subscribe/chat/room/" + this.roomNum,
+            "/subscribe/play/room/" + this.roomNum,
             (res) => {
               this.recvMessage(res.body);
             }
@@ -133,7 +133,7 @@ export default {
             type: "JOIN",
           };
 
-          this.stompClient.send("/publish/chat/join", JSON.stringify(msg));
+          this.stompClient.send("/publish/play/join", JSON.stringify(msg));
         },
         (error) => {
           // 소켓 연결 실패
@@ -150,7 +150,7 @@ export default {
           content: this.message,
           type: "CHAT",
         };
-        this.stompClient.send("/publish/chat/message", JSON.stringify(msg));
+        this.stompClient.send("/publish/play/message", JSON.stringify(msg));
       }
     },
     send(type, message) {
@@ -161,7 +161,7 @@ export default {
           content: message,
           type: type,
         };
-        this.stompClient.send("/publish/chat/message", JSON.stringify(msg));
+        this.stompClient.send("/publish/play/message", JSON.stringify(msg));
       }
     },
     unLoadEvent(event) {
@@ -170,12 +170,12 @@ export default {
           roomNumber: this.roomNum,
           participantName: this.userName,
           content: "",
-          type: "UJOI",
+          type: "UNJOIN",
         };
-        this.stompClient.send("/publish/chat/join", JSON.stringify(msg));
+        this.stompClient.send("/publish/play/join", JSON.stringify(msg));
 
         this.stompClient.unsubscribe(
-          "/subscribe/chat/room/" + this.roomNum,
+          "/subscribe/play/room/" + this.roomNum,
           {}
         );
         this.stompClient.disconnect();
@@ -197,7 +197,9 @@ export default {
         this.answer2Text = resBody.answer2Text;
         this.answer3Text = resBody.answer3Text;
         this.answer4Text = resBody.answer4Text;
-      } else if (type == "TIMECNT") {
+      } else if (type == "TIMER") {
+        this.timeCnt = resBody.content;
+      }  else if (type == "TIMECNT") {
         this.timeCnt = resBody.content;
       } else if (type == "TIMEOUT") {
       } else if (type == "ANSCHK") {

@@ -9,6 +9,7 @@
       <b-button variant="primary" @click="sendWaiting()">waiting</b-button>
       <b-button variant="primary" @click="sendOxProb()">ox prob</b-button>
       <b-button variant="primary" @click="sendSbProb()">sb prob</b-button>
+      <b-button variant="primary" @click="sendTimer()">timer</b-button>
       <b-button variant="primary" @click="sendTimeCnt()">time cnt</b-button>
       <b-button variant="primary" @click="sendTimeOut()">timeout</b-button>
       <b-button variant="primary" @click="sendCheckAnswer()"
@@ -72,44 +73,45 @@ export default {
       roomNum: "",
       userName: "",
       message: "",
-      examinerId : "hygjob",
+      examinerId: "hygjob",
       recvList: [],
       show: false,
-      participantStore:{
+      participantStore: {
         userName: "",
         score: 0,
       },
-      probList:[
+      probList: [
         {
-          "id": 1,
-          "questionId": 9,
-          "questionOrder": 0,
-          "questionScore": 10,
-          "questionTime": 5,
-          "roomId": 25,
-          "questionText": "계절의 변화와 우리의 건강은 관련이 없다.",
-          "answer1Text": "",
-          "answer2Text": "",
-          "answer3Text": "",
-          "answer4Text": "",
-          "questionType": "OX",
-          "questionAnswer": 2
+          id: 1,
+          questionId: 9,
+          questionOrder: 0,
+          questionScore: 10,
+          questionTime: 5,
+          roomId: 25,
+          questionText: "계절의 변화와 우리의 건강은 관련이 없다.",
+          answer1Text: "",
+          answer2Text: "",
+          answer3Text: "",
+          answer4Text: "",
+          questionType: "OX",
+          questionAnswer: 2,
         },
         {
-          "id": 2,
-          "questionId": 24,
-          "questionOrder": 0,
-          "questionScore": 10,
-          "questionTime": 5,
-          "roomId": 25,
-          "questionText": "조선시대 궁중 여인이나 양반집 규수가 세정제로 사용한 곡식 가루를 가리킨 ‘비루(飛陋)’에서 유래된 말은?",
-          "answer1Text": "비듬",
-          "answer2Text": "비누",
-          "answer3Text": "비데",
-          "answer4Text": "비수",
-          "questionType": "OB",
-          "questionAnswer": 2
-        }
+          id: 2,
+          questionId: 24,
+          questionOrder: 0,
+          questionScore: 10,
+          questionTime: 5,
+          roomId: 25,
+          questionText:
+            "조선시대 궁중 여인이나 양반집 규수가 세정제로 사용한 곡식 가루를 가리킨 ‘비루(飛陋)’에서 유래된 말은?",
+          answer1Text: "비듬",
+          answer2Text: "비누",
+          answer3Text: "비데",
+          answer4Text: "비수",
+          questionType: "OB",
+          questionAnswer: 2,
+        },
       ],
     };
   },
@@ -128,16 +130,16 @@ export default {
         roomNumber: this.roomNum,
         participantName: this.userName,
         content: "",
-        type: "UJOI",
+        type: "UNJOIN",
       };
-      this.stompClient.send("/publish/chat/join", JSON.stringify(msg));
+      this.stompClient.send("/publish/play/join", JSON.stringify(msg));
 
-      this.stompClient.unsubscribe("/subscribe/chat/room/" + this.roomNum, {});
+      this.stompClient.unsubscribe("/subscribe/play/room/" + this.roomNum, {});
       this.stompClient.disconnect();
       this.stompClient = null;
     }
   },
-  mounted(){
+  mounted() {
     this.examinerId = this.nickname;
   },
   methods: {
@@ -152,12 +154,11 @@ export default {
           this.connected = true;
           console.log("소켓 연결 성공");
           this.stompClient.subscribe(
-            "/subscribe/chat/room/" + this.roomNum,
+            "/subscribe/play/room/" + this.roomNum,
             (res) => {
-              
               //this.recvList.push(JSON.parse(res.body));
               //this.show = false;
-              this.recvMessage(res.body)
+              this.recvMessage(res.body);
             }
           );
 
@@ -168,7 +169,7 @@ export default {
             type: "JOIN",
           };
 
-          this.stompClient.send("/publish/chat/join", JSON.stringify(msg));
+          this.stompClient.send("/publish/play/join", JSON.stringify(msg));
         },
         (error) => {
           // 소켓 연결 실패
@@ -185,7 +186,7 @@ export default {
           content: this.message,
           type: "CHAT",
         };
-        this.stompClient.send("/publish/chat/message", JSON.stringify(msg));
+        this.stompClient.send("/publish/play/message", JSON.stringify(msg));
       }
     },
     send(type, message) {
@@ -196,7 +197,7 @@ export default {
           content: message,
           type: type,
         };
-        this.stompClient.send("/publish/chat/message", JSON.stringify(msg));
+        this.stompClient.send("/publish/play/message", JSON.stringify(msg));
       }
     },
     send(type, message, answer1Text, answer2Text, answer3Text, answer4Text) {
@@ -211,7 +212,7 @@ export default {
           answer4Text: answer4Text,
           type: type,
         };
-        this.stompClient.send("/publish/chat/message", JSON.stringify(msg));
+        this.stompClient.send("/publish/play/message", JSON.stringify(msg));
       }
     },
     unLoadEvent(event) {
@@ -220,9 +221,9 @@ export default {
           roomNumber: this.roomNum,
           participantName: this.userName,
           content: "",
-          type: "UJOI",
+          type: "UNJOIN",
         };
-        this.stompClient.send("/publish/chat/join", JSON.stringify(msg));
+        this.stompClient.send("/publish/play/join", JSON.stringify(msg));
 
         this.stompClient.unsubscribe(
           "/subscribe/chat/room/" + this.roomNum,
@@ -232,16 +233,14 @@ export default {
         this.stompClient = null;
       }
     },
-    getRandomInt(){
-      let min = 0 // 하한
-      let max = 10 // 상한
-      min = Math.ceil(min)
-      max = Math.ceil(max)
+    getRandomInt() {
+      let min = 0; // 하한
+      let max = 10; // 상한
+      min = Math.ceil(min);
+      max = Math.ceil(max);
       return Math.floor(Math.random() * (max - min)) + min; // 상한은 포함X
     },
-    recvMessage(resBody){
-
-    },
+    recvMessage(resBody) {},
     sendMessage() {
       if (this.userName !== "" && this.message !== "") {
         this.send();
@@ -265,27 +264,40 @@ export default {
     },
     sendOxProb() {
       const type = "OXP";
-      let message = "여기 문제 있다."; 
+      let message = "여기 문제 있다.";
       this.send(type, message);
     },
     sendSbProb() {
       const type = "SBP";
-      let message = "광운센터위치는?"; 
+      let message = "광운센터위치는?";
       let answer1Text = "1층";
       let answer2Text = "2층";
       let answer3Text = "3층";
       let answer4Text = "4층";
-      this.send(type, message, answer1Text, answer2Text, answer3Text, answer4Text);
+      this.send(
+        type,
+        message,
+        answer1Text,
+        answer2Text,
+        answer3Text,
+        answer4Text
+      );
+    },
+    sendTimer() {
+      const type = "TIMER";
+      let message = "timer"; //
+
+      this.send(type, message);
     },
     sendTimeCnt() {
       const type = "TIMECNT";
       let message = this.getRandomInt(); // 임의의 수를 일단 보낸다.
-      
+
       this.send(type, message);
     },
     sendTimeOut() {
       const type = "TIMEOUT";
-      let message = "time out"; 
+      let message = "time out";
       this.send(type, message);
     },
     sendCheckAnswer() {
@@ -298,8 +310,6 @@ export default {
       let message = "report result";
       this.send(type, message);
     },
-
-    
   },
 };
 </script>
