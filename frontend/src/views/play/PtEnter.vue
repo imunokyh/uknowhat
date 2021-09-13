@@ -8,11 +8,14 @@
         text-variant="white"
         border-variant="dark"
       >
-        <template #header>Play <br> Uknowhat?</template>
+        <template #header
+          >Play <br />
+          Uknowhat?</template
+        >
         <hr class="my-4" />
         <b-form>
-          <b-form-group 
-            id="input-group-1" 
+          <b-form-group
+            id="input-group-1"
             v-if="typeRoomNumber"
             :invalid-feedback="invalidRoomNumberFeedback"
           >
@@ -24,11 +27,11 @@
               :state="roomNumberState"
               required
               class="col-sm-3 text-center"
-              style="float: none; margin: 0 auto;"
+              style="float: none; margin: 0 auto"
             ></b-form-input>
           </b-form-group>
-          <b-form-group 
-            id="input-group-2" 
+          <b-form-group
+            id="input-group-2"
             v-else
             :invalid-feedback="invalidNicknameFeedback"
           >
@@ -40,15 +43,17 @@
               :state="nicknameState"
               required
               class="col-sm-3 text-center"
-              style="float: none; margin: 0 auto;"
+              style="float: none; margin: 0 auto"
             ></b-form-input>
           </b-form-group>
-
           <b-button variant="danger" @click="cancel()">Cancel</b-button>
-          <b-button variant="primary" @click="goExaminer()">출제자로</b-button>
-          <b-button variant="primary" @click="goPlayer()">참가자로</b-button>
           <b-button variant="primary" @click="enter()">Enter</b-button>
-
+          <b-button variant="primary" @click="goExaminer()"
+                >출제자로</b-button>
+                <b-button variant="primary" @click="goPlayer()"
+                >참가자로</b-button>
+              
+          
         </b-form>
       </b-jumbotron>
     </b-overlay>
@@ -70,13 +75,13 @@ export default {
     },
     invalidRoomNumberFeedback() {
       if (this.roomNum.length > 0) {
-        return 'Enter 4 numbers.';
+        return "Enter 4 numbers.";
       }
-      return 'Please enter numbers.';
+      return "Please enter numbers.";
     },
     invalidNicknameFeedback() {
-      return 'Please enter something.';
-    }
+      return "Please enter something.";
+    },
   },
   data() {
     return {
@@ -84,20 +89,26 @@ export default {
       roomNum: "",
       participantName: "",
       typeRoomNumber: true,
-      show: false
+      show: false,
     };
   },
   methods: {
-    goExaminer(){
-      this.$router.push({name: 'ExamChat', params: { number: "1234", nickname: "hygjob"}});
+    goExaminer() {
+      this.$router.push({
+        name: "ExamChat",
+        params: { number: "1234", nickname: "hygjob" },
+      });
     },
-    goPlayer(){
-      this.$router.push({name: 'PlayChat', params: { number: "1234", nickname: "player1"}});
+    goPlayer() {
+      this.$router.push({
+        name: "PlayChat",
+        params: { number: "1234", nickname: "player1" },
+      });
     },
 
     enter() {
       if (this.typeRoomNumber) {
-        if (this.roomNum === '') {
+        if (this.roomNum === "") {
           alert("방 번호를 입력하세요.");
           return;
         } else if (this.roomNum.length !== 4) {
@@ -115,27 +126,43 @@ export default {
             }
             this.show = false;
           })
-          .catch((error) => {console.log(error); this.show = false;});
+          .catch((error) => {
+            console.log(error);
+            this.show = false;
+          });
       } else {
-        if (this.participantName === '') {
+        if (this.participantName === "") {
           alert("닉네임을 입력하세요.");
           return;
         }
         this.$http
-          .get("/api/v1/room/check/nickname?number=" + this.roomNum + "&nickname=" + this.participantName)
+          .get(
+            "/api/v1/room/check/nickname?number=" +
+              this.roomNum +
+              "&nickname=" +
+              this.participantName
+          )
           .then((res) => {
             if (res.data.code === 0) {
-              this.$router.push({name: 'PlayMain', params: { number: this.roomNum, nickname: this.participantName}});
+              this.$router.push({
+                name: "PlayMain",
+                params: {
+                  number: this.roomNum,
+                  nickname: this.participantName,
+                },
+              });
             } else {
               alert(res.data.message);
             }
           })
-          .catch((error) => {console.log(error);});
+          .catch((error) => {
+            console.log(error);
+          });
       }
     },
     cancel() {
       this.$router.go(-1);
     },
-  }
+  },
 };
 </script>
