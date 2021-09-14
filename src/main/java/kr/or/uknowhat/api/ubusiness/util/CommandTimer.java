@@ -3,9 +3,33 @@ package kr.or.uknowhat.api.ubusiness.util;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+
+import kr.or.uknowhat.api.ubusiness.common.MessageType;
+import kr.or.uknowhat.api.ubusiness.question.vo.MessageVo;
+
 public  class CommandTimer extends HTimer {
+	
+	private SimpMessagingTemplate simpMessageTemplate;
+	private String roomNumber;
+	private Long count;
+	
     public synchronized void commit(){
-            printLog();
+            //printLog();
+    	MessageVo vo = new MessageVo();
+		vo.setContent(String.valueOf(count));
+		vo.setRoomNumber(roomNumber);
+		vo.setType(MessageType.TIMECNT);
+    	simpMessageTemplate.convertAndSend("/subscribe/play/room/" + roomNumber,vo);
+    	count--;
+    }
+    public CommandTimer(){
+    	
+    }
+    public CommandTimer(SimpMessagingTemplate simpMessagingTemplate, String roomNumber, Long count) {
+    	this.simpMessageTemplate = simpMessagingTemplate;
+    	this.roomNumber = roomNumber;
+    	this.count = count;
     }
     
     public void printLog() {

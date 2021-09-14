@@ -285,7 +285,7 @@ export default {
     },
     sendTimer() {
       const type = "TIMER";
-      let message = "timer"; //
+      let message = "10"; // count of timer
 
       this.send(type, message);
     },

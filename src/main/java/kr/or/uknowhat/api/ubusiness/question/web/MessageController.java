@@ -10,6 +10,7 @@ import org.springframework.stereotype.Controller;
 
 import kr.or.uknowhat.api.ubusiness.common.MessageType;
 import kr.or.uknowhat.api.ubusiness.question.vo.MessageVo;
+import kr.or.uknowhat.api.ubusiness.util.CommandTimer;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -55,9 +56,11 @@ public class MessageController {
 			
 		}else if (message.getType() == MessageType.TIMER){
 			
-			//CommandTimer ct=new CommandTimer();
-	        //ct.start(5000,2000,1000);
-			timer(message.getRoomNumber(), 5);
+			long howSeconds =  Long.parseLong(message.getContent()) * 1000; // mili second
+			int delay = 2000; // delay time mili second
+			int interval = 1000; // interval mili second
+			CommandTimer ct= new CommandTimer(simpMessageTemplate, message.getRoomNumber(), Long.parseLong(message.getContent()));
+			ct.start(howSeconds,delay,interval);
 			
 		}else if (message.getType() == MessageType.TIMECNT){
 			
@@ -75,21 +78,21 @@ public class MessageController {
 		simpMessageTemplate.convertAndSend("/subscribe/play/room/" + message.getRoomNumber(), message);
 	}
 	
-	public void timer(String roomNumber, int duration ) {
-		
-		for (int i = 0; i < duration; i++) {
-			try {
-				log.info("++++++:" + i);
-				Thread.sleep(1000); //1초 대기
-				MessageVo vo = new MessageVo();
-				vo.setContent(String.valueOf(i));
-				vo.setRoomNumber(roomNumber);
-				vo.setType(MessageType.TIMECNT);
-				simpMessageTemplate.convertAndSend("/subscribe/play/room/" + roomNumber,vo);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-		
-	}
+//	public void timer(String roomNumber, int duration ) {
+//		
+//		for (int i = 0; i < duration; i++) {
+//			try {
+//				log.info("++++++:" + i);
+//				Thread.sleep(1000); //1초 대기
+//				MessageVo vo = new MessageVo();
+//				vo.setContent(String.valueOf(i));
+//				vo.setRoomNumber(roomNumber);
+//				vo.setType(MessageType.TIMECNT);
+//				simpMessageTemplate.convertAndSend("/subscribe/play/room/" + roomNumber,vo);
+//			} catch (InterruptedException e) {
+//				e.printStackTrace();
+//			}
+//		}
+//		
+//	}
 }
