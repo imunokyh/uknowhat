@@ -56,31 +56,14 @@ public class RoomServiceImpl implements RoomService {
 	}
 
 	@Override
-	public Room insertRoom(RoomVo roomVo) {
-		RandomNumberGenerator randomNumberGenerator = new RandomNumberGenerator();
-		
-		String roomNumber = "";
-		boolean generated = false;
-		for (int i = 0; i < 10; i++) {
-			roomNumber = randomNumberGenerator.generateNumber(4, true);
-			if (!existRoom(roomNumber))	{
-				generated = true;
-				break;
-			}
-		}
-		
+	public Room insertRoom(RoomVo roomVo) {		
 		String userId = SecurityUtil.getUserId();
 		
-		if (generated) {
-			Room room = new Room();
-			room.setRoomTitle(roomVo.getTitle());
-			room.setRoomNumber(roomNumber);
-			room.setCreatedDate(new Date());
-			room.setCreatedUserId(userId);
-			return roomRepository.save(room);
-		} else {
-			return null;
-		}
+		Room room = new Room();
+		room.setRoomTitle(roomVo.getTitle());
+		room.setCreatedDate(new Date());
+		room.setCreatedUserId(userId);
+		return roomRepository.save(room);
 	}
 
 	@Override
@@ -89,10 +72,23 @@ public class RoomServiceImpl implements RoomService {
 		if (optionalRoom.isPresent()) {
 			Room room = optionalRoom.get();
 			
-			if (!Objects.equals(room.getRoomState(), "PLAY") && Objects.equals(roomVo.getState(), "PLAY"))
+			if (!Objects.equals(room.getRoomState(), "PLAY") && Objects.equals(roomVo.getState(), "PLAY")) {
+				RandomNumberGenerator randomNumberGenerator = new RandomNumberGenerator();
+				
+				String roomNumber = "";
+				for (int i = 0; i < 10; i++) {
+					roomNumber = randomNumberGenerator.generateNumber(4, true);
+					if (!existRoom(roomNumber))
+						break;
+				}
+				
 				room.setStartedDate(new Date());
-			else if (Objects.equals(room.getRoomState(), "PLAY") && Objects.equals(roomVo.getState(), "END"))
+				room.setRoomNumber(roomNumber);
+			}
+			else if (Objects.equals(room.getRoomState(), "PLAY") && Objects.equals(roomVo.getState(), "END")) {
 				room.setEndedDate(new Date());
+				room.setRoomNumber(null);
+			}
 			
 			room.setRoomTitle(roomVo.getTitle());
 			room.setRoomState(roomVo.getState());

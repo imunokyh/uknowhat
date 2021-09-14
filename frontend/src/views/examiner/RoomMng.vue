@@ -65,7 +65,7 @@
               <b-button @click="deleteGroup(room.roomId)" variant="danger"
                 >삭제</b-button
               >
-              <b-button @click="startGroup(room.roomId)" variant="success"
+              <b-button @click="startGroup(room.roomId, room.roomTitle)" variant="success"
                 >시작</b-button
               >
             </b-card>
@@ -128,8 +128,26 @@ export default {
         this.getRoomData();
       });
     },
-    startGroup(probGrdId) {
-      //
+    startGroup(roomId, roomTitle) {
+      const config = {
+        headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
+      };
+
+      this.$http
+        .put("/api/v1/room", {
+          "id": roomId,
+          "title": roomTitle,
+          "state": "PLAY"
+        }, config)
+        .then((res) => {
+          if (res.data.code !== 0) {
+            alert(res.data.message);
+          } else {
+            alert(res.data.result.roomNumber + "방이 시작되었습니다.");
+            this.$router.push({ name: "ExamChat", params: { number: res.data.result.roomNumber, nickname: "출제자" } });
+          }
+        })
+        .catch((error) => { console.log(error); });
     },
     checkFormValidity() {
       const valid = this.$refs.form.checkValidity();

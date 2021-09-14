@@ -1,5 +1,6 @@
 <template>
   <b-overlay :show="show" rounded="sm" class="h-100">
+    <!-- 대기실 페이지 -->
     <div v-if="pageType===0" class="h-100">
       <h1>You're in!</h1>
       <h2>See your nickname on screen?</h2>
@@ -34,9 +35,29 @@
     </div>
     <!-- 정답 결과 페이지 -->
     <div v-else-if="pageType===3" class="h-100">
+      <div v-if="resType===0">
+        <h1>Correct</h1>
+        <b-card bg-variant="dark" text-variant="white" class="text-center m-1">
+          <b-card-text> + {{score}} </b-card-text>
+        </b-card>
+      </div>
+      <div v-else-if="resType===1">
+        <h1>Incorrect</h1>
+        <b-card bg-variant="dark" text-variant="white" class="text-center m-1">
+          <b-card-text> We believe in you! </b-card-text>
+        </b-card>
+      </div>
+      <div v-else>
+        <h1>Time's up</h1>
+        <b-card bg-variant="dark" text-variant="white" class="text-center m-1">
+          <b-card-text> Dust yourself off. Greatness awaits! </b-card-text>
+        </b-card>
+      </div>
     </div>
     <!-- 최종 순위 페이지 -->
     <div v-else-if="pageType===4" class="h-100">
+      <h1>{{grade}}등</h1>
+      <h2>축하합니다!</h2>
     </div>
   </b-overlay>
 </template>
@@ -63,7 +84,10 @@ export default {
       userName: "",
       show: true,
       pageType: 0,
-      userList: []
+      userList: [],
+      resType: 0,
+      score: 0,
+      grade: 0
     }
   },
   created() {
@@ -202,5 +226,10 @@ export default {
   color: white;
   font-size: 100px;
   font-weight: bold;
+}
+
+.h-center {
+  float: none; 
+  margin: 0 auto
 }
 </style>

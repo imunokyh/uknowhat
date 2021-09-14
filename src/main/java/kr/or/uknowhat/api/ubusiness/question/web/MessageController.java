@@ -42,19 +42,19 @@ public class MessageController {
 	@MessageMapping(value = "/play/message")
 	public void message(@Payload MessageVo message) {
 		log.info(message.getType().toString());
-		if(message.getType() == MessageType.CHAT){
+		if (message.getType() == MessageType.CHAT) {
 
-		}else if (message.getType() == MessageType.ANSWER){
+		} else if (message.getType() == MessageType.ANSWER) {
 			
-		}else if (message.getType() == MessageType.START){
+		} else if (message.getType() == MessageType.START) {
 			
-		}else if (message.getType() == MessageType.READPROB){
+		} else if (message.getType() == MessageType.READPROB) {
 			
-		}else if (message.getType() == MessageType.OXP){
+		} else if (message.getType() == MessageType.OXP) {
 			
-		}else if (message.getType() == MessageType.SBP){
+		} else if (message.getType() == MessageType.SBP) {
 			
-		}else if (message.getType() == MessageType.TIMER){
+		} else if (message.getType() == MessageType.TIMER) {
 			
 			long howSeconds =  Long.parseLong(message.getContent()) * 1000; // mili second
 			int delay = 2000; // delay time mili second
@@ -62,17 +62,17 @@ public class MessageController {
 			CommandTimer ct= new CommandTimer(simpMessageTemplate, message.getRoomNumber(), Long.parseLong(message.getContent()));
 			ct.start(howSeconds,delay,interval);
 			
-		}else if (message.getType() == MessageType.TIMECNT){
+		} else if (message.getType() == MessageType.TIMECNT) {
 			
-		}else if (message.getType() == MessageType.TIMEOUT){
+		} else if (message.getType() == MessageType.TIMEOUT) {
 			
-		}else if (message.getType() == MessageType.ANSCHK){
+		} else if (message.getType() == MessageType.ANSCHK) {
 			
-		}else if (message.getType() == MessageType.ANSCHART){
+		} else if (message.getType() == MessageType.ANSCHART) {
 			
-		}else if (message.getType() == MessageType.PWAITING){
+		} else if (message.getType() == MessageType.PWAITING) {
 			
-		}else if (message.getType() == MessageType.SENDANS){
+		} else if (message.getType() == MessageType.SENDANS) {
 			
 		}
 		simpMessageTemplate.convertAndSend("/subscribe/play/room/" + message.getRoomNumber(), message);

@@ -15,9 +15,9 @@
       <hr class="my-4" />
 
       <p>함께 해 볼까요</p>
-      <b-button size="lg" variant="success" @click="examiner()">출제자</b-button>
+      <b-button class="m-1" size="lg" variant="success" @click="examiner()">출제자</b-button>
 
-      <b-button size="lg" variant="primary" @click="participation()">참가자</b-button>
+      <b-button class="m-1" size="lg" variant="primary" @click="participation()">참가자</b-button>
     </b-jumbotron>
   </div>
 </template>

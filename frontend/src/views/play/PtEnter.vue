@@ -23,11 +23,10 @@
               id="input-1"
               v-model="roomNum"
               type="text"
-              placeholder="Enter Room Number"
+              placeholder="Room Number"
               :state="roomNumberState"
               required
-              class="col-sm-3 text-center"
-              style="float: none; margin: 0 auto"
+              class="col-sm-3 text-center h-center"
             ></b-form-input>
           </b-form-group>
           <b-form-group
@@ -39,22 +38,18 @@
               id="input-2"
               v-model="participantName"
               type="text"
-              placeholder="Enter Nickname"
+              placeholder="Nickname"
               :state="nicknameState"
               required
-              class="col-sm-3 text-center"
-              style="float: none; margin: 0 auto"
+              class="col-sm-3 text-center h-center"
             ></b-form-input>
           </b-form-group>
-          <b-button variant="danger" @click="cancel()">Cancel</b-button>
-          <b-button variant="primary" @click="enter()">Enter</b-button>
-          <b-button variant="primary" @click="goExaminer()"
-                >출제자로</b-button>
-                <b-button variant="primary" @click="goPlayer()"
-                >참가자로</b-button>
-              
-          
+          <!--<b-button class="m-1" variant="danger" @click="cancel()">Cancel</b-button>-->
+          <b-button class="col-sm-3" variant="primary" @click="enter()">Enter</b-button>
         </b-form>
+        <hr class="my-4" />
+        <b-button class="col-sm-1 m-1" variant="danger" @click="goExaminer()">출제자로</b-button>
+        <b-button class="col-sm-1 m-1" variant="danger" @click="goPlayer()">참가자로</b-button>
       </b-jumbotron>
     </b-overlay>
   </div>
@@ -74,13 +69,13 @@ export default {
       return this.participantName.length > 0;
     },
     invalidRoomNumberFeedback() {
-      if (this.roomNum.length > 0) {
+      /*if (this.roomNum.length > 0) {
         return "Enter 4 numbers.";
       }
-      return "Please enter numbers.";
+      return "Please enter numbers.";*/
     },
     invalidNicknameFeedback() {
-      return "Please enter something.";
+      //return "Please enter something.";
     },
   },
   data() {
@@ -166,3 +161,10 @@ export default {
   },
 };
 </script>
+
+<style>
+.h-center {
+  float: none; 
+  margin: 0 auto
+}
+</style>

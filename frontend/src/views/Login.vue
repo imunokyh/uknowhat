@@ -24,7 +24,7 @@
 
         <b-button variant="primary" @click="login()">Login</b-button>
         <b-button variant="success" @click="signup()">Signup</b-button>
-        <b-button variant="danger" @click="back()">Back</b-button>
+        <!--<b-button variant="danger" @click="back()">Back</b-button>-->
       </b-form>
     </b-overlay>
   </div>
