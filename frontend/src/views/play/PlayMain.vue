@@ -125,7 +125,7 @@ export default {
   methods: {
     connect() {
         let sock = new SockJS("/stomp");
-        this.stompClient = Stomp.over(sock);
+        this.stompClient = Stomp.over(sock, {debug: false});
         this.stompClient.connect(
             {},
             frame => {
@@ -145,15 +145,18 @@ export default {
                   this.userList = this.userList.filter((user) => user !== msg.participantName);
                 } else if (msg.type === "START") {
                   this.show = true;
-                } else if (msg.type === "NEXT") {
-                  if (msg.content === "OX")
-                    this.pageType = 1;
-                  else if (msg.content === "OB")
-                    this.pageType = 2;
-                  else if (msg.content === "END")
-                    this.pageType = 4;
+                } else if (msg.type === "WAITING") {
+                  this.pageType = 0;
+                } else if (msg.type === "OXP") {
+                  this.pageType = 1;
+                } else if (msg.type === "OBP") {
+                  this.pageType = 2;
                 } else if (msg.type === "TIMEOUT") {
                   this.pageType = 3;
+                  this.resType = 2;
+                } else if (msg.type === "ANSCHK") {
+                  this.pageType = 3;
+                  this.resType = 0;
                 } else if (msg.type === "CHAT") {
 
                 }

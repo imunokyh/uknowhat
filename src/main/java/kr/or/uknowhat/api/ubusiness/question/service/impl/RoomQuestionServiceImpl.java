@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import kr.or.uknowhat.api.ubusiness.question.domain.RoomQuestion;
 import kr.or.uknowhat.api.ubusiness.question.repositories.RoomQuestionRepository;
+import kr.or.uknowhat.api.ubusiness.question.repositories.RoomRepository;
 import kr.or.uknowhat.api.ubusiness.question.service.RoomQuestionService;
 import kr.or.uknowhat.api.ubusiness.question.vo.RoomQuestionResMapping;
 import kr.or.uknowhat.api.ubusiness.question.vo.RoomQuestionVo;
@@ -18,15 +19,24 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Transactional
 @Slf4j
-public class RoomQuestionServiceImpl implements RoomQuestionService{
+public class RoomQuestionServiceImpl implements RoomQuestionService {
 
 	@Autowired
 	private RoomQuestionRepository roomQuestionRepo;
 	
 	@Override
 	public List<RoomQuestionResMapping> listQuestion(Long roomId) {
-		return roomQuestionRepo.findAllByRoomId(roomId);
-				
+		return roomQuestionRepo.findAllByRoomId(roomId);	
+	}
+	
+	@Override
+	public List<RoomQuestionResMapping> readQuestion(String roomNumber) {
+		Optional<Long> optionalRoomId = roomQuestionRepo.findRoomIdByRoomNumber(roomNumber);
+		if (optionalRoomId.isPresent()) {
+			return roomQuestionRepo.findAllByRoomId(optionalRoomId.get());
+		}
+		
+		return null;
 	}
 
 	@Override

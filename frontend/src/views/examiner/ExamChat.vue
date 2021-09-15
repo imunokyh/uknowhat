@@ -7,14 +7,13 @@
       <b-button variant="primary" @click="sendStart()">start</b-button>
       <b-button variant="primary" @click="sendReadProb()">read prob</b-button>
       <b-button variant="primary" @click="sendWaiting()">waiting</b-button>
+      <b-button variant="primary" @click="sendNext()">next</b-button>
       <b-button variant="primary" @click="sendOxProb()">ox prob</b-button>
-      <b-button variant="primary" @click="sendSbProb()">sb prob</b-button>
+      <b-button variant="primary" @click="sendObProb()">ob prob</b-button>
       <b-button variant="primary" @click="sendTimer()">timer</b-button>
       <b-button variant="primary" @click="sendTimeCnt()">time cnt</b-button>
       <b-button variant="primary" @click="sendTimeOut()">timeout</b-button>
-      <b-button variant="primary" @click="sendCheckAnswer()"
-        >check answer</b-button
-      >
+      <b-button variant="primary" @click="sendCheckAnswer()">check answer</b-button>
       <b-button variant="primary" @click="sendAnsChart()">report</b-button>
 
       <!-- 기존채팅-->
@@ -31,16 +30,47 @@
 
       <div class="readprob">
         <label for="">문제읽기</label>
+        <b-container fluid="sm">
+          <b-row>
+            <b-col sm="3" v-for="(qes, index) in probList" :key="index">
+              {{qes}}
+            </b-col>
+          </b-row>
+        </b-container>
+      </div>
+
+      <div class="next">
+        <label for="">현재문제번호: {{currentProbNum+1}}/{{probList.length}} </label>
+        <label v-if="probList.length > 0"> ({{probList[currentProbNum].questionType}}) </label>
+      </div>
+
+      <div class="curprob">
+        <label for="">현재문제</label>
+        <div v-if="probList.length > 0">
+          <div class="col-sm-12">
+            <h2>{{probList[currentProbNum].questionText}}</h2>
+          </div>
+          <div v-if="probList[currentProbNum].questionType==='OX'">
+            <div class="row h-100">
+              <b-button variant="primary" class="col-sm-6">O</b-button>
+              <b-button variant="danger" class="col-sm-6">X</b-button>
+            </div>
+          </div>
+          <div v-else-if="probList[currentProbNum].questionType==='OB'">
+            <div class="row h-50">
+              <b-button variant="primary" class="col-sm-6">{{probList[currentProbNum].answer1Text}}</b-button>
+              <b-button variant="danger" class="col-sm-6">{{probList[currentProbNum].answer2Text}}</b-button>
+            </div>
+            <div class="row h-50">
+              <b-button variant="success" class="col-sm-6">{{probList[currentProbNum].answer3Text}}</b-button>
+              <b-button variant="warning" class="col-sm-6">{{probList[currentProbNum].answer4Text}}</b-button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="waiting">
         <label for="">대기방</label>
-      </div>
-      <div class="oxprob">
-        <label for="">OX문제</label>
-      </div>
-      <div class="subprob">
-        <label for="">객관식문제</label>
       </div>
       <div class="checkanswer">
         <label for="">답체크</label>
@@ -80,39 +110,8 @@ export default {
         userName: "",
         score: 0,
       },
-      probList: [
-        {
-          id: 1,
-          questionId: 9,
-          questionOrder: 0,
-          questionScore: 10,
-          questionTime: 5,
-          roomId: 25,
-          questionText: "계절의 변화와 우리의 건강은 관련이 없다.",
-          answer1Text: "",
-          answer2Text: "",
-          answer3Text: "",
-          answer4Text: "",
-          questionType: "OX",
-          questionAnswer: 2,
-        },
-        {
-          id: 2,
-          questionId: 24,
-          questionOrder: 0,
-          questionScore: 10,
-          questionTime: 5,
-          roomId: 25,
-          questionText:
-            "조선시대 궁중 여인이나 양반집 규수가 세정제로 사용한 곡식 가루를 가리킨 ‘비루(飛陋)’에서 유래된 말은?",
-          answer1Text: "비듬",
-          answer2Text: "비누",
-          answer3Text: "비데",
-          answer4Text: "비수",
-          questionType: "OB",
-          questionAnswer: 2,
-        },
-      ],
+      probList: [],
+      currentProbNum: 0
     };
   },
   created() {
@@ -145,7 +144,7 @@ export default {
   methods: {
     connect() {
       let sock = new SockJS("/stomp");
-      this.stompClient = Stomp.over(sock);
+      this.stompClient = Stomp.over(sock, {debug: false});
       console.log("소켓 연결을 시도합니다.");
       this.stompClient.connect(
         {},
@@ -240,7 +239,12 @@ export default {
       max = Math.ceil(max);
       return Math.floor(Math.random() * (max - min)) + min; // 상한은 포함X
     },
-    recvMessage(resBody) {},
+    recvMessage(resBody) {
+      let res = JSON.parse(resBody);
+      if (res.type === "READPROB") {
+        this.probList = res.result;
+      }
+    },
     sendMessage() {
       if (this.userName !== "" && this.message !== "") {
         this.send();
@@ -262,13 +266,25 @@ export default {
       let message = "waiting room";
       this.send(type, message);
     },
+    sendNext() {
+      this.currentProbNum++;
+      if (this.currentProbNum >= this.probList.length) {
+        alert("문제 수를 넘어가서 처음으로 초기화 합니다.")
+        this.currentProbNum = 0;
+      }
+
+      if (this.probList[this.currentProbNum].questionType === "OX")
+        this.sendOxProb();
+      else if (this.probList[this.currentProbNum].questionType === "OB")
+        this.sendObProb();
+    },
     sendOxProb() {
       const type = "OXP";
       let message = "여기 문제 있다.";
       this.send(type, message);
     },
-    sendSbProb() {
-      const type = "SBP";
+    sendObProb() {
+      const type = "OBP";
       let message = "광운센터위치는?";
       let answer1Text = "1층";
       let answer2Text = "2층";

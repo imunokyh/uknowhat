@@ -9,6 +9,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 import kr.or.uknowhat.api.ubusiness.common.MessageType;
+import kr.or.uknowhat.api.ubusiness.question.repositories.RoomQuestionRepository;
+import kr.or.uknowhat.api.ubusiness.question.service.RoomQuestionService;
 import kr.or.uknowhat.api.ubusiness.question.vo.MessageVo;
 import kr.or.uknowhat.api.ubusiness.util.CommandTimer;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +25,9 @@ public class MessageController {
 	
 	@Autowired
 	private RedisTemplate<String, Object> redisTemplate;
+	
+	@Autowired
+	private RoomQuestionService roomQuestionService;
 	
 	@MessageMapping(value = "/play/join")
 	public void join(@Payload MessageVo message) {
@@ -49,17 +54,17 @@ public class MessageController {
 		} else if (message.getType() == MessageType.START) {
 			
 		} else if (message.getType() == MessageType.READPROB) {
-			
+			message.setResult(roomQuestionService.readQuestion(message.getRoomNumber()));
 		} else if (message.getType() == MessageType.OXP) {
 			
-		} else if (message.getType() == MessageType.SBP) {
+		} else if (message.getType() == MessageType.OBP) {
 			
 		} else if (message.getType() == MessageType.TIMER) {
 			
 			long howSeconds =  Long.parseLong(message.getContent()) * 1000; // mili second
 			int delay = 2000; // delay time mili second
 			int interval = 1000; // interval mili second
-			CommandTimer ct= new CommandTimer(simpMessageTemplate, message.getRoomNumber(), Long.parseLong(message.getContent()));
+			CommandTimer ct = new CommandTimer(simpMessageTemplate, message.getRoomNumber(), Long.parseLong(message.getContent()));
 			ct.start(howSeconds,delay,interval);
 			
 		} else if (message.getType() == MessageType.TIMECNT) {

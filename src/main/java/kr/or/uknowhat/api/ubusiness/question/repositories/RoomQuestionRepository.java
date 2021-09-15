@@ -1,8 +1,8 @@
 package kr.or.uknowhat.api.ubusiness.question.repositories;
 
 import java.util.List;
+import java.util.Optional;
 
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -32,7 +32,10 @@ public interface RoomQuestionRepository extends JpaRepository<RoomQuestion, Long
 			" from room_question rq, question q" + 
 			" where rq.question_id = q.question_id" +
 			" and rq.room_id = :roomId" +
-			" order by rq.id desc" +
+			" order by rq.question_order asc" +
 			"", nativeQuery=true)
 	List<RoomQuestionResMapping> findAllByRoomId(Long roomId);
+	
+	@Query(value = "select room_id from room where room_number = :roomNumber", nativeQuery = true)
+	Optional<Long> findRoomIdByRoomNumber(String roomNumber);
 }
