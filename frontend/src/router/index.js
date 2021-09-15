@@ -39,6 +39,7 @@ import ProbBank from '../views/examiner/ProbBank.vue'
 import RoomMng from '../views/examiner/RoomMng.vue'
 import EmMain from '../views/examiner/EmMain.vue'
 import ExamChat from '../views/examiner/ExamChat.vue'
+import RoomProc from '../views/examiner/RoomProc.vue'
 
 Vue.use(VueRouter)
 
@@ -193,6 +194,11 @@ const routes = [
     path: '/exam/examchat',
     name: 'ExamChat',
     component: ExamChat,
+    props: true
+  }, {
+    path: '/exam/roomproc',
+    name: 'RoomProc',
+    component: RoomProc,
     props: true
   }
 

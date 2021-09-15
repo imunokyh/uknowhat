@@ -109,14 +109,7 @@ export default {
   },
   destroyed() {
     if (this.stompClient !== null) {
-        const msg = { 
-          roomNumber: this.roomNum,
-          participantName: this.userName,
-          content: "",
-          type: "UNJOIN"
-        };
-        this.stompClient.send('/publish/play/join', JSON.stringify(msg));
-
+        this.sendJoinMessage("UNJOIN");
         this.stompClient.unsubscribe("/subscribe/play/room/" + this.roomNum, {});
         this.stompClient.disconnect();
         this.stompClient = null;
@@ -136,40 +129,10 @@ export default {
               // 이런형태를 pub sub 구조라고 합니다.                    
               this.stompClient.subscribe("/subscribe/play/room/" + this.roomNum, res => {
                 // 받은 데이터를 json으로 파싱하고 리스트에 넣어줍니다.
-                let msg = JSON.parse(res.body);
-                if (msg.type === "JOIN") {
-                  let found = this.userList.find((user) => user === msg.participantName);
-                  if (found === undefined)
-                    this.userList.push(msg.participantName);
-                } else if (msg.type === "UNJOIN") {
-                  this.userList = this.userList.filter((user) => user !== msg.participantName);
-                } else if (msg.type === "START") {
-                  this.show = true;
-                } else if (msg.type === "WAITING") {
-                  this.pageType = 0;
-                } else if (msg.type === "OXP") {
-                  this.pageType = 1;
-                } else if (msg.type === "OBP") {
-                  this.pageType = 2;
-                } else if (msg.type === "TIMEOUT") {
-                  this.pageType = 3;
-                  this.resType = 2;
-                } else if (msg.type === "ANSCHK") {
-                  this.pageType = 3;
-                  this.resType = 0;
-                } else if (msg.type === "CHAT") {
-
-                }
+                this.receiveMessage(res.body);
               });
 
-              const msg = { 
-                roomNumber: this.roomNum,
-                participantName: this.userName,
-                content: "",
-                type: "JOIN"
-              };
-
-              this.stompClient.send('/publish/play/join', JSON.stringify(msg));
+              this.sendJoinMessage("JOIN");
             },
             error => {
                 // 소켓 연결 실패
@@ -180,38 +143,76 @@ export default {
     },
     unLoadEvent(event) {
       if (this.stompClient !== null) {
-        const msg = { 
-          roomNumber: this.roomNum,
-          participantName: this.userName,
-          content: "",
-          type: "UNJOIN"
-        };
-        this.stompClient.send('/publish/play/join', JSON.stringify(msg));
-
+        this.sendJoinMessage("UNJOIN");
         this.stompClient.unsubscribe("/subscribe/play/room/" + this.roomNum, {});
         this.stompClient.disconnect();
         this.stompClient = null;
       }
     },
     submit(event) {    
+      let ans;
+
+      if (event.target.id === "true" || event.target.id === "one")
+        ans = "1";
+      else if (event.target.id === "false" || event.target.id === "two")
+        ans = "2";
+      else if (event.target.id === "three")
+        ans = "3";
+      else if (event.target.id === "four")
+        ans = "4";
+
+      this.sendMessage("ANSWER", ans);
+    },
+    receiveMessage(resBody) {
+      let msg = JSON.parse(resBody);
+
+      if (msg.type === "JOIN") {
+        let found = this.userList.find((user) => user === msg.participantName);
+        if (found === undefined)
+          this.userList.push(msg.participantName);
+      } else if (msg.type === "UNJOIN") {
+        this.userList = this.userList.filter((user) => user !== msg.participantName);
+      } else if (msg.type === "START") {
+        this.show = true;
+      } else if (msg.type === "WAITING") {
+        this.pageType = 0;
+        this.show = false;
+      } else if (msg.type === "OXP") {
+        this.show = false;
+        this.pageType = 1;
+      } else if (msg.type === "OBP") {
+        this.show = false;
+        this.pageType = 2;
+      } else if (msg.type === "TIMEOUT") {
+        this.pageType = 3;
+        this.resType = 2;
+      } else if (msg.type === "ANSCHK") {
+        this.pageType = 3;
+        this.resType = 0;
+      } else if (msg.type === "CHAT") {
+
+      }
+    },
+    sendJoinMessage(type) {
       if (this.stompClient && this.stompClient.connected) {
-        let ans;
-
-        if (event.target.id === "true" || event.target.id === "one")
-          ans = "1";
-        else if (event.target.id === "false" || event.target.id === "two")
-          ans = "2";
-        else if (event.target.id === "three")
-          ans = "3";
-        else if (event.target.id === "four")
-          ans = "4";
-
-        const msg = { 
-            roomNumber: this.roomNum,
-            participantName: this.userName,
-            content: ans,
-            type: "ANSWER"
+        const msg = {
+          roomNumber: this.roomNum,
+          participantName: this.userName,
+          type: type,
         };
+
+        this.stompClient.send("/publish/play/join", JSON.stringify(msg));
+      }
+    },
+    sendMessage(type, message) {
+      if (this.stompClient && this.stompClient.connected) {
+        const msg = {
+          roomNumber: this.roomNum,
+          participantName: this.userName,
+          content: message,
+          type: type,
+        };
+
         this.stompClient.send("/publish/play/message", JSON.stringify(msg));
       }
     },

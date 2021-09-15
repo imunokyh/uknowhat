@@ -56,6 +56,7 @@
               //this.$http.defaults.headers.common['Authorization'] = 'Bearer ' + res.data.result.token;
               
               sessionStorage.setItem('token', res.data.result.token);
+              sessionStorage.setItem('userId', this.form.id);
               this.$router.push({name: 'RoomMng'});
             } else {
               alert(res.data.message);

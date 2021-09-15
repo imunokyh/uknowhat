@@ -144,7 +144,7 @@ export default {
             alert(res.data.message);
           } else {
             alert(res.data.result.roomNumber + "방이 시작되었습니다.");
-            this.$router.push({ name: "ExamChat", params: { number: res.data.result.roomNumber, nickname: "출제자" } });
+            this.$router.push({ name: "RoomProc", params: { number: res.data.result.roomNumber, examiner: sessionStorage.getItem("userId")} });
           }
         })
         .catch((error) => { console.log(error); });
