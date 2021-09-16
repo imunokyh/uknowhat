@@ -1,18 +1,18 @@
 <template>
-  <b-overlay :show="show" rounded="sm" class="bg-dark h-100">
+  <b-overlay :show="show" rounded="sm" class="h-100">
     <!-- 대기실 페이지 -->
     <div v-if="pageType===0" class="h-100">
-      <h2 class="twb-50">{{ roomNum }}번 방</h2>
+      <h2>{{ roomNum }}번 방</h2>
       <hr class="my-4" />
-      <h1 class="twb-50">You're in!</h1>
-      <h2 class="twb-50">See your nickname on screen?</h2>
+      <h1>You're in!</h1>
+      <h2>See your nickname on screen?</h2>
       <hr class="my-4" />
       <b-button variant="primary" class="col-sm-1 mr-5 float-right" @click="sendStart($event)">Start</b-button>
       <b-button variant="danger" class="col-sm-1 mr-3 float-right" @click="sendExit($event)">Exit</b-button>
       <b-container fluid="sm">
         <b-row>
           <b-col sm="2" v-for="(user, index) in userList" :key="index">
-            <b-card bg-variant="white" text-variant="black" class="text-center m-1">
+            <b-card bg-variant="dark" text-variant="white" class="text-center m-1">
               <b-card-text> {{user}} </b-card-text>
             </b-card>
           </b-col>
@@ -21,14 +21,14 @@
     </div>
     <div v-else-if="pageType===1" class="h-100">
       <div class="h-50">
-        <div class="h-50">
+        <div class="h-25">
           <div>
-            <label class="twb-50 text-center">{{ roomNum }}번 방</label>
+            <h2>{{ roomNum }}번 방</h2>
           </div>
           <b-button variant="primary" class="col-sm-1 mt-4 mr-5 float-right" @click="sendNext($event)">Next</b-button>
         </div>
-        <div class="h-50">
-          <h2 class="twb-50 ml-5 mr-5">{{probList[currentProbNum].questionText}}</h2>
+        <div class="h-75">
+          <h2 class="tbb-70 mt-5 ml-5 mr-5">{{probList[currentProbNum].questionText}}</h2>
         </div>
       </div>
       <div class="h-50">
@@ -60,6 +60,10 @@ import SockJS from "sockjs-client";
 export default {
   name: "RoomProc",
   props: {
+    identification: {
+      type: Number,
+      default: "",
+    },
     number: {
       type: String,
       default: "",
@@ -71,6 +75,7 @@ export default {
   },
   data() {
     return {
+      roomId: -1,
       roomNum: "",
       examinerId: "",
       message: "",
@@ -84,6 +89,7 @@ export default {
   created() {
     window.addEventListener("beforeunload", this.unLoadEvent);
 
+    this.roomId = this.identification;
     this.roomNum = this.number;
     this.examinerId = this.examiner;
 
@@ -100,6 +106,7 @@ export default {
   },
   destroyed() {
     if (this.stompClient !== null) {
+      this.sendMessage("EXIT", "Room Exit");
       this.stompClient.unsubscribe("/subscribe/play/room/" + this.roomNum, {});
       this.stompClient.disconnect();
       this.stompClient = null;
@@ -187,7 +194,24 @@ export default {
       }
     },
     sendExit(event) {
-      this.$router.go(-1);
+      const config = {
+        headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
+      };
+
+      this.$http
+        .put("/api/v1/room/state", {
+          "id": this.roomId,
+          "state": "END"
+        }, config)
+        .then((res) => {
+          if (res.data.code !== 0) {
+            alert(res.data.message);
+          } else {
+            alert(this.roomNum + "방이 종료되었습니다.");
+          }
+          this.$router.go(-1);
+        })
+        .catch((error) => { console.log(error); });
     },
     sendNext(event) {
       if (event !== undefined)
@@ -224,6 +248,13 @@ export default {
 .twb-50 {
   color: white;
   font-size: 50px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.tbb-70 {
+  color: black;
+  font-size: 70px;
   font-weight: bold;
   text-align: center;
 }

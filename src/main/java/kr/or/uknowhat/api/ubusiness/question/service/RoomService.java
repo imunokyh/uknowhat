@@ -13,6 +13,7 @@ public interface RoomService {
 	Room getRoom(Long id);
 	Room insertRoom(RoomVo roomVo);
 	Room updateRoom(RoomVo roomVo);
+	Room changeRoomState(RoomVo roomVo);
 	void deleteRoom(Long id);
 	boolean existRoom(String roomNumber);
 	Room getRoomByRoomNumber(String roomNumber);

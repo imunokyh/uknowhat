@@ -55,19 +55,16 @@
         <b-row cols="3">
           <b-col v-for="room in roomData" :key="room.id">
             <b-card :id="room.roomId" :title="room.roomTitle">
-              <b-card-text> 문제 </b-card-text>
-
-              <b-button
-                @click="modifyGroup(room.roomId, room.roomTitle)"
-                variant="primary"
-                >수정</b-button
-              >
-              <b-button @click="deleteGroup(room.roomId)" variant="danger"
-                >삭제</b-button
-              >
-              <b-button @click="startGroup(room.roomId, room.roomTitle)" variant="success"
-                >시작</b-button
-              >
+              <b-card-text> (((o(*ﾟ▽ﾟ*)o))) </b-card-text>
+              <b-button @click="modifyGroup(room.roomId, room.roomTitle)" variant="primary">
+                수정
+              </b-button>
+              <b-button @click="deleteGroup(room.roomId)" variant="danger">
+                삭제
+              </b-button>
+              <b-button @click="startGroup(room.roomId, room.roomTitle)" variant="success">
+                시작
+              </b-button>
             </b-card>
           </b-col>
         </b-row>
@@ -134,9 +131,8 @@ export default {
       };
 
       this.$http
-        .put("/api/v1/room", {
+        .put("/api/v1/room/state", {
           "id": roomId,
-          "title": roomTitle,
           "state": "PLAY"
         }, config)
         .then((res) => {
@@ -144,7 +140,7 @@ export default {
             alert(res.data.message);
           } else {
             alert(res.data.result.roomNumber + "방이 시작되었습니다.");
-            this.$router.push({ name: "RoomProc", params: { number: res.data.result.roomNumber, examiner: sessionStorage.getItem("userId")} });
+            this.$router.push({ name: "RoomProc", params: { identification: roomId, number: res.data.result.roomNumber, examiner: sessionStorage.getItem("userId")} });
           }
         })
         .catch((error) => { console.log(error); });

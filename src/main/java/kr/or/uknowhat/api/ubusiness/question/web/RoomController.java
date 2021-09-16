@@ -77,12 +77,33 @@ public class RoomController {
 		return res;
 	}
 	
+	@PutMapping(value = "/state")
+	public Result changeRoomState(@RequestBody @Valid RoomVo roomVo) {
+		Room room = roomService.changeRoomState(roomVo);
+		Result res = new Result();
+		
+		if (room == null) {
+			res.setCode(ErrorCode.ERROR);
+		} else {
+			res.setCode(ErrorCode.SUCCESS);
+		}
+		res.setResult(room);
+		
+		return res;
+	}
+	
 	@PutMapping
 	public Result updateRoom(@RequestBody @Valid RoomVo roomVo) {
 		Room room = roomService.updateRoom(roomVo);
 		Result res = new Result();
-		res.setCode(ErrorCode.SUCCESS);
+		
+		if (room == null) {
+			res.setCode(ErrorCode.ERROR);
+		} else {
+			res.setCode(ErrorCode.SUCCESS);
+		}
 		res.setResult(room);
+		
 		return res;
 	}
 	

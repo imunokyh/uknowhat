@@ -25,12 +25,12 @@
     <!-- OB(객관식) 문제 정답 선택 페이지 -->
     <div v-else-if="pageType===2" class="h-100">
       <div class="row h-50">
-        <b-button id="one" variant="primary" class="col-sm-6" @click="submit($event)">1</b-button>
-        <b-button id="two" variant="danger" class="col-sm-6" @click="submit($event)">2</b-button>
+        <b-button id="one" variant="primary" class="col-sm-6" @click="submit($event)">{{answer1Text}}</b-button>
+        <b-button id="two" variant="danger" class="col-sm-6" @click="submit($event)">{{answer2Text}}</b-button>
       </div>
       <div class="row h-50">
-        <b-button id="three" variant="success" class="col-sm-6" @click="submit($event)">3</b-button>
-        <b-button id="four" variant="warning" class="col-sm-6" @click="submit($event)">4</b-button>
+        <b-button id="three" variant="success" class="col-sm-6" @click="submit($event)">{{answer3Text}}</b-button>
+        <b-button id="four" variant="warning" class="col-sm-6" @click="submit($event)">{{answer4Text}}</b-button>
       </div>
     </div>
     <!-- 정답 결과 페이지 -->
@@ -87,7 +87,11 @@ export default {
       userList: [],
       resType: 0,
       score: 0,
-      grade: 0
+      grade: 0,
+      answer1Text: "",
+      answer2Text: "",
+      answer3Text: "",
+      answer3Text: "",
     }
   },
   created() {
@@ -183,6 +187,10 @@ export default {
       } else if (msg.type === "OBP") {
         this.show = false;
         this.pageType = 2;
+        this.answer1Text = msg.answer1Text;
+        this.answer2Text = msg.answer2Text;
+        this.answer3Text = msg.answer3Text;
+        this.answer4Text = msg.answer4Text;
       } else if (msg.type === "TIMEOUT") {
         this.pageType = 3;
         this.resType = 2;
@@ -191,6 +199,8 @@ export default {
         this.resType = 0;
       } else if (msg.type === "CHAT") {
 
+      } else if (msg.type === "EXIT") {
+        this.$router.go(-1);
       }
     },
     sendJoinMessage(type) {

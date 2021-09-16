@@ -8,4 +8,5 @@ public enum MessageType {
 	, ANSCHART
 	, PWAITING
 	, SENDANS
+	, EXIT
 }

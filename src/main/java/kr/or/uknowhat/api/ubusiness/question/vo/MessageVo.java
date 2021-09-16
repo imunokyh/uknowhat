@@ -9,7 +9,7 @@ import lombok.Data;
 public class MessageVo {
 	private String roomNumber;
 	private String participantName; // 참가자명
-	private String examinerId; // 출제자아이디
+	private String examinerId; 		// 출제자아이디
 	private String content;
 	private Object result = new HashMap();
 	private String answer1Text;

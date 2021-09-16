@@ -72,26 +72,7 @@ public class RoomServiceImpl implements RoomService {
 		if (optionalRoom.isPresent()) {
 			Room room = optionalRoom.get();
 			
-			if (!Objects.equals(room.getRoomState(), "PLAY") && Objects.equals(roomVo.getState(), "PLAY")) {
-				RandomNumberGenerator randomNumberGenerator = new RandomNumberGenerator();
-				
-				String roomNumber = "";
-				for (int i = 0; i < 10; i++) {
-					roomNumber = randomNumberGenerator.generateNumber(4, true);
-					if (!existRoom(roomNumber))
-						break;
-				}
-				
-				room.setStartedDate(new Date());
-				room.setRoomNumber(roomNumber);
-			}
-			else if (Objects.equals(room.getRoomState(), "PLAY") && Objects.equals(roomVo.getState(), "END")) {
-				room.setEndedDate(new Date());
-				room.setRoomNumber(null);
-			}
-			
 			room.setRoomTitle(roomVo.getTitle());
-			room.setRoomState(roomVo.getState());
 			room.setModifiedDate(new Date());
 			room.setModifiedUserId(SecurityUtil.getUserId());
 			
@@ -121,5 +102,36 @@ public class RoomServiceImpl implements RoomService {
 		} else {
 			return null;
 		}
+	}
+
+	@Override
+	public Room changeRoomState(RoomVo roomVo) {
+		Optional<Room> optionalRoom = roomRepository.findById(roomVo.getId());
+		if (optionalRoom.isPresent()) {
+			Room room = optionalRoom.get();
+			
+			if (!Objects.equals(room.getRoomState(), "PLAY") && Objects.equals(roomVo.getState(), "PLAY")) {
+				RandomNumberGenerator randomNumberGenerator = new RandomNumberGenerator();
+				
+				String roomNumber = "";
+				for (int i = 0; i < 10; i++) {
+					roomNumber = randomNumberGenerator.generateNumber(4, true);
+					if (!existRoom(roomNumber))
+						break;
+				}
+				
+				room.setStartedDate(new Date());
+				room.setRoomNumber(roomNumber);
+			}
+			else if (Objects.equals(room.getRoomState(), "PLAY") && Objects.equals(roomVo.getState(), "END")) {
+				room.setEndedDate(new Date());
+				room.setRoomNumber(null);
+			}
+			
+			room.setRoomState(roomVo.getState());
+			
+			return roomRepository.save(room);
+		}
+		return null;
 	}
 }
