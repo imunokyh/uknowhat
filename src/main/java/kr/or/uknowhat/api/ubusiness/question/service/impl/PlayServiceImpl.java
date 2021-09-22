@@ -78,12 +78,12 @@ public class PlayServiceImpl implements PlayService{
 		}
 		if(oCurPlay.isPresent()) {
 			Play curPlay = oCurPlay.get();
-			curPlay.setProcCode("P"); // 현재진행
+			curPlay.setProcCode("P"); // 처리함
 			playRepo.save(curPlay);
 		}
 		if(oNextPlay.isPresent()) {
 			Play nextPlay = oNextPlay.get();
-			nextPlay.setProcCode("C");
+			nextPlay.setProcCode("C"); // 진행할 것
 			playRepo.save(nextPlay);
 		}
 	}
