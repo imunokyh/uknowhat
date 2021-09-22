@@ -115,6 +115,7 @@ export default {
     if (this.stompClient !== null) {
         this.sendJoinMessage("UNJOIN");
         this.stompClient.unsubscribe("/subscribe/play/room/" + this.roomNum, {});
+        this.stompClient.unsubscribe("/subscribe/play/room/" + this.roomNum + "/" + this.userName, {});
         this.stompClient.disconnect();
         this.stompClient = null;
     }
@@ -136,6 +137,11 @@ export default {
                 this.receiveMessage(res.body);
               });
 
+              this.stompClient.subscribe("/subscribe/play/room/" + this.roomNum + "/" + this.userName, res => {
+                // 받은 데이터를 json으로 파싱하고 리스트에 넣어줍니다.
+                this.receiveMessage(res.body);
+              });
+
               this.sendJoinMessage("JOIN");
             },
             error => {
@@ -149,12 +155,15 @@ export default {
       if (this.stompClient !== null) {
         this.sendJoinMessage("UNJOIN");
         this.stompClient.unsubscribe("/subscribe/play/room/" + this.roomNum, {});
+        this.stompClient.unsubscribe("/subscribe/play/room/" + this.roomNum + "/" + this.userName, {});
         this.stompClient.disconnect();
         this.stompClient = null;
       }
     },
     submit(event) {    
       let ans;
+
+      this.show = true;
 
       if (event.target.id === "true" || event.target.id === "one")
         ans = "1";
@@ -194,9 +203,15 @@ export default {
       } else if (msg.type === "TIMEOUT") {
         this.pageType = 3;
         this.resType = 2;
-      } else if (msg.type === "ANSCHK") {
+      } else if (msg.type === "CORRECT") {
+        this.show = false;
         this.pageType = 3;
         this.resType = 0;
+        this.score = msg.score;
+      } else if (msg.type === "INCORRECT") {
+        this.show = false;
+        this.pageType = 3;
+        this.resType = 1;
       } else if (msg.type === "CHAT") {
 
       } else if (msg.type === "EXIT") {

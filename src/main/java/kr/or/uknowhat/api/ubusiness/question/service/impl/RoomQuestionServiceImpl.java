@@ -85,5 +85,10 @@ public class RoomQuestionServiceImpl implements RoomQuestionService {
 			roomQuestionRepo.delete(optionalRoom.get());
 		}
 	}
+
+	@Override
+	public RoomQuestionResMapping readOneQuestion(Long id) {
+		return roomQuestionRepo.findOneById(id);
+	}
 	
 }

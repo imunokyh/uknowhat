@@ -4,9 +4,6 @@
     <div v-if="pageType===0" class="h-100">
       <h2>{{ roomNum }}번 방</h2>
       <hr class="my-4" />
-      <h1>You're in!</h1>
-      <h2>See your nickname on screen?</h2>
-      <hr class="my-4" />
       <b-button variant="primary" class="col-sm-1 mr-5 float-right" @click="sendStart($event)">Start</b-button>
       <b-button variant="danger" class="col-sm-1 mr-3 float-right" @click="sendExit($event)">Exit</b-button>
       <b-container fluid="sm">
@@ -19,16 +16,22 @@
         </b-row>
       </b-container>
     </div>
+    <!-- 게임 진행 페이지 -->
     <div v-else-if="pageType===1" class="h-100">
       <div class="h-50">
         <div class="h-25">
           <div>
             <h2>{{ roomNum }}번 방</h2>
           </div>
+          <b-button variant="success" class="col-sm-1 mt-4 mr-5 float-right" @click="sendAnsChk($event)">AnsChk</b-button>
           <b-button variant="primary" class="col-sm-1 mt-4 mr-5 float-right" @click="sendNext($event)">Next</b-button>
         </div>
         <div class="h-75">
           <h2 class="tbb-70 mt-5 ml-5 mr-5">{{probList[currentProbNum].questionText}}</h2>
+          <p class="tbb-25 mr-5 float-right">
+              {{submitNum}}<br>
+              Answers
+          </p>
         </div>
       </div>
       <div class="h-50">
@@ -83,7 +86,8 @@ export default {
       pageType: 0,
       userList: [],
       probList: [],
-      currentProbNum: 0
+      currentProbNum: 0,
+      submitNum: 0
     };
   },
   created() {
@@ -182,6 +186,8 @@ export default {
         this.show = false;
         this.pageType = 1;
         this.sendNext();
+      } else if (msg.type === "ANSWER") {
+        this.submitNum++;
       }
     },
     sendStart(event) {
@@ -213,22 +219,25 @@ export default {
         })
         .catch((error) => { console.log(error); });
     },
+    sendAnsChk(event) {
+      this.sendMessage("ANSCHK", "Answer Check");
+    },
     sendNext(event) {
       if (event !== undefined)
         this.currentProbNum++;
 
       if (this.currentProbNum < this.probList.length) {
         if (this.probList[this.currentProbNum].questionType === "OX")
-          this.sendMessage("OXP", this.probList[this.currentProbNum].questionText);
+          this.sendMessage("OXP", this.probList[this.currentProbNum].id.toString());
         else if (this.probList[this.currentProbNum].questionType === "OB")
-          this.sendMessage("OBP", this.probList[this.currentProbNum].questionText,
-            this.probList[this.currentProbNum].answer1Text, this.probList[this.currentProbNum].answer2Text,
-            this.probList[this.currentProbNum].answer3Text, this.probList[this.currentProbNum].answer4Text);  
+          this.sendMessage("OBP", this.probList[this.currentProbNum].id.toString()); 
       } else {
         this.currentProbNum = 0;
         this.pageType = 0;
         this.sendMessage("WAITING", "Go to Waiting");
       }
+
+      this.submitNum = 0;
     },
   },
 };
@@ -255,6 +264,13 @@ export default {
 .tbb-70 {
   color: black;
   font-size: 70px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.tbb-25 {
+  color: black;
+  font-size: 25px;
   font-weight: bold;
   text-align: center;
 }

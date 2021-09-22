@@ -10,6 +10,7 @@ public interface RoomQuestionService {
 	//Page<RoomQuestion> listQuestion(int page, int size, String searchType, String searchText);
 	List<RoomQuestionResMapping> listQuestion(Long roomId);
 	List<RoomQuestionResMapping> readQuestion(String roomNumber);
+	RoomQuestionResMapping readOneQuestion(Long id);
 	RoomQuestion getQuestion(Long id);
 	RoomQuestionVo insertQuestion(RoomQuestionVo rqVo);
 	RoomQuestionVo updateQuestion(RoomQuestionVo rqVo);
