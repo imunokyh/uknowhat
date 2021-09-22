@@ -17,12 +17,15 @@ public class Result {
 	private String message;
 	private Object result = new HashMap();
 	
+	public void setCode(int code) {
+		this.code = code;
+	}
 	public void setCode(ErrorCode errorCode) {
 		this.errorCode = errorCode;
 		this.code = errorCode.getCode();
 	}
 	public int getCode() {
-		return this.errorCode.getCode();
+		return this.code;
 	}
 
 }

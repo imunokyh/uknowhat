@@ -29,7 +29,9 @@ public interface RoomQuestionRepository extends JpaRepository<RoomQuestion, Long
 			", q.answer4text as answer4Text" + 
 			", q.question_type as questionType" + 
 			", q.question_answer as questionAnswer" + 
-			" from room_question rq, question q" + 
+			", 'N' as procCode" +
+			", @rownum\\:=@rownum+1 as questionNumber" + 
+			" from room_question rq, question q, (select @rownum\\:=0) as r" + 
 			" where rq.question_id = q.question_id" +
 			" and rq.room_id = :roomId" +
 			" order by rq.question_order asc" +
