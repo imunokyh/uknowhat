@@ -3,7 +3,9 @@ package kr.or.uknowhat.api.ubusiness.common;
 public enum ErrorCode {
 
 	SUCCESS(0, "SUCCESS")
-	, ERROR(1, "ERROR");
+	, ERROR(1, "ERROR")
+	, WRONG_REQUEST(1000, "잘못된 요청입니다.");
+	;
 	
 	private int code;
 	private String message;

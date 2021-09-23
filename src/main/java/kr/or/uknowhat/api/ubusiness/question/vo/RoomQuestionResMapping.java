@@ -5,6 +5,7 @@ public interface RoomQuestionResMapping {
 	public Long getId() ;
 	public Long getQuestionId() ;
 	public Long getQuestionOrder() ;
+	public Long getQuestionNumber() ;
 	public Long getQuestionScore() ;
 	public Long getQuestionTime() ;
 	public Long getRoomId();
@@ -15,5 +16,6 @@ public interface RoomQuestionResMapping {
 	public String getQuestionAnswer() ;
 	public String getQuestionText() ;
 	public String getQuestionType() ;
+	public String getProcCode() ;
 	
 }
