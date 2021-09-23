@@ -26,29 +26,32 @@
           <b-button variant="success" class="col-sm-1 mt-4 mr-5 float-right" @click="sendAnsChk($event)">AnsChk</b-button>
           <b-button variant="primary" class="col-sm-1 mt-4 mr-5 float-right" @click="sendNext($event)">Next</b-button>
         </div>
-        <div class="h-75">
+        <div v-if="showProb" class="h-75">
           <h2 class="tbb-70 mt-5 ml-5 mr-5">{{probList[currentProbNum].questionText}}</h2>
           <p class="tbb-25 mr-5 float-right">
               {{submitNum}}<br>
               Answers
           </p>
         </div>
+        <div v-else class="h-75">
+          <bar-comp :chart-data="barData" :options="options"></bar-comp>
+        </div>
       </div>
       <div class="h-50">
         <div v-if="probList[currentProbNum].questionType==='OX'" class="h-100">
           <div class="h-100">
-            <b-button id="true" variant="primary" class="col-sm-6 h-100">O</b-button>
-            <b-button id="false" variant="danger" class="col-sm-6 h-100">X</b-button>
+            <b-button :disabled="bdisable['true']" id="true" variant="primary" class="col-sm-6 h-100">O</b-button>
+            <b-button :disabled="bdisable['false']" id="false" variant="danger" class="col-sm-6 h-100">X</b-button>
           </div>
         </div>
         <div v-else-if="probList[currentProbNum].questionType==='OB'" class="h-100">
           <div class="h-50">
-            <b-button id="one" variant="primary" class="col-sm-6 h-100">{{probList[currentProbNum].answer1Text}}</b-button>
-            <b-button id="two" variant="danger" class="col-sm-6 h-100">{{probList[currentProbNum].answer2Text}}</b-button>
+            <b-button :disabled="bdisable['one']" id="one" variant="primary" class="col-sm-6 h-100">{{probList[currentProbNum].answer1Text}}</b-button>
+            <b-button :disabled="bdisable['two']" id="two" variant="danger" class="col-sm-6 h-100">{{probList[currentProbNum].answer2Text}}</b-button>
           </div>
           <div class="h-50">
-            <b-button id="three" variant="success" class="col-sm-6 h-100">{{probList[currentProbNum].answer3Text}}</b-button>
-            <b-button id="four" variant="warning" class="col-sm-6 h-100">{{probList[currentProbNum].answer4Text}}</b-button>
+            <b-button :disabled="bdisable['three']" id="three" variant="success" class="col-sm-6 h-100">{{probList[currentProbNum].answer3Text}}</b-button>
+            <b-button :disabled="bdisable['four']" id="four" variant="warning" class="col-sm-6 h-100">{{probList[currentProbNum].answer4Text}}</b-button>
           </div>
         </div>
       </div>
@@ -59,9 +62,13 @@
 <script>
 import Stomp from "webstomp-client";
 import SockJS from "sockjs-client";
+import BarComp from '@/components/BarComp'
 
 export default {
   name: "RoomProc",
+  components: {
+    BarComp,
+  },
   props: {
     identification: {
       type: Number,
@@ -84,10 +91,61 @@ export default {
       message: "",
       show: true,
       pageType: 0,
+      showProb: true,
       userList: [],
       probList: [],
       currentProbNum: 0,
-      submitNum: 0
+      submitNum: 0,
+      chartData: null,
+      barData: null,
+      options: {
+        // title
+        title: {
+          display: true,
+          text: "결과",
+          fontSize : 20,
+          fontStyle: "bold"
+        },
+        scales: {
+          yAxes: [
+            {
+              ticks: {
+                display: false,
+                beginAtZero: true,
+              },
+              gridLines: {
+                display: false,
+              },
+            },
+          ],
+          xAxes: [
+            {
+              ticks: {
+                beginAtZero: true,
+                fontSize: 20,
+                fontStyle: "bold"
+              },
+              gridLines: {
+                display: false,
+              },
+            },
+          ],
+        },
+        legend: {
+          display: false,
+        },
+        responsive: true,
+        maintainAspectRatio: false,
+        height: 200,
+      },
+      bdisable: {
+        "true": false,
+        "false": false,
+        "one": false,
+        "two": false,
+        "three": false,
+        "four": false,
+      }
     };
   },
   created() {
@@ -120,7 +178,6 @@ export default {
     connect() {
       let sock = new SockJS("/stomp");
       this.stompClient = Stomp.over(sock, {debug: false});
-      console.log("소켓 연결을 시도합니다.");
       this.stompClient.connect(
         {},
         (frame) => {
@@ -188,6 +245,71 @@ export default {
         this.sendNext();
       } else if (msg.type === "ANSWER") {
         this.submitNum++;
+      } else if (msg.type === "ANSCHART") {
+        this.showProb = false;
+        this.chartData = msg.result;
+        if (this.probList[this.currentProbNum].questionType === "OX") {
+          let answer1 = 0, answer2 = 0;
+
+          for (var key in this.chartData) {
+            if (key === '1') {
+              answer1 = this.chartData[key];
+            } else if (key === '2') {
+              answer2 = this.chartData[key];
+            }
+          }
+
+          if (this.probList[this.currentProbNum].questionAnswer === "1") {
+            this.bdisable['true'] = false;
+            this.bdisable['false'] = true;
+          } else if (this.probList[this.currentProbNum].questionAnswer === "2") {
+            this.bdisable['true'] = true;
+            this.bdisable['false'] = false;
+          }
+
+          this.fillOXData(answer1, answer2);
+        } else if (this.probList[this.currentProbNum].questionType === "OB") {
+          let answer1 = 0, answer2 = 0, answer3 = 0, answer4 = 0;
+
+          for (var key in this.chartData) {
+            if (key === '1') {
+              answer1 = this.chartData[key];
+            } else if (key === '2') {
+              answer2 = this.chartData[key];
+            } else if (key === '3') {
+              answer3 = this.chartData[key];
+            } else if (key === '4') {
+              answer4 = this.chartData[key];
+            }
+          }
+
+          if (this.probList[this.currentProbNum].questionAnswer === "1") {
+            this.bdisable['one'] = false;
+            this.bdisable['two'] = true;
+            this.bdisable['three'] = true;
+            this.bdisable['four'] = true;
+          } else if (this.probList[this.currentProbNum].questionAnswer === "2") {
+            this.bdisable['one'] = true;
+            this.bdisable['two'] = false;
+            this.bdisable['three'] = true;
+            this.bdisable['four'] = true;
+          } else if (this.probList[this.currentProbNum].questionAnswer === "3") {
+            this.bdisable['one'] = true;
+            this.bdisable['two'] = true;
+            this.bdisable['three'] = false;
+            this.bdisable['four'] = true;
+          } else if (this.probList[this.currentProbNum].questionAnswer === "4") {
+            this.bdisable['one'] = true;
+            this.bdisable['two'] = true;
+            this.bdisable['three'] = true;
+            this.bdisable['four'] = false;
+          }
+
+          this.fillOBData(this.probList[this.currentProbNum].answer1Text, answer1, 
+                          this.probList[this.currentProbNum].answer2Text, answer2, 
+                          this.probList[this.currentProbNum].answer3Text, answer3, 
+                          this.probList[this.currentProbNum].answer4Text, answer4);
+        }
       }
     },
     sendStart(event) {
@@ -221,6 +343,7 @@ export default {
     },
     sendAnsChk(event) {
       this.sendMessage("ANSCHK", "Answer Check");
+      this.sendMessage("ANSCHART", "Answer Chart");
     },
     sendNext(event) {
       if (event !== undefined)
@@ -237,7 +360,37 @@ export default {
         this.sendMessage("WAITING", "Go to Waiting");
       }
 
+      for (var key in this.bdisable) {
+        this.bdisable[key] = false;
+      }
+
       this.submitNum = 0;
+      this.showProb = true;
+    },
+    fillOXData(answer1Count, answer2Count) {
+      (this.barData = {
+        labels: ["O", "X"],
+        datasets: [
+          {
+            label: "선택 수",
+            backgroundColor: ["#0d6efd", "#dc3545"],
+            data: [answer1Count, answer2Count],
+          },
+        ],
+      });
+    },
+    fillOBData(answer1Text, answer1Count, answer2Text, answer2Count,
+            answer3Text, answer3Count, answer4Text, answer4Count) {
+      (this.barData = {
+        labels: [answer1Text, answer2Text, answer3Text, answer4Text],
+        datasets: [
+          {
+            label: "선택 수",
+            backgroundColor: ["#0d6efd", "#dc3545", "#198754", "#ffc107"],
+            data: [answer1Count, answer2Count, answer3Count, answer4Count],
+          },
+        ],
+      });
     },
   },
 };

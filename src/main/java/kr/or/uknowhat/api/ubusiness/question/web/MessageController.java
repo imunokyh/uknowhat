@@ -1,5 +1,6 @@
 package kr.or.uknowhat.api.ubusiness.question.web;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.json.simple.parser.ParseException;
@@ -119,7 +120,19 @@ public class MessageController {
 			
 			return;
 		} else if (message.getType() == MessageType.ANSCHART) {
+			Map<Object, Object> ptAnswers = redisTemplate.opsForHash().entries(message.getRoomNumber() + "_answers");
+			HashMap<Integer, Integer> answerDt = new HashMap<Integer, Integer>();
 			
+			for (Map.Entry<Object, Object> entry : ptAnswers.entrySet()) {
+				Integer key = Integer.valueOf(String.valueOf(entry.getValue()));
+				if (answerDt.containsKey(key)) {
+					answerDt.put(key, answerDt.get(key) + 1);
+				} else {
+					answerDt.put(key, 1);
+				}
+			}
+			
+			message.setResult(answerDt);
 		} else if (message.getType() == MessageType.PWAITING) {
 			
 		} else if (message.getType() == MessageType.SENDANS) {
