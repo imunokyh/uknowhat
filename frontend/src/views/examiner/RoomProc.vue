@@ -1,5 +1,5 @@
 <template>
-  <b-overlay :show="show" rounded="sm" class="h-100">
+  <b-overlay :show="show" rounded="lg" class="h-100">
     <!-- 대기실 페이지 -->
     <div v-if="pageType===0" class="h-100">
       <h2>{{ roomNum }}번 방</h2>
@@ -23,11 +23,11 @@
           <div>
             <h2>{{ roomNum }}번 방</h2>
           </div>
-          <b-button variant="success" class="col-sm-1 mt-4 mr-5 float-right" @click="sendAnsChk($event)">AnsChk</b-button>
-          <b-button variant="primary" class="col-sm-1 mt-4 mr-5 float-right" @click="sendNext($event)">Next</b-button>
+          <b-button :disabled="nextDisable" variant="primary" class="col-sm-1 mt-4 mr-5 float-right" @click="sendNext($event)">Next</b-button>
         </div>
         <div v-if="showProb" class="h-75">
           <h2 class="tbb-70 mt-5 ml-5 mr-5">{{probList[currentProbNum].questionText}}</h2>
+          <b-avatar class="ml-5 float-left" variant="primary" size="5em" :text="timerCnt"></b-avatar>
           <p class="tbb-25 mr-5 float-right">
               {{submitNum}}<br>
               Answers
@@ -55,6 +55,24 @@
           </div>
         </div>
       </div>
+    </div>
+    <!-- 랭킹 페이지 -->
+    <div v-else-if="pageType===2" class="h-100">
+      <div>
+        <h2>{{ roomNum }}번 방</h2>
+      </div>
+      <b-button variant="primary" class="col-sm-1 mt-4 mr-5 mb-4 float-right" @click="sendNext($event)">Next</b-button>  
+      <b-table small :fields="fields" :items="rankList" responsive="sm">
+        <template #cell(rank)="data">
+          {{data.index + 1}}
+        </template>
+        <template #cell(nickname)="data">
+          {{data.item.value}}
+        </template>
+        <template #cell(score)="data">
+          {{data.item.score}}
+        </template>
+      </b-table>
     </div>
   </b-overlay>
 </template>
@@ -92,10 +110,18 @@ export default {
       show: true,
       pageType: 0,
       showProb: true,
+      nextDisable: false,
       userList: [],
       probList: [],
+      rankList: [],
+      fields: [
+        'rank',
+        'nickname',
+        'score'
+      ],
       currentProbNum: 0,
       submitNum: 0,
+      timerCnt: 0,
       chartData: null,
       barData: null,
       options: {
@@ -310,6 +336,14 @@ export default {
                           this.probList[this.currentProbNum].answer3Text, answer3, 
                           this.probList[this.currentProbNum].answer4Text, answer4);
         }
+      } else if (msg.type === "RANK") {
+        this.rankList = msg.result;
+      } else if (msg.type === "TIMECNT") {
+        this.timerCnt = parseInt(msg.content);
+      } else if (msg.type === "TIMEOUT") {
+        this.sendMessage("ANSCHK", "Answer Check");
+        this.sendMessage("ANSCHART", "Answer Chart");
+        this.nextDisable = false;
       }
     },
     sendStart(event) {
@@ -341,11 +375,17 @@ export default {
         })
         .catch((error) => { console.log(error); });
     },
-    sendAnsChk(event) {
-      this.sendMessage("ANSCHK", "Answer Check");
-      this.sendMessage("ANSCHART", "Answer Chart");
-    },
     sendNext(event) {
+      if (this.pageType !== 2) {
+        if (this.showProb === false) {
+          this.pageType = 2;
+          this.sendMessage("RANK", "Rank Check");
+          return;
+        }
+      } else {
+        this.pageType = 1;
+      }
+
       if (event !== undefined)
         this.currentProbNum++;
 
@@ -354,16 +394,21 @@ export default {
           this.sendMessage("OXP", this.probList[this.currentProbNum].id.toString());
         else if (this.probList[this.currentProbNum].questionType === "OB")
           this.sendMessage("OBP", this.probList[this.currentProbNum].id.toString()); 
+
+        this.sendMessage("TIMER", this.probList[this.currentProbNum].questionTime);
+        this.timerCnt = this.probList[this.currentProbNum].questionTime;
       } else {
         this.currentProbNum = 0;
         this.pageType = 0;
-        this.sendMessage("WAITING", "Go to Waiting");
+        this.sendMessage("FINALRANK", "Send Final Rank");
+        //this.sendMessage("WAITING", "Go to Waiting");
       }
 
       for (var key in this.bdisable) {
         this.bdisable[key] = false;
       }
 
+      this.nextDisable = true;
       this.submitNum = 0;
       this.showProb = true;
     },

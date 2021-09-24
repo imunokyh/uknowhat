@@ -1,5 +1,5 @@
 <template>
-  <b-overlay :show="show" rounded="sm" class="h-100">
+  <b-overlay :show="show" rounded="lg" class="h-100">
     <!-- 대기실 페이지 -->
     <div v-if="pageType===0" class="h-100">
       <h1>You're in!</h1>
@@ -214,6 +214,9 @@ export default {
         this.resType = 1;
       } else if (msg.type === "CHAT") {
 
+      } else if (msg.type === "FINALRANK") {
+        this.grade = msg.content;
+        this.pageType = 4;
       } else if (msg.type === "EXIT") {
         this.$router.go(-1);
       }

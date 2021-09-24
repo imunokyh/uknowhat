@@ -15,17 +15,26 @@ public  class CommandTimer extends HTimer {
 	private Long count;
 	
     public synchronized void commit(){
-            //printLog();
+        //printLog();
     	MessageVo vo = new MessageVo();
 		vo.setContent(String.valueOf(count));
 		vo.setRoomNumber(roomNumber);
+		
 		vo.setType(MessageType.TIMECNT);
-    	simpMessageTemplate.convertAndSend("/subscribe/play/room/" + roomNumber,vo);
+		simpMessageTemplate.convertAndSend("/subscribe/play/room/" + roomNumber, vo);
+		
+		if (count == 0) {
+			vo.setType(MessageType.TIMEOUT);
+			simpMessageTemplate.convertAndSend("/subscribe/play/room/" + roomNumber, vo);
+		}
+		
+    	simpMessageTemplate.convertAndSend("/subscribe/play/room/" + roomNumber, vo);
     	count--;
     }
     public CommandTimer(){
     	
     }
+    
     public CommandTimer(SimpMessagingTemplate simpMessagingTemplate, String roomNumber, Long count) {
     	this.simpMessageTemplate = simpMessagingTemplate;
     	this.roomNumber = roomNumber;

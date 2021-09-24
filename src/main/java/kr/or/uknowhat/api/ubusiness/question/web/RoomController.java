@@ -1,14 +1,10 @@
 package kr.or.uknowhat.api.ubusiness.question.web;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -140,8 +136,9 @@ public class RoomController {
 								@RequestParam(value = "nickname", defaultValue = "") String nickname) {
 		Result res = new Result();
 		
-		HashOperations<String, Object, Object> hashOperations = redisTemplate.opsForHash();
-		Object value = hashOperations.get(roomNumber, nickname);
+		//HashOperations<String, Object, Object> hashOperations = redisTemplate.opsForHash();
+		//Object value = hashOperations.get(roomNumber, nickname);
+		Long value = redisTemplate.opsForZSet().rank(roomNumber, nickname);
 		if (value == null) {
 			res.setCode(ErrorCode.SUCCESS);
 		} else {
@@ -155,17 +152,19 @@ public class RoomController {
 	@GetMapping(value = "/check/ptlist")
 	public Result checkParticipantList(@RequestParam(value = "number", defaultValue = "") String roomNumber) {
 		Result res = new Result();
-		List list = new ArrayList();
+		//List list = new ArrayList();
 		
-		HashOperations<String, Object, Object> hashOperations = redisTemplate.opsForHash();
-		Map<Object, Object> mapList = hashOperations.entries(roomNumber);
+		//HashOperations<String, Object, Object> hashOperations = redisTemplate.opsForHash();
+		//Map<Object, Object> mapList = hashOperations.entries(roomNumber);
 		
-		for (Entry<Object, Object> entry : mapList.entrySet()) {
-			list.add(entry.getKey());
-		}
+		//for (Entry<Object, Object> entry : mapList.entrySet()) {
+		//	list.add(entry.getKey());
+		//}
+		
+		Set<Object> set = redisTemplate.opsForZSet().range(roomNumber, 0, -1);
 		
 		res.setCode(ErrorCode.SUCCESS);
-		res.setResult(list);
+		res.setResult(set);
 		
 		return res;
 	}
