@@ -177,7 +177,6 @@ public class MessageController {
 				redisTemplate.delete(message.getRoomNumber() + "_problem");
 		}
 
-		
 		simpMessageTemplate.convertAndSend("/subscribe/play/room/" + message.getRoomNumber(), message);
 	}
 }

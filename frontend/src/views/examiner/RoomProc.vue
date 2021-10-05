@@ -18,14 +18,10 @@
     </div>
     <!-- 게임 진행 페이지 -->
     <div v-else-if="pageType===1" class="h-100">
-      <div class="h-50">
-        <div class="h-25">
-          <div>
-            <h2>{{ roomNum }}번 방</h2>
-          </div>
-          <b-button :disabled="nextDisable" variant="primary" class="col-sm-1 mt-4 mr-5 float-right" @click="sendNext($event)">Next</b-button>
-        </div>
-        <div v-if="showProb" class="h-75">
+      <div class="h-50"> 
+        <h2>{{ roomNum }}번 방</h2>
+        <b-button :disabled="nextDisable" variant="primary" class="col-sm-1 mt-4 mr-5 float-right" @click="sendNext($event)">Next</b-button>
+        <div v-if="showProb">
           <h2 class="tbb-70 mt-5 ml-5 mr-5">{{probList[currentProbNum].questionText}}</h2>
           <b-avatar class="ml-5 float-left" variant="primary" size="5em" :text="timerCnt"></b-avatar>
           <p class="tbb-25 mr-5 float-right">
@@ -33,7 +29,7 @@
               Answers
           </p>
         </div>
-        <div v-else class="h-75">
+        <div v-else>
           <bar-comp :chart-data="barData" :options="options"></bar-comp>
         </div>
       </div>
@@ -162,7 +158,7 @@ export default {
         },
         responsive: true,
         maintainAspectRatio: false,
-        height: 200,
+        height: 100,
       },
       bdisable: {
         "true": false,

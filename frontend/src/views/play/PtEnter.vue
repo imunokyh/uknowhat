@@ -48,8 +48,8 @@
           <b-button class="col-sm-3" variant="primary" @click="enter()">Enter</b-button>
         </b-form>
         <hr class="my-4" />
-        <b-button class="col-sm-1 m-1" variant="danger" @click="goExaminer()">출제자로</b-button>
-        <b-button class="col-sm-1 m-1" variant="danger" @click="goPlayer()">참가자로</b-button>
+        <!--<b-button class="col-sm-1 m-1" variant="danger" @click="goExaminer()">출제자로</b-button>
+        <b-button class="col-sm-1 m-1" variant="danger" @click="goPlayer()">참가자로</b-button>-->
       </b-jumbotron>
     </b-overlay>
   </div>

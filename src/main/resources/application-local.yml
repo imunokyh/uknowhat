@@ -5,6 +5,9 @@ spring:
       enabled: true
     restart:
       enabled: true
+  resources:
+    static-locations:
+      - file:src/main/resources/static
   main:
     allow-bean-definition-overriding: true
   datasource:
