@@ -8,7 +8,8 @@ import org.springframework.web.servlet.resource.PathResourceResolver;
 @Configuration
 public class WebConfiguration implements WebMvcConfigurer{
 	private static final String[] RESOURCE_LOCATIONS = {
-	        "classpath:/static/","classpath:/resources/" ,"classpath:/resources/static/"
+	        //"classpath:/static/","classpath:/resources/" ,"classpath:/resources/static/"
+			"classpath:/static/"
 	        };
 
     @Override
