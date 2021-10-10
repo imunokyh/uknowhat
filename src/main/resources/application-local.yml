@@ -6,8 +6,8 @@ spring:
     restart:
       enabled: true
   resources:
-    static-locations:
-      - file:src/main/resources/static
+    static-locations: classpath:/resources/,classpath:/static/
+      # - file:src/main/resources/static
   main:
     allow-bean-definition-overriding: true
   datasource:
