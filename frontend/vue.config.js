@@ -1,6 +1,7 @@
 const path = require("path");
 module.exports = {
-  outputDir: path.resolve(__dirname, "../src/main/resources/static"),
+  outputDir: path.resolve(__dirname, "../src/main/resources/public"),
+  
   devServer: {
     proxy: {
       '/api': {
