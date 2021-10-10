@@ -34,6 +34,7 @@ public class WebConfiguration implements WebMvcConfigurer{
         .addResourceHandler("/**")
         //.addResourceLocations(staticResouceLocation)
         .addResourceLocations(RESOURCE_LOCATIONS)
+        .addResourceLocations(staticResouceLocation)
         .setCachePeriod(3600)
         .resourceChain(true)
         .addResolver(new PathResourceResolver() { 
