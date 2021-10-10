@@ -24,7 +24,7 @@ public class WebConfiguration implements WebMvcConfigurer{
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry
-        .addResourceHandler("/**")
+        .addResourceHandler("/**/*")
         .addResourceLocations(RESOURCE_LOCATIONS)
         .setCachePeriod(3600)
         .resourceChain(true)
