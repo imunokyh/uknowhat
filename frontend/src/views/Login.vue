@@ -1,31 +1,43 @@
 <template>
   <div class="h-100">
     <b-overlay :show="show" rounded="sm" class="h-100">
-      <b-form>
-        <b-form-group id="input-group-1" label="Id" label-for="input-1">
-          <b-form-input
-            id="input-1"
-            v-model="form.id"
-            type="text"
-            placeholder="Enter ID"
-            required
-          ></b-form-input>
-        </b-form-group>
+      <b-jumbotron
+        class="h-100"
+        bg-variant="dark"
+        text-variant="white"
+        border-variant="dark"
+      >
+        <img class="mt-5 mb-5 img-fluid" alt="Title" src="../assets/title.png">
 
-        <b-form-group id="input-group-2" label="Password" label-for="input-2">
-          <b-form-input
-            id="input-2"
-            v-model="form.password"
-            type="password"
-            placeholder="Enter Password"
-            required
-          ></b-form-input>
-        </b-form-group>
+        <b-card bg-variant="white" text-variant="white" class="text-center h-center col-md-4 mb-3">
+          <b-form>
+            <b-form-group id="input-group-1" label-for="input-1">
+              <b-form-input
+                id="input-1"
+                v-model="form.id"
+                type="text"
+                placeholder="ID"
+                required
+              ></b-form-input>
+            </b-form-group>
 
-        <b-button variant="primary" @click="login()">Login</b-button>
-        <b-button variant="success" @click="signup()">Signup</b-button>
-        <!--<b-button variant="danger" @click="back()">Back</b-button>-->
-      </b-form>
+            <b-form-group id="input-group-2" label-for="input-2">
+              <b-form-input
+                id="input-2"
+                v-model="form.password"
+                type="password"
+                placeholder="Password"
+                required
+              ></b-form-input>
+            </b-form-group>
+
+            <b-button class="col-md-12" variant="primary" @click="login()">Login</b-button>
+            <!--<b-button variant="success" @click="signup()">Signup</b-button>-->
+            <!--<b-button variant="danger" @click="back()">Back</b-button>-->
+          </b-form>
+        </b-card>
+        <b-link class="text-secondary" @click="signup()">Signup</b-link>
+       </b-jumbotron>
     </b-overlay>
   </div>
 </template>

@@ -55,9 +55,11 @@
       </div>
     </div>
     <!-- 최종 순위 페이지 -->
-    <div v-else-if="pageType===4" class="h-100">
-      <h1>{{grade}}등</h1>
-      <h2>축하합니다!</h2>
+    <div v-else-if="pageType===4">
+      <h1 class="mt-5">{{grade}}등</h1>
+      <h2 v-if="grade<=3">축하합니다!</h2>
+      <h2 v-else-if="grade<=10 && grade>=3">조금 아쉽지만, 그래도 잘하셨습니다!</h2>
+      <h2 v-else>다음엔 더 나은 성적을 얻기를 응원합니다!</h2>
     </div>
   </b-overlay>
 </template>
@@ -100,15 +102,6 @@ export default {
     this.roomNum = this.number;
     this.userName = this.nickname;
 
-    this.$http
-      .get("/api/v1/room/check/ptlist?number=" + this.roomNum)
-      .then((res) => {
-        for (const user of res.data.result) {
-          this.userList.push(user);
-        }
-      })
-      .catch((error) => {console.log(error);});
-
     this.connect()
   },
   destroyed() {
@@ -141,6 +134,17 @@ export default {
                 // 받은 데이터를 json으로 파싱하고 리스트에 넣어줍니다.
                 this.receiveMessage(res.body);
               });
+
+              this.$http
+                .get("/api/v1/room/check/ptlist?number=" + this.roomNum)
+                .then((res) => {
+                  for (const user of res.data.result) {
+                    let found = this.userList.find((iter) => iter === user);
+                    if (found === undefined)
+                      this.userList.push(user);
+                  }
+                })
+                .catch((error) => {console.log(error);});
 
               this.sendJoinMessage("JOIN");
             },

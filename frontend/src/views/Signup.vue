@@ -1,41 +1,53 @@
 <template>
-  <div>
-    <b-overlay :show="show" rounded="sm">
-      <b-form>
-        <b-form-group id="input-group-1" label="Id" label-for="input-1">
-          <b-form-input
-            id="input-1"
-            v-model="form.id"
-            type="text"
-            placeholder="Enter ID"
-            required
-          ></b-form-input>
-        </b-form-group>
+  <div class="h-100">
+    <b-overlay :show="show" rounded="sm" class="h-100">
+      <b-jumbotron
+        class="h-100"
+        bg-variant="dark"
+        text-variant="white"
+        border-variant="dark"
+      >
+        <img class="mt-5 mb-5 img-fluid" alt="Title" src="../assets/title.png">
 
-        <b-form-group id="input-group-2" label="Password" label-for="input-2">
-          <b-form-input
-            id="input-2"
-            v-model="form.password"
-            type="password"
-            placeholder="Enter Password"
-            required
-          ></b-form-input>
-        </b-form-group>
+        <b-form>
+          <b-form-group id="input-group-1" label-for="input-1">
+            <b-form-input
+              class="col-sm-4 h-center"
+              id="input-1"
+              v-model="form.id"
+              type="text"
+              placeholder="ID"
+              required
+            ></b-form-input>
+          </b-form-group>
 
-        <b-form-group id="input-group-3" label="Check the Password" label-for="input-3">
-          <b-form-input
-            id="input-3"
-            v-model="form.passwordCheck"
-            type="password"
-            placeholder="Enter Password"
-            required
-            @keyup.enter="signup()"
-          ></b-form-input>
-        </b-form-group>
+          <b-form-group id="input-group-2" label-for="input-2">
+            <b-form-input
+              class="col-sm-4 h-center"
+              id="input-2"
+              v-model="form.password"
+              type="password"
+              placeholder="Password"
+              required
+            ></b-form-input>
+          </b-form-group>
 
-        <b-button variant="primary" @click="signup()">Submit</b-button>
-        <b-button variant="danger" @click="cancel()">Cancel</b-button>
-      </b-form>
+          <b-form-group id="input-group-3" label-for="input-3">
+            <b-form-input
+              class="col-sm-4 h-center"
+              id="input-3"
+              v-model="form.passwordCheck"
+              type="password"
+              placeholder="Check the Password"
+              required
+              @keyup.enter="signup()"
+            ></b-form-input>
+          </b-form-group>
+
+          <b-button class="col-sm-2 mr-1" variant="primary" @click="signup()">Submit</b-button>
+          <b-button class="col-sm-2 ml-1" variant="danger" @click="cancel()">Cancel</b-button>
+        </b-form>
+      </b-jumbotron>
     </b-overlay>
   </div>
 </template>

@@ -3,7 +3,7 @@
     <!-- 대기실 페이지 -->
     <div v-if="pageType===0" class="h-100">
       <h2>{{ roomNum }}번 방</h2>
-      <hr class="my-4" />
+      <hr class="my-1" />
       <b-button variant="primary" class="col-sm-1 mr-5 float-right" @click="sendStart($event)">Start</b-button>
       <b-button variant="danger" class="col-sm-1 mr-3 float-right" @click="sendExit($event)">Exit</b-button>
       <b-container fluid="sm">
@@ -18,11 +18,12 @@
     </div>
     <!-- 게임 진행 페이지 -->
     <div v-else-if="pageType===1" class="h-100">
-      <div class="h-50"> 
-        <h2>{{ roomNum }}번 방</h2>
-        <b-button :disabled="nextDisable" variant="primary" class="col-sm-1 mt-4 mr-5 float-right" @click="sendNext($event)">Next</b-button>
+      <div class="h-50">
+        <b-button variant="dark" class="col-sm-1 mt-1 ml-5 float-left">{{ roomNum }}번 방</b-button>
+        <b-button :disabled="nextDisable" variant="primary" class="col-sm-1 mt-1 mr-5 float-right" @click="sendNext($event)">Next</b-button>
+        <br>
         <div v-if="showProb">
-          <h2 class="tbb-70 mt-5 ml-5 mr-5">{{probList[currentProbNum].questionText}}</h2>
+          <h2 class="tbb-70 mt-2 ml-5 mr-5">{{probList[currentProbNum].questionText}}</h2>
           <b-avatar class="ml-5 float-left" variant="primary" size="5em" :text="timerCnt"></b-avatar>
           <p class="tbb-25 mr-5 float-right">
               {{submitNum}}<br>
@@ -54,10 +55,8 @@
     </div>
     <!-- 랭킹 페이지 -->
     <div v-else-if="pageType===2" class="h-100">
-      <div>
-        <h2>{{ roomNum }}번 방</h2>
-      </div>
-      <b-button variant="primary" class="col-sm-1 mt-4 mr-5 mb-4 float-right" @click="sendNext($event)">Next</b-button>  
+      <b-button variant="dark" class="col-sm-1 mt-1 ml-5 mb-5 float-left">{{ roomNum }}번 방</b-button>
+      <b-button :disabled="nextDisable" variant="primary" class="col-sm-1 mt-1 mr-5 mb-5 float-right" @click="sendNext($event)">Next</b-button>
       <b-table small :fields="fields" :items="rankList" responsive="sm">
         <template #cell(rank)="data">
           {{data.index + 1}}
@@ -124,8 +123,8 @@ export default {
         // title
         title: {
           display: true,
-          text: "결과",
-          fontSize : 20,
+          text: "",
+          fontSize : 10,
           fontStyle: "bold"
         },
         scales: {
@@ -158,7 +157,6 @@ export default {
         },
         responsive: true,
         maintainAspectRatio: false,
-        height: 100,
       },
       bdisable: {
         "true": false,
