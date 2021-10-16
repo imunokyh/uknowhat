@@ -7,7 +7,9 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import kr.or.uknowhat.api.ubusiness.common.MessageType;
 import kr.or.uknowhat.api.ubusiness.question.vo.MessageVo;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public  class CommandTimer extends HTimer {
 	
 	private SimpMessagingTemplate simpMessageTemplate;
@@ -24,13 +26,14 @@ public  class CommandTimer extends HTimer {
 		simpMessageTemplate.convertAndSend("/subscribe/play/room/" + roomNumber, vo);
 		
 		if (count == 0) {
+			log.info((MessageType.TIMEOUT).toString());
 			vo.setType(MessageType.TIMEOUT);
-			simpMessageTemplate.convertAndSend("/subscribe/play/room/" + roomNumber, vo);
 		}
 		
     	simpMessageTemplate.convertAndSend("/subscribe/play/room/" + roomNumber, vo);
     	count--;
     }
+    
     public CommandTimer(){
     	
     }

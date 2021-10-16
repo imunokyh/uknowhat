@@ -37,17 +37,17 @@ public class MessageController {
 	@Autowired
 	private RoomQuestionService roomQuestionService;
 	
+	private static final String KEY_PROBLEM = "_problem";
+	private static final String KEY_ANSWERS = "_answers";
+	private static final String KEY_START_TS = "_start_ts";
+	private static final String KEY_ELAPSED_TS = "_elapsed_ts";
+	
 	@MessageMapping(value = "/play/join")
 	public void join(@Payload MessageVo message) {
-		//HashOperations<String, Object, Object> hashOperations = redisTemplate.opsForHash();
-		
 		if (message.getType() == MessageType.JOIN) {
 			redisTemplate.opsForZSet().add(message.getRoomNumber(), message.getParticipantName(), 0);
-			//hashOperations.put(message.getRoomNumber(), message.getParticipantName(), 0);
 			message.setContent(message.getParticipantName() + "님이 입장하셨습니다.");
 		} else if (message.getType() == MessageType.UNJOIN){
-			//if (hashOperations.hasKey(message.getRoomNumber(), message.getParticipantName()))
-				//hashOperations.delete(message.getRoomNumber(), message.getParticipantName());
 			redisTemplate.opsForZSet().remove(message.getRoomNumber(), message.getParticipantName());
 			message.setContent(message.getParticipantName() + "님이 퇴장하셨습니다.");
 		}
@@ -61,7 +61,9 @@ public class MessageController {
 		if (message.getType() == MessageType.CHAT) {
 
 		} else if (message.getType() == MessageType.ANSWER) {
-			redisTemplate.opsForHash().put(message.getRoomNumber() + "_answers", message.getParticipantName(), message.getContent());
+			Long start = Long.valueOf(String.valueOf(redisTemplate.opsForValue().get(message.getRoomNumber() + KEY_START_TS)));
+			redisTemplate.opsForHash().put(message.getRoomNumber() + KEY_ELAPSED_TS, message.getParticipantName(), System.currentTimeMillis() - start);
+			redisTemplate.opsForHash().put(message.getRoomNumber() + KEY_ANSWERS, message.getParticipantName(), message.getContent());
 		} else if (message.getType() == MessageType.START) {
 			
 		} else if (message.getType() == MessageType.READPROB) {
@@ -69,20 +71,24 @@ public class MessageController {
 		} else if (message.getType() == MessageType.OXP) {
 			Long rqId = Long.valueOf(message.getContent());
 			
-			redisTemplate.opsForValue().set(message.getRoomNumber() + "_problem", rqId);
+			redisTemplate.opsForValue().set(message.getRoomNumber() + KEY_PROBLEM, rqId);
 			
-			if (redisTemplate.hasKey(message.getRoomNumber() + "_answers"))
-				redisTemplate.delete(message.getRoomNumber() + "_answers");
+			if (redisTemplate.hasKey(message.getRoomNumber() + KEY_ANSWERS))
+				redisTemplate.delete(message.getRoomNumber() + KEY_ANSWERS);
+			if (redisTemplate.hasKey(message.getRoomNumber() + KEY_ELAPSED_TS))
+				redisTemplate.delete(message.getRoomNumber() + KEY_ELAPSED_TS);
 			
 			RoomQuestionResMapping rqrm = roomQuestionService.readOneQuestion(Long.valueOf(message.getContent()));
 			message.setContent(rqrm.getQuestionText());
 		} else if (message.getType() == MessageType.OBP) {
 			Long rqId = Long.valueOf(message.getContent());
 			
-			redisTemplate.opsForValue().set(message.getRoomNumber() + "_problem", rqId);
+			redisTemplate.opsForValue().set(message.getRoomNumber() + KEY_PROBLEM, rqId);
 			
-			if (redisTemplate.hasKey(message.getRoomNumber() + "_answers"))
-				redisTemplate.delete(message.getRoomNumber() + "_answers");
+			if (redisTemplate.hasKey(message.getRoomNumber() + KEY_ANSWERS))
+				redisTemplate.delete(message.getRoomNumber() + KEY_ANSWERS);
+			if (redisTemplate.hasKey(message.getRoomNumber() + KEY_ELAPSED_TS))
+				redisTemplate.delete(message.getRoomNumber() + KEY_ELAPSED_TS);
 			
 			RoomQuestionResMapping rqrm = roomQuestionService.readOneQuestion(Long.valueOf(message.getContent()));
 			message.setContent(rqrm.getQuestionText());
@@ -98,28 +104,32 @@ public class MessageController {
 			CommandTimer ct = new CommandTimer(simpMessageTemplate, message.getRoomNumber(), Long.parseLong(message.getContent()));
 			ct.start(howSeconds, delay, interval);
 			
+			redisTemplate.opsForValue().set(message.getRoomNumber() + KEY_START_TS, System.currentTimeMillis());
 		} else if (message.getType() == MessageType.TIMECNT) {
 			
 		} else if (message.getType() == MessageType.TIMEOUT) {
 			
 		} else if (message.getType() == MessageType.ANSCHK) {
-			Map<Object, Object> ptAnswers = redisTemplate.opsForHash().entries(message.getRoomNumber() + "_answers");
-			RoomQuestionResMapping rqrm = roomQuestionService.readOneQuestion(Long.valueOf(String.valueOf(redisTemplate.opsForValue().get(message.getRoomNumber() + "_problem"))));
+			Map<Object, Object> ptAnswers = redisTemplate.opsForHash().entries(message.getRoomNumber() + KEY_ANSWERS);
+			Map<Object, Object> ptElaspedTs = redisTemplate.opsForHash().entries(message.getRoomNumber() + KEY_ELAPSED_TS);
+			
+			RoomQuestionResMapping rqrm = roomQuestionService.readOneQuestion(Long.valueOf(String.valueOf(redisTemplate.opsForValue().get(message.getRoomNumber() + KEY_PROBLEM))));
 			String questionAnswer = rqrm.getQuestionAnswer();
 			Long questionScore = rqrm.getQuestionScore();
+			Long questionTime = rqrm.getQuestionTime() * 1000;
 			
 			for (Map.Entry<Object, Object> entry : ptAnswers.entrySet()) {
 				if (questionAnswer.equals(String.valueOf(entry.getValue()))) {
-					message.setType(MessageType.CORRECT);
-					message.setScore(questionScore);
+					Long elapsedTs = Long.valueOf(String.valueOf(ptElaspedTs.get(entry.getKey())));
+					Long remainTs = (questionTime - elapsedTs) < 0 ? 0 : questionTime - elapsedTs;
+					Long realScore = (long) (questionScore * ((double)remainTs / (double)questionTime));
 					
-					//Long curScore = Long.valueOf(String.valueOf(redisTemplate.opsForHash().get(message.getRoomNumber(), String.valueOf(entry.getKey()))));
-					//curScore += questionScore;
-					//redisTemplate.opsForHash().put(message.getRoomNumber(), String.valueOf(entry.getKey()), curScore);
-					//Long curScore = Long.valueOf(String.valueOf(redisTemplate.opsForZSet().score(message.getRoomNumber(), entry.getKey())));
-					//curScore += questionScore;
-					//redisTemplate.opsForZSet().add(message.getRoomNumber(), message.getParticipantName(), curScore);
-					redisTemplate.opsForZSet().incrementScore(message.getRoomNumber(), entry.getKey(), questionScore);
+					log.info(String.valueOf(entry.getKey()) + ": " + realScore);
+					
+					message.setType(MessageType.CORRECT);
+					message.setScore(realScore);
+					
+					redisTemplate.opsForZSet().incrementScore(message.getRoomNumber(), entry.getKey(), realScore);
 					
 					simpMessageTemplate.convertAndSend("/subscribe/play/room/" + message.getRoomNumber() + "/" + String.valueOf(entry.getKey()), message);
 					log.info("CORRECT " + "/subscribe/play/room/" + message.getRoomNumber() + "/" + String.valueOf(entry.getKey()));
@@ -132,7 +142,7 @@ public class MessageController {
 			
 			return;
 		} else if (message.getType() == MessageType.ANSCHART) {
-			Map<Object, Object> ptAnswers = redisTemplate.opsForHash().entries(message.getRoomNumber() + "_answers");
+			Map<Object, Object> ptAnswers = redisTemplate.opsForHash().entries(message.getRoomNumber() + KEY_ANSWERS);
 			HashMap<Integer, Integer> answerDt = new HashMap<Integer, Integer>();
 			
 			for (Map.Entry<Object, Object> entry : ptAnswers.entrySet()) {
@@ -171,10 +181,14 @@ public class MessageController {
 		} else if (message.getType() == MessageType.EXIT) {
 			if (redisTemplate.hasKey(message.getRoomNumber()))
 				redisTemplate.delete(message.getRoomNumber());
-			if (redisTemplate.hasKey(message.getRoomNumber() + "_answers"))
-				redisTemplate.delete(message.getRoomNumber() + "_answers");
-			if (redisTemplate.hasKey(message.getRoomNumber() + "_problem"))
-				redisTemplate.delete(message.getRoomNumber() + "_problem");
+			if (redisTemplate.hasKey(message.getRoomNumber() + KEY_ANSWERS))
+				redisTemplate.delete(message.getRoomNumber() + KEY_ANSWERS);
+			if (redisTemplate.hasKey(message.getRoomNumber() + KEY_PROBLEM))
+				redisTemplate.delete(message.getRoomNumber() + KEY_PROBLEM);
+			if (redisTemplate.hasKey(message.getRoomNumber() + KEY_START_TS))
+				redisTemplate.delete(message.getRoomNumber() + KEY_START_TS);
+			if (redisTemplate.hasKey(message.getRoomNumber() + KEY_ELAPSED_TS))
+				redisTemplate.delete(message.getRoomNumber() + KEY_ELAPSED_TS);
 		}
 
 		simpMessageTemplate.convertAndSend("/subscribe/play/room/" + message.getRoomNumber(), message);

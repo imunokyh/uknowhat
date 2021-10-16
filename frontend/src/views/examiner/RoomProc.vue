@@ -20,10 +20,11 @@
     <div v-else-if="pageType===1" class="h-100">
       <div class="h-50">
         <b-button variant="dark" class="col-sm-1 mt-1 ml-5 float-left">{{ roomNum }}번 방</b-button>
+        <b-button variant="white" class="col-sm-1 mt-1 float-center">{{currentProbNum + 1}}/{{probList.length}}</b-button>
         <b-button :disabled="nextDisable" variant="primary" class="col-sm-1 mt-1 mr-5 float-right" @click="sendNext($event)">Next</b-button>
         <br>
         <div v-if="showProb">
-          <h2 class="tbb-70 mt-2 ml-5 mr-5">{{probList[currentProbNum].questionText}}</h2>
+          <h2 class="tbb-70 mt-3 ml-5 mr-5">{{probList[currentProbNum].questionText}}</h2>
           <b-avatar class="ml-5 float-left" variant="primary" size="5em" :text="timerCnt"></b-avatar>
           <p class="tbb-25 mr-5 float-right">
               {{submitNum}}<br>

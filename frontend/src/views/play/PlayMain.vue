@@ -56,7 +56,7 @@
     </div>
     <!-- 최종 순위 페이지 -->
     <div v-else-if="pageType===4">
-      <h1 class="mt-5">{{grade}}등</h1>
+      <h1>{{grade}}등</h1>
       <h2 v-if="grade<=3">축하합니다!</h2>
       <h2 v-else-if="grade<=10 && grade>=3">조금 아쉽지만, 그래도 잘하셨습니다!</h2>
       <h2 v-else>다음엔 더 나은 성적을 얻기를 응원합니다!</h2>

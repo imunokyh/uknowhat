@@ -54,7 +54,7 @@
       <b-container fluid="md">
         <b-row cols="3">
           <b-col v-for="room in roomData" :key="room.id">
-            <b-card :id="room.roomId" :title="room.roomTitle">
+            <b-card :id="room.roomId" :title="room.roomTitle" class="mb-3">
               <b-card-text> (((o(*ﾟ▽ﾟ*)o))) </b-card-text>
               <b-button @click="modifyGroup(room.roomId, room.roomTitle)" variant="primary">
                 수정
