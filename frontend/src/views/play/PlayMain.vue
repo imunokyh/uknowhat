@@ -194,7 +194,9 @@ export default {
       } else if (msg.type === "WAITING") {
         this.pageType = 0;
         this.show = false;
-      } else if (msg.type === "OXP") {
+      } else if (msg.type === "LOADING") {
+        this.show = true;
+      }else if (msg.type === "OXP") {
         this.show = false;
         this.pageType = 1;
       } else if (msg.type === "OBP") {

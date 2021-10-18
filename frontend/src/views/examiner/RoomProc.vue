@@ -2,54 +2,85 @@
   <b-overlay :show="show" rounded="lg" class="h-100">
     <!-- 대기실 페이지 -->
     <div v-if="pageType===0" class="h-100">
-      <h2>{{ roomNum }}번 방</h2>
-      <hr class="my-1" />
-      <b-button variant="primary" class="col-sm-1 mr-5 float-right" @click="sendStart($event)">Start</b-button>
-      <b-button variant="danger" class="col-sm-1 mr-3 float-right" @click="sendExit($event)">Exit</b-button>
-      <b-container fluid="sm">
-        <b-row>
-          <b-col sm="2" v-for="(user, index) in userList" :key="index">
-            <b-card bg-variant="dark" text-variant="white" class="text-center m-1">
-              <b-card-text> {{user}} </b-card-text>
-            </b-card>
-          </b-col>
-        </b-row>
-      </b-container>
+      <div style="height:10%;">
+        <b-card bg-variant="dark" text-variant="white" class="text-center">
+          <b-card-text class="twb-35"> {{ roomNum }}번 방 </b-card-text>
+        </b-card>
+      </div>
+      <div style="height:5%;">
+        <b-button variant="primary" class="col-sm-1 mr-5 float-right" @click="sendStart($event)">Start</b-button>
+        <b-button variant="danger" class="col-sm-1 mr-3 float-right" @click="sendExit($event)">Exit</b-button>
+      </div>
+      <div style="height:85%;"> 
+        <b-container fluid="sm">
+          <b-row>
+            <b-col sm="2" v-for="(user, index) in userList" :key="index">
+              <b-card bg-variant="dark" text-variant="white" class="text-center m-1">
+                <b-card-text> {{user}} </b-card-text>
+              </b-card>
+            </b-col>
+          </b-row>
+        </b-container>
+      </div>
     </div>
     <!-- 게임 진행 페이지 -->
     <div v-else-if="pageType===1" class="h-100">
-      <div class="h-50">
-        <b-button variant="dark" class="col-sm-1 mt-1 ml-5 float-left">{{ roomNum }}번 방</b-button>
-        <b-button variant="white" class="col-sm-1 mt-1 float-center">{{currentProbNum + 1}}/{{probList.length}}</b-button>
-        <b-button :disabled="nextDisable" variant="primary" class="col-sm-1 mt-1 mr-5 float-right" @click="sendNext($event)">Next</b-button>
-        <br>
-        <div v-if="showProb">
-          <h2 class="tbb-70 mt-3 ml-5 mr-5">{{probList[currentProbNum].questionText}}</h2>
-          <b-avatar class="ml-5 float-left" variant="primary" size="5em" :text="timerCnt"></b-avatar>
-          <p class="tbb-25 mr-5 float-right">
-              {{submitNum}}<br>
-              Answers
-          </p>
+      <div class="h-75">
+        <div style="height:10%;">
+          <b-button variant="dark" class="col-sm-1 mt-1 ml-5 float-left">{{ roomNum }}번 방</b-button>
+          <b-button variant="white" class="col-sm-1 mt-1 float-center">{{currentProbNum + 1}}/{{probList.length}}</b-button>
+          <b-button v-if="currentProbNum < probList.length - 1" :disabled="nextDisable" variant="primary" class="col-sm-1 mt-1 mr-5 float-right" @click="sendNext($event)">Next</b-button>
+          <b-button v-else-if="currentProbNum === probList.length - 1" :disabled="resultDisable" variant="success" class="col-sm-1 mt-1 mr-5 float-right" @click="sendResult($event)">Result</b-button>
         </div>
-        <div v-else>
-          <bar-comp :chart-data="barData" :options="options"></bar-comp>
+        <div style="height:90%;">
+          <div v-if="showProb" class="h-100">
+            <div class="row h-100">
+              <div class="col-sm-1 h-100 d-flex justify-content-center align-items-center">
+                <b-avatar variant="primary" size="5em" :text="timerCnt"></b-avatar>
+              </div>
+              <div class="col-sm-10 h-100 d-flex justify-content-center align-items-center">
+                <h2 class="tbb-70">{{probList[currentProbNum].questionText}}</h2>
+              </div>
+              <div class="col-sm-1 h-100 d-flex justify-content-center align-items-center">
+                <p class="tbb-25">
+                    {{submitNum}}<br>
+                    Answers
+                </p>
+              </div>
+            </div>
+          </div>
+          <div v-else class="h-100 d-flex justify-content-center align-items-center">
+            <bar-comp :chart-data="barData" :options="options"></bar-comp>
+          </div>
         </div>
       </div>
-      <div class="h-50">
+      <div class="h-25">
         <div v-if="probList[currentProbNum].questionType==='OX'" class="h-100">
           <div class="h-100">
-            <b-button :disabled="bdisable['true']" id="true" variant="primary" class="col-sm-6 h-100">O</b-button>
-            <b-button :disabled="bdisable['false']" id="false" variant="danger" class="col-sm-6 h-100">X</b-button>
+            <div class="left h-100">
+              <b-button :disabled="bdisable['true']" id="true" variant="primary" class="col-sm-12 h-100">O</b-button>
+            </div>
+            <div class="right h-100">
+              <b-button :disabled="bdisable['false']" id="false" variant="danger" class="col-sm-12 h-100">X</b-button>
+            </div>
           </div>
         </div>
         <div v-else-if="probList[currentProbNum].questionType==='OB'" class="h-100">
           <div class="h-50">
-            <b-button :disabled="bdisable['one']" id="one" variant="primary" class="col-sm-6 h-100">{{probList[currentProbNum].answer1Text}}</b-button>
-            <b-button :disabled="bdisable['two']" id="two" variant="danger" class="col-sm-6 h-100">{{probList[currentProbNum].answer2Text}}</b-button>
+            <div class="left h-100">
+              <b-button :disabled="bdisable['one']" id="one" variant="primary" class="col-sm-12 h-100">{{probList[currentProbNum].answer1Text}}</b-button>
+            </div>
+            <div class="right h-100">
+              <b-button :disabled="bdisable['two']" id="two" variant="danger" class="col-sm-12 h-100">{{probList[currentProbNum].answer2Text}}</b-button>
+            </div>
           </div>
           <div class="h-50">
-            <b-button :disabled="bdisable['three']" id="three" variant="success" class="col-sm-6 h-100">{{probList[currentProbNum].answer3Text}}</b-button>
-            <b-button :disabled="bdisable['four']" id="four" variant="warning" class="col-sm-6 h-100">{{probList[currentProbNum].answer4Text}}</b-button>
+            <div class="left h-100">
+              <b-button :disabled="bdisable['three']" id="three" variant="success" class="col-sm-12 h-100">{{probList[currentProbNum].answer3Text}}</b-button>
+            </div>
+            <div class="right h-100">
+              <b-button :disabled="bdisable['four']" id="four" variant="warning" class="col-sm-12 h-100">{{probList[currentProbNum].answer4Text}}</b-button>
+            </div>
           </div>
         </div>
       </div>
@@ -57,7 +88,8 @@
     <!-- 랭킹 페이지 -->
     <div v-else-if="pageType===2" class="h-100">
       <b-button variant="dark" class="col-sm-1 mt-1 ml-5 mb-5 float-left">{{ roomNum }}번 방</b-button>
-      <b-button :disabled="nextDisable" variant="primary" class="col-sm-1 mt-1 mr-5 mb-5 float-right" @click="sendNext($event)">Next</b-button>
+      <b-button v-if="currentProbNum < probList.length" :disabled="nextDisable" variant="primary" class="col-sm-1 mt-1 mr-5 mb-5 float-right" @click="sendNext($event)">Next</b-button>
+      <b-button v-else variant="danger" class="col-sm-1 mt-1 mr-5 float-right" @click="sendExit($event)">Exit</b-button>
       <b-table small :fields="fields" :items="rankList" responsive="sm">
         <template #cell(rank)="data">
           {{data.index + 1}}
@@ -69,6 +101,24 @@
           {{data.item.score}}
         </template>
       </b-table>
+    </div>
+    <!-- 문제 페이지 -->
+    <div v-else-if="pageType===3" class="h-100" style="background-color: #81c147;">
+      <div style="height:10%;">
+        <p class="twb-50 float-left" style="background-color: green; padding: 0 20px 0">{{currentProbNum + 1}} of {{probList.length}}</p>
+        <b-avatar class="float-right mt-2 mr-3" variant="light" size="5em" :text="showProbTimerCnt"></b-avatar>
+      </div>
+      <div style="height:80%;">
+        <div class="h-25">
+          <h2 v-if="probList[currentProbNum].questionType==='OX'" class="twb-50">OX 퀴즈</h2>
+          <h2 v-else-if="probList[currentProbNum].questionType==='OB'" class="twb-50">4지선다형 퀴즈</h2>
+        </div>
+        <div class="h-75 d-flex justify-content-center align-items-center" style="background-color: white;">
+          <h2 class="tbb-70 ml-5 mr-5">{{probList[currentProbNum].questionText}}</h2>
+        </div>
+      </div>
+      <div style="height:10%;">
+      </div>
     </div>
   </b-overlay>
 </template>
@@ -107,6 +157,8 @@ export default {
       pageType: 0,
       showProb: true,
       nextDisable: false,
+      resultDisable: true,
+      currentUserNum: 0,
       userList: [],
       probList: [],
       rankList: [],
@@ -118,13 +170,14 @@ export default {
       currentProbNum: 0,
       submitNum: 0,
       timerCnt: 0,
+      showProbTimerCnt: 5,
       chartData: null,
       barData: null,
       options: {
         // title
         title: {
-          display: true,
-          text: "",
+          display: false,
+          text: "결과",
           fontSize : 10,
           fontStyle: "bold"
         },
@@ -266,6 +319,8 @@ export default {
         this.sendNext();
       } else if (msg.type === "ANSWER") {
         this.submitNum++;
+        if (this.submitNum === this.currentUserNum)
+          this.sendMessage("TIMEROFF", "Timer Off");
       } else if (msg.type === "ANSCHART") {
         this.showProb = false;
         this.chartData = msg.result;
@@ -339,6 +394,12 @@ export default {
         this.sendMessage("ANSCHK", "Answer Check");
         this.sendMessage("ANSCHART", "Answer Chart");
         this.nextDisable = false;
+
+        if (this.currentProbNum === this.probList.length - 1)
+          this.resultDisable = false;
+
+      } else if (msg.type === "OXP" || msg.type === "OBP") {
+        this.pageType = 1;
       }
     },
     sendStart(event) {
@@ -370,6 +431,17 @@ export default {
         })
         .catch((error) => { console.log(error); });
     },
+    sendResult(event) {
+      if (this.pageType !== 2) {
+        if (this.showProb === false) {
+          this.pageType = 2;
+          this.sendMessage("RANK", "Rank Check");
+          this.sendMessage("FINALRANK", "Send Final Rank");
+        }
+      }
+
+      this.currentProbNum++;
+    },
     sendNext(event) {
       if (this.pageType !== 2) {
         if (this.showProb === false) {
@@ -385,18 +457,13 @@ export default {
         this.currentProbNum++;
 
       if (this.currentProbNum < this.probList.length) {
-        if (this.probList[this.currentProbNum].questionType === "OX")
-          this.sendMessage("OXP", this.probList[this.currentProbNum].id.toString());
-        else if (this.probList[this.currentProbNum].questionType === "OB")
-          this.sendMessage("OBP", this.probList[this.currentProbNum].id.toString()); 
+        this.showProbTimerCnt = 5;
+        this.pageType = 3;
 
-        this.sendMessage("TIMER", this.probList[this.currentProbNum].questionTime);
-        this.timerCnt = this.probList[this.currentProbNum].questionTime;
+        this.sendMessage("LOADING", "Please Loading");
+        setTimeout(this.timerFunc, 1000);
       } else {
-        this.currentProbNum = 0;
-        this.pageType = 0;
-        this.sendMessage("FINALRANK", "Send Final Rank");
-        //this.sendMessage("WAITING", "Go to Waiting");
+        this.sendResult();
       }
 
       for (var key in this.bdisable) {
@@ -432,6 +499,22 @@ export default {
         ],
       });
     },
+    timerFunc() {
+      this.showProbTimerCnt--;
+
+      if (this.showProbTimerCnt === 0) {
+        if (this.probList[this.currentProbNum].questionType === "OX")
+          this.sendMessage("OXP", this.probList[this.currentProbNum].id.toString());
+        else if (this.probList[this.currentProbNum].questionType === "OB")
+          this.sendMessage("OBP", this.probList[this.currentProbNum].id.toString()); 
+
+        this.sendMessage("TIMER", this.probList[this.currentProbNum].questionTime);
+        this.timerCnt = this.probList[this.currentProbNum].questionTime;
+        this.currentUserNum = this.userList.length;
+      } else {
+        setTimeout(this.timerFunc, 1000); 
+      }
+    },
   },
 };
 </script>
@@ -454,6 +537,13 @@ export default {
   text-align: center;
 }
 
+.twb-35 {
+  color: white;
+  font-size: 35px;
+  font-weight: bold;
+  text-align: center;
+}
+
 .tbb-70 {
   color: black;
   font-size: 70px;
@@ -466,5 +556,15 @@ export default {
   font-size: 25px;
   font-weight: bold;
   text-align: center;
+}
+
+div.left {
+  width: 50%;
+  float: left;
+}
+
+div.right {
+  width: 50%;
+  float: right;
 }
 </style>

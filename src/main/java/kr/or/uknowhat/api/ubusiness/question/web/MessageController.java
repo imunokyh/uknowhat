@@ -37,6 +37,8 @@ public class MessageController {
 	@Autowired
 	private RoomQuestionService roomQuestionService;
 	
+	HashMap<String, CommandTimer> timerMap = new HashMap<String, CommandTimer>();
+	
 	private static final String KEY_PROBLEM = "_problem";
 	private static final String KEY_ANSWERS = "_answers";
 	private static final String KEY_START_TS = "_start_ts";
@@ -97,18 +99,33 @@ public class MessageController {
 			message.setAnswer3Text(rqrm.getAnswer3Text());
 			message.setAnswer4Text(rqrm.getAnswer4Text());
 		} else if (message.getType() == MessageType.TIMER) {
-			
 			long howSeconds =  Long.parseLong(message.getContent()) * 1000; // mili second
 			int delay = 0; // delay time mili second
 			int interval = 1000; // interval mili second
+			
 			CommandTimer ct = new CommandTimer(simpMessageTemplate, message.getRoomNumber(), Long.parseLong(message.getContent()));
 			ct.start(howSeconds, delay, interval);
 			
+			timerMap.put(message.getRoomNumber(), ct);
+			
 			redisTemplate.opsForValue().set(message.getRoomNumber() + KEY_START_TS, System.currentTimeMillis());
+		} else if (message.getType() == MessageType.TIMEROFF) {
+			CommandTimer ct = null; 
+			
+			if (timerMap.containsKey(message.getRoomNumber()))
+				ct = timerMap.get(message.getRoomNumber());
+			
+			if (ct != null) {
+				ct.end();
+				timerMap.remove(message.getRoomNumber());
+			}	
+				
+			message.setType(MessageType.TIMEOUT);
 		} else if (message.getType() == MessageType.TIMECNT) {
 			
 		} else if (message.getType() == MessageType.TIMEOUT) {
-			
+			if (timerMap.containsKey(message.getRoomNumber()))
+				timerMap.remove(message.getRoomNumber());
 		} else if (message.getType() == MessageType.ANSCHK) {
 			Map<Object, Object> ptAnswers = redisTemplate.opsForHash().entries(message.getRoomNumber() + KEY_ANSWERS);
 			Map<Object, Object> ptElaspedTs = redisTemplate.opsForHash().entries(message.getRoomNumber() + KEY_ELAPSED_TS);
