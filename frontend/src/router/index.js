@@ -2,16 +2,8 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
 import HelloWorld from '../components/HelloWorld.vue'
-import Home2 from '../views/Home2.vue'
-import Home3 from '../views/Home3.vue'
 import Login from '../views/Login.vue'
 import Signup from '../views/Signup.vue'
-import ObjectiveQuestion from '../views/ObjectiveQuestion.vue'
-import SubjectiveQuestion from '../views/SubjectiveQuestion.vue'
-import TrueFalseQuestion from '../views/TrueFalseQuestion.vue'
-// login
-import Participation from '../views/login/Participation.vue'
-import Nickname from '../views/login/Nickname.vue'
 // play
 import TrueFalseProb from '../views/play/TrueFalseProb.vue'
 import ObjectiveProb from '../views/play/ObjectiveProb.vue'
@@ -23,7 +15,6 @@ import PtEnter from '../views/play/PtEnter.vue'
 import Chat from '../views/play/Chat.vue'
 import PlayMain from '../views/play/PlayMain.vue'
 import PlayChat from '../views/play/PlayChat.vue'
-
 // 출제자
 import WaitingProc from '../views/examiner/WaitingProc.vue'
 import TrueFalseProbProc from '../views/examiner/TrueFalseProbProc.vue'
@@ -53,14 +44,6 @@ const routes = [
     name: 'HelloWorld',
     component: HelloWorld
   },{
-    path: '/h2',
-    name: 'Home2',
-    component: Home2
-  }, {
-    path: '/h3',
-    name: 'Home3',
-    component: Home3
-  },{
     path: '/about',
     name: 'About',
     // route level code-splitting
@@ -75,28 +58,6 @@ const routes = [
     path: '/signup',
     name: 'Signup',
     component: Signup
-  },  {
-    path: '/oqsn',
-    name: 'ObjectiveQuestion',
-    component: ObjectiveQuestion
-  },  {
-    path: '/sqsn',
-    name: 'SubjectiveQuestion',
-    component: SubjectiveQuestion
-  },  {
-    path: '/tfqsn',
-    name: 'TrueFalseQuestion',
-    component: TrueFalseQuestion
-  } 
-  // login
-  , {
-    path: '/login/ppn',
-    name: 'Participation',
-    component: Participation
-  }, {
-    path: '/login/nickname',
-    name: 'Nickname',
-    component: Nickname
   }
   // play
   , {

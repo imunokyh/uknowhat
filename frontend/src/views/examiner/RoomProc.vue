@@ -225,6 +225,34 @@ export default {
   created() {
     window.addEventListener("beforeunload", this.unLoadEvent);
 
+    history.pushState(null, document.title, location.href);
+    window.addEventListener('popstate', function(event) {
+      history.pushState(null, document.title, location.href);
+    });
+
+    document.oncontextmenu = function(e) {
+      if (e) {
+        e.preventDefault();
+      } else {
+        event.keyCode = 0;
+        event.returnValue = false;
+      }
+    }
+
+    document.onkeydown = function(e) {
+      let key = (e) ? e.keyCode : event.keyCode;
+      let ctrl = (e) ? e.ctrlKey  : event.ctrlKey;
+      
+      if ((ctrl == true && (key == 78 || key == 82)) || key==8 || key==116) {
+        if (e) {
+          e.preventDefault();
+        } else {
+          event.keyCode = 0;
+          event.returnValue = false;
+        }
+      }
+    }
+
     this.roomId = this.identification;
     this.roomNum = this.number;
     this.examinerId = this.examiner;
@@ -427,7 +455,8 @@ export default {
           } else {
             alert(this.roomNum + "방이 종료되었습니다.");
           }
-          this.$router.go(-1);
+          //this.$router.go(-1);
+          this.$router.replace({ name: "RoomMng" });
         })
         .catch((error) => { console.log(error); });
     },
