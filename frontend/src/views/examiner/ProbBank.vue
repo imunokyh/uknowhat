@@ -20,14 +20,21 @@
         "
       />
 
-      <b-row align-h="center">
-        <b-pagination
-          v-model="currentPage"
-          :total-rows="totalRows"
-          :per-page="perPage"
-          aria-controls="my-table"
-          align="center"
-        ></b-pagination>
+      <b-row cols="3" align-h="center">
+        <b-col></b-col>
+        <b-col>
+          <b-pagination
+            v-model="currentPage"
+            :total-rows="totalRows"
+            :per-page="perPage"
+            aria-controls="my-table"
+            align="center"
+          ></b-pagination>
+        </b-col>
+        <b-col>
+          <b-button class="col-sm-4 mr-2" variant="danger" @click="delProb()">삭제</b-button>
+          <b-button class="col-sm-4 ml-2" variant="primary" @click="initVal()">추가</b-button>
+        </b-col>
       </b-row>
 
       <b-row>
@@ -45,6 +52,7 @@
         ></b-table>
       </b-row>
 
+<!--
       <b-row align-h="end">
         <b-col cols="1">
           <b-button class="col-sm-12" variant="danger" @click="delProb()">삭제</b-button>
@@ -53,8 +61,7 @@
           <b-button class="col-sm-12" variant="primary" @click="initVal()">추가</b-button>
         </b-col>
       </b-row>
-
-      <b-row>&nbsp;</b-row>
+-->
 
       <b-row>
         <!-- main content -->
@@ -86,7 +93,7 @@ export default {
   },
   data() {
     return {
-      perPage: 10,
+      perPage: 7,
       currentPage: 1,
       totalRows: 0,
       selected: [],
