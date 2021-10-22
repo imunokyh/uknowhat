@@ -4,27 +4,15 @@
       <section class="py-5 text-center container">
         <div class="row py-lg-5">
           <div class="col-lg-6 col-md-8 mx-auto">
-            <h1 class="fw-light">출제자메인</h1>
-            <p class="lead text-muted">출제자메인화면입니다</p>
+            <h1 class="fw-light">출제자 메인</h1>
+            <p class="lead text-muted">출제자 메인화면입니다</p>
             <p>
-              <!--
-              <a href="/exam/probreg" class="btn btn-success my-2"
-                >방문제등록하기</a
-              >
-
-              <b-button v-b-modal.modal-1>방문제등록</b-button>
-
-              <b-modal id="modal-1" title="방정보입력">
-                <p class="my-4">방제목을 넣어주세요</p>
-                <b-form-input v-model="roomTitle" placeholder="방제목입력"></b-form-input>
-              </b-modal>
-              -->
-              <b-button @click="goProbBank()">문제은행</b-button>
-              <b-button v-b-modal.modal-room-create>방생성</b-button>
+              <b-button class="col-sm-3 mr-1" @click="goProbBank()">문제은행</b-button>
+              <b-button class="col-sm-3 ml-1" v-b-modal.modal-room-create>방 생성</b-button>
               <b-modal
                 id="modal-room-create"
                 ref="modal"
-                title="장제목을 입력하세요"
+                title="방 타이틀을 입력하세요"
                 @show="resetModal"
                 @hidden="resetModal"
                 @ok="handleOk"

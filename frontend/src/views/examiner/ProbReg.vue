@@ -3,12 +3,15 @@
     <b-container>
       <br>
       
-      <b-row>
-        <b-col cols="2"><b-button @click="goRoomMng()">방관리로</b-button></b-col>
-        <b-col cols="7"><h2>방문제등록 / ID: {{ getRoomId }}</h2></b-col>
-        <b-col cols="3">
-          <b-button @click="goProbBank()">문제은행</b-button>
-      
+      <b-row cols="3">
+        <b-col>
+          <b-button class="col-sm-4" @click="goRoomMng()">방 관리로</b-button>
+        </b-col>
+        <b-col>
+          <h2>{{oRoomTitle}}</h2>
+        </b-col>
+        <b-col>
+          <b-button class="col-sm-4" @click="goProbBank()">문제은행</b-button>
         </b-col>
       </b-row>
       
@@ -22,16 +25,15 @@
       />
       <b-row>&nbsp;</b-row>
 
-      <b-row
-        ><!--left-->
+      <b-row><!--left-->
 
         <b-col cols="6" class="vl">
           <!-- Title:{{ roomTitle }} -->
 
-          <b-row>
+          <b-row style="height: 5%;">
             <b-col sm="2">
               <!-- edit -->
-              <b-button v-b-modal.modal-prob-modify>편집</b-button>
+              <b-button variant="info" v-b-modal.modal-prob-modify>편집</b-button>
               <b-modal
                 id="modal-prob-modify"
                 ref="modal"
@@ -55,10 +57,17 @@
                     
                     <b-col sm="3">점수</b-col>
                     <b-col sm="9">
+                      <b-form-select
+                        id="question-score-input"
+                        v-model="formProb.questionScore"
+                        :options="scoreOptions"
+                      ></b-form-select>
+                      <!--
                       <b-form-input
                       id="question-score-input"
                       v-model="formProb.questionScore" type="number"
-                    ></b-form-input>
+                      ></b-form-input>
+                      -->
                     </b-col>
                   </b-row>
 
@@ -66,10 +75,17 @@
                     
                     <b-col sm="3">시간</b-col>
                     <b-col sm="9">
+                      <b-form-select
+                        id="question-time-input"
+                        v-model="formProb.questionTime"
+                        :options="timeOptions"
+                      ></b-form-select>
+                      <!--
                       <b-form-input
                       id="question-time-input"
                       v-model="formProb.questionTime" type="number"
-                    ></b-form-input>
+                      ></b-form-input>
+                      -->
                     </b-col>
                   </b-row>
 
@@ -91,12 +107,12 @@
               <!-- e.edit-->
             </b-col>
             <b-col sm="2">
-              <b-button @click="delProb()">삭제</b-button>
+              <b-button variant="danger" @click="delProb()">삭제</b-button>
             </b-col>
             
           </b-row>
           <br />
-          <b-row class="overflow-auto" style="height: 400px">
+          <b-row class="overflow-auto" style="height: 90%;">
             <b-table
               selectable
               select-mode="single"
@@ -110,7 +126,7 @@
           </b-row>
         </b-col>
         <b-col cols="6" class="vl">
-          <b-row>
+          <b-row style="height: 5%;">
             <b-col sm="5">
               <b-form-input
                 v-model="searchText"
@@ -125,14 +141,14 @@
               </b-form-select
             ></b-col>
             <b-col sm="2">
-              <b-button @click="searchQuestion()">검색</b-button>
+              <b-button variant="primary" @click="searchQuestion()">검색</b-button>
             </b-col>
             <b-col sm="2">
-              <b-button @click="addRoomQuestion()">추가</b-button>
+              <b-button variant="success" @click="addRoomQuestion()">추가</b-button>
             </b-col>
           </b-row>
           <br />
-          <b-row class="overflow-auto" style="height: 400px">
+          <b-row class="overflow-auto" style="height: 90%;">
             <b-table
               selectable
               select-mode="single"
@@ -148,8 +164,12 @@
         </b-col>
       </b-row>
 
+      <b-row>&nbsp;</b-row>
+
       <b-row>
-        <quiz-comp ref="quizdata"></quiz-comp>
+        <b-col cols="12">
+          <quiz-comp ref="quizdata"></quiz-comp>
+        </b-col>
       </b-row>
     </b-container>
   </div>
@@ -188,8 +208,28 @@ export default {
       },
       oRoomId:'',
       oRoomTitle:'',
-      
-      
+      timeOptions: [
+        { value: 0, text: "없음"},
+        { value: 5, text: "5초"},
+        { value: 10, text: "10초"},
+        { value: 15, text: "15초"},
+        { value: 20, text: "20초"},
+        { value: 25, text: "25초"},
+        { value: 30, text: "30초"},
+      ],
+      scoreOptions: [
+        { value: 0, text: "없음"},
+        { value: 100, text: "100점"},
+        { value: 200, text: "200점"},
+        { value: 300, text: "300점"},
+        { value: 400, text: "400점"},
+        { value: 500, text: "500점"},
+        { value: 600, text: "600점"},
+        { value: 700, text: "700점"},
+        { value: 800, text: "800점"},
+        { value: 900, text: "900점"},
+        { value: 1000, text: "1000점"},
+      ],
       searchText: "",
       selectedSearchType: null,
       optionsSearchType: [
@@ -227,6 +267,7 @@ export default {
       this.setRoomId(this.roomId);
     }
     
+    this.searchQuestion();
   },
   computed: {
     test1(){
@@ -479,7 +520,9 @@ export default {
 
 <style>
 .vl {
-  border-left: 2px solid gray;
+  border-bottom: 1px solid gray;
+  border-left: 1px solid gray;
+  border-right: 1px solid gray;
   height: 500px;
 }
 .topbar {

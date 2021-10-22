@@ -23,22 +23,54 @@
     <!-- e -->
     <!--
     <label >{{ quizId }}</label>-->
+    
     <div>&nbsp;</div>
+
     <div>
       <b-row>
         <b-col sm="12">
-      <b-form-textarea
-        v-model="questionText"
-        placeholder="질문을 입력하세요" rows=2
-      ></b-form-textarea>
-      </b-col>
+          <b-form-textarea
+            v-model="questionText"
+            placeholder="문제를 입력하세요" rows=2
+            no-resize
+          ></b-form-textarea>
+        </b-col>
       </b-row>
-      <div>&nbsp;</div>
+
       <div>&nbsp;</div>
 
       <!--s.tfprob -->
-      <b-row v-show="selectedType == 'OX'">
-        <b-form-group label="참-거짓 선택" v-slot="{ ariaDescribedby }">
+      <b-row v-show="selectedType == 'OX'"> 
+        <div v-for="(inputTf, idx) in optionsTf" :key="idx" class="form-check form-group col-sm-6">
+          <input
+            class="form-check-input"
+            v-model="selectedTf"
+            type="radio"
+            :value="inputTf.value"
+            :id="inputTf.value"
+          >
+          <div>&nbsp;</div>
+          <b-button
+            :class="backgroundColor[idx]"
+            class="col-sm-12"
+            size="lg"
+            style="text-align: center; border: none;"
+          >{{inputTf.text}}</b-button>
+          <!--
+          <b-form-textarea
+            :class="backgroundColor[idx]"
+            style="text-align: center;"
+            v-model="ans[inputTf.value]"
+            placeholder="답을 입력하세요"
+            rows="1"
+            no-resize
+          ></b-form-textarea>
+          -->
+        </div>
+       
+
+        <!--
+        <b-form-group v-slot="{ ariaDescribedby }">
           <b-form-radio-group
             v-model="selectedTf"
             :options="optionsTf"
@@ -46,12 +78,13 @@
             name="radio-inline"
           ></b-form-radio-group>
         </b-form-group>
+        -->
       </b-row>
       <!--e.tfprob-->
 
       <b-row v-show="selectedType == 'OB'">
         <!-- radio -->
-        <div v-for="inputRadio in radios" class="form-check form-group">
+        <div v-for="(inputRadio, idx) in radios" :key="idx" class="form-check form-group col-sm-3">
           <input
             class="form-check-input"
             v-model="radioSelected"
@@ -59,13 +92,15 @@
             :value="inputRadio.value"
             :id="inputRadio.value"
           />
-          <label class="form-check-label" :for="inputRadio.value">
-            {{ inputRadio.label }}
-          </label>
+          <div>&nbsp;</div>
           <b-form-textarea
+            :class="backgroundColor[idx]"
+            class="obans"
+            style="text-align: center;"
             v-model="ans[inputRadio.value]"
             placeholder="답을 입력하세요"
             rows="2"
+            no-resize
           ></b-form-textarea>
           <br />
         </div>
@@ -85,53 +120,32 @@ export default {
   
   data() {
     return {
-      radios: [
-        { value: "1", label: "1번답" },
-        { value: "2", label: "2번답" },
-        { value: "3", label: "3번답" },
-        { value: "4", label: "4번답" },
-      ],
-      radioSelected: null,
       questionId: "",
       questionText: "",
       ans: [],
-      ans1: "",
-      ans2: "",
-      ans3: "",
-      ans4: "",
-      check1: "0",
-      check2: "0",
-      check3: "0",
-      check4: "0",
-      quizType: "0",
-      timeLimit: "0",
-      point: "0",
-
       selectedTf: "1",
       optionsTf: [
-        { text: "참", value: "1" },
-        { text: "거짓", value: "2" },
+        { value: "1", text: "O" },
+        { value: "2", text: "X" },
       ],
-
+      radioSelected: null,
+      radios: [
+        { value: "1", label: "" },
+        { value: "2", label: "" },
+        { value: "3", label: "" },
+        { value: "4", label: "" },
+      ],
       selectedType: null,
-      selectedTimeLimit: null,
-      selectedPoint: null,
       optionsType: [
         { value: null, text: "퀴즈타입" },
         { value: "OX", text: "OX" },
         { value: "OB", text: "객관식" },
       ],
-      optionsTimeLimit: [
-        { value: null, text: "시간제한" },
-        { value: "20", text: "20초" },
-        { value: "5", text: "5초" },
-        { value: "0", text: "없음" },
-      ],
-      optionsPoint: [
-        { value: null, text: "포인트" },
-        { value: "S", text: "스탠다드" },
-        { value: "D", text: "더블" },
-        { value: "N", text: "없음" },
+      backgroundColor: [
+        "bg-primary text-white",
+        "bg-danger text-white",
+        "bg-success text-white",
+        "bg-warning text-white"
       ],
     };
   },
@@ -179,4 +193,23 @@ export default {
 </script>
 
 <style>
+textarea.obans::placeholder {
+  color: white;
+  text-align: center;
+}
+
+textarea.obans::-webkit-input-placeholder {
+  color: white;
+  text-align: center;
+}
+
+textarea.obans::-ms-input-placeholder {
+  color: white;
+  text-align: center;
+}
+
+textarea.obans::-moz-placeholder {
+  color: white;
+  text-align: center;
+}
 </style>

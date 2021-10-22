@@ -1,13 +1,14 @@
 <template>
   <div class="overflow-auto">
-    <b-container style="height: 900px">
+    <b-container class="bv-example-row bv-example-row-flex-cols h-100" fluid="sm">
       <b-row>&nbsp;</b-row>
-      <b-row>
-        <b-col cols="2"
-          ><b-button @click="goRoomMng()">방관리로</b-button></b-col
-        >
-        <b-col cols="7"><h1>문제은행</h1></b-col>
-        <b-col cols="3"> </b-col>
+
+      <b-row cols="3">
+        <b-col>
+          <b-button class="col-sm-4" @click="goRoomMng()">방 관리로</b-button>
+        </b-col>
+        <b-col><h1>문제은행</h1></b-col>
+        <b-col></b-col>
       </b-row>
 
       <hr
@@ -18,18 +19,15 @@
           background-color: gray;
         "
       />
-      <b-row>
-        <b-col cols="1"><b-button variant="primary" @click="initVal()">추가</b-button></b-col>
-        <b-col cols="1"><b-button variant="danger" @click="delProb()">삭제</b-button></b-col>
-        <b-col cols="2"></b-col>
-        <b-col cols="8"><b-pagination
+
+      <b-row align-h="center">
+        <b-pagination
           v-model="currentPage"
           :total-rows="totalRows"
           :per-page="perPage"
           aria-controls="my-table"
-        ></b-pagination></b-col>
-        
-        
+          align="center"
+        ></b-pagination>
       </b-row>
 
       <b-row>
@@ -44,17 +42,28 @@
           :fields="fields"
           :per-page="perPage"
           :current-page="currentPage"
-        >
-        </b-table
-      ></b-row>
+        ></b-table>
+      </b-row>
+
+      <b-row align-h="end">
+        <b-col cols="1">
+          <b-button class="col-sm-12" variant="danger" @click="delProb()">삭제</b-button>
+        </b-col>
+        <b-col cols="1">
+          <b-button class="col-sm-12" variant="primary" @click="initVal()">추가</b-button>
+        </b-col>
+      </b-row>
+
+      <b-row>&nbsp;</b-row>
+
       <b-row>
         <!-- main content -->
-        <b-col cols="10">
+        <b-col cols="11">
           <quiz-comp ref="quizdata" @child-event="parentReceive"></quiz-comp>
         </b-col>
         <!-- e.main content -->
-        <b-col cols="2">
-          <div><b-button @click="save()">저장</b-button></div>
+        <b-col cols="1">
+          <b-button class="col-sm-12" variant="success" @click="save()">저장</b-button>
         </b-col>
       </b-row>
 
@@ -74,20 +83,6 @@ import QuizComp from "@/components/QuizComp";
 export default {
   components: {
     QuizComp,
-  },
-  props: {
-    newRoom: {
-      type: Number,
-      default: 1, // 1: yes 2: no
-    },
-    roomId: {
-      type: Number,
-      default: -1,
-    },
-    roomTitle: {
-      type: String,
-      default: "",
-    },
   },
   data() {
     return {
@@ -209,7 +204,6 @@ export default {
         url: "/api/v1/question",
         headers: config.headers,
         data: {
-          //roomId: this.roomId,
           questionId: questionId,
           questionType: questionType,
           timeLimitType: "",
@@ -235,6 +229,13 @@ export default {
       this.$refs.quizdata.quizId = null;
       this.$refs.quizdata.question = null;
       this.$refs.quizdata.selectedType = null;
+      this.$refs.quizdata.questionText = null;
+      this.$refs.quizdata.selectedTf = null;
+      this.$refs.quizdata.radioSelected = null;
+      this.$refs.quizdata.ans[1] = null;
+      this.$refs.quizdata.ans[2] = null;
+      this.$refs.quizdata.ans[3] = null;
+      this.$refs.quizdata.ans[4] = null;
     },
     delProb() {
       if (this.selected == null) {
