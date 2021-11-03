@@ -50,7 +50,7 @@
             </div>
           </div>
           <div v-else class="h-100 d-flex justify-content-center align-items-center">
-            <bar-comp :chart-data="barData" :options="options"></bar-comp>
+            <bar-comp :chartData="barData" :chartOptions="options"></bar-comp>
           </div>
         </div>
       </div>
@@ -112,6 +112,8 @@
         <div class="h-25">
           <h2 v-if="probList[currentProbNum].questionType==='OX'" class="twb-50">OX 퀴즈</h2>
           <h2 v-else-if="probList[currentProbNum].questionType==='OB'" class="twb-50">4지선다형 퀴즈</h2>
+          <h3 class="twb-25"> 점수: {{probList[currentProbNum].questionScore}}점 </h3>
+          <h3 class="twb-25"> 제한시간: {{probList[currentProbNum].questionTime}}초 </h3>
         </div>
         <div class="h-75 d-flex justify-content-center align-items-center" style="background-color: white;">
           <h2 class="tbb-70 ml-5 mr-5">{{probList[currentProbNum].questionText}}</h2>
@@ -174,6 +176,26 @@ export default {
       chartData: null,
       barData: null,
       options: {
+        plugins: {
+          datalabels: {
+            color: 'black',
+            font: {
+              size: 20,
+              weight: 'bold'
+            },
+            anchor: 'end',
+            align: 'top',
+            offset: 10,
+          }
+        },
+        layout: {
+          padding: {
+            top: 50,
+            right: 0,
+            left: 0,
+            bottom: 0
+          }
+        },
         // title
         title: {
           display: false,
@@ -187,6 +209,7 @@ export default {
               ticks: {
                 display: false,
                 beginAtZero: true,
+                stepSize : 5,
               },
               gridLines: {
                 display: false,
@@ -548,17 +571,20 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 #true, #false {
   font-size: 100px;
   font-weight: bold;
 }
 
 #one, #two, #three, #four {
+  color: white;
   font-size: 60px;
   font-weight: bold;
 }
+</style>
 
+<style>
 .twb-50 {
   color: white;
   font-size: 50px;
@@ -569,6 +595,13 @@ export default {
 .twb-35 {
   color: white;
   font-size: 35px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.twb-25 {
+  color: white;
+  font-size: 25px;
   font-weight: bold;
   text-align: center;
 }

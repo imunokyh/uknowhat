@@ -1,67 +1,111 @@
 <template>
-  <b-overlay :show="show" rounded="lg" class="h-100">
-    <!-- 대기실 페이지 -->
-    <div v-if="pageType===0" class="h-100">
-      <h1>You're in!</h1>
-      <h2>See your nickname on screen?</h2>
-      <hr class="my-4" />
-      <b-container fluid="sm">
-        <b-row>
-          <b-col sm="2" v-for="(user, index) in userList" :key="index">
-            <b-card bg-variant="dark" text-variant="white" class="text-center m-1">
-              <b-card-text> {{user}} </b-card-text>
-            </b-card>
+  <div class="h-100">
+    <div style="height:5%">
+      <h2 class="tbb-20 mt-2 ml-1 float-left"> {{userName}} </h2>
+      <h2 class="tbb-20 mt-2 mr-1 float-right"> {{scoreTotal}} </h2>
+    </div>
+    <!--
+    <div style="height:5%">
+        <b-row cols="12" align-v="center">
+          <b-col cols="1">
+            <h2 class="tbb-25"> {{userName}} </h2>
+          </b-col>
+          <b-col cols="10">
+          </b-col>
+          <b-col cols="1">
+            <h2 class="tbb-25"> {{scoreTotal}} </h2>
           </b-col>
         </b-row>
-      </b-container>
-    </div>
-    <!-- OX 문제 정답 선택 페이지 -->
-    <div v-else-if="pageType===1" class="h-100">
-      <div class="row h-100">
+      </div>
+    -->
+    <b-overlay :show="show" rounded="lg" style="height:95%">
+      <!-- 대기실 페이지 -->
+      <div v-if="pageType===0" class="h-100">
+        <h1>You're in!</h1>
+        <h2>See your nickname on screen?</h2>
+        <hr class="my-4" />
+        <b-container fluid="sm">
+          <b-row>
+            <b-col sm="2" v-for="(user, index) in userList" :key="index">
+              <b-card bg-variant="dark" text-variant="white" class="text-center m-1">
+                <b-card-text> {{user}} </b-card-text>
+              </b-card>
+            </b-col>
+          </b-row>
+        </b-container>
+      </div>
+      <!-- OX 문제 정답 선택 페이지 -->
+      <div v-else-if="pageType===1" class="h-100">
+        <div class="left h-100">
+          <b-button id="true" variant="primary" class="col-sm-12 h-100" @click="submit($event)">O</b-button>
+        </div>
+        <div class="right h-100">
+          <b-button id="false" variant="danger" class="col-sm-12 h-100" @click="submit($event)">X</b-button>
+        </div>
+        <!--
         <b-button id="true" variant="primary" class="col-sm-6" @click="submit($event)">O</b-button>
         <b-button id="false" variant="danger" class="col-sm-6" @click="submit($event)">X</b-button>
+        -->
       </div>
-    </div>
-    <!-- OB(객관식) 문제 정답 선택 페이지 -->
-    <div v-else-if="pageType===2" class="h-100">
-      <div class="row h-50">
-        <b-button id="one" variant="primary" class="col-sm-6" @click="submit($event)">{{answer1Text}}</b-button>
-        <b-button id="two" variant="danger" class="col-sm-6" @click="submit($event)">{{answer2Text}}</b-button>
+      <!-- OB(객관식) 문제 정답 선택 페이지 -->
+      <div v-else-if="pageType===2" class="h-100">
+        <div class="h-50">
+          <div class="left h-100">
+            <b-button id="one" variant="primary" class="col-sm-12 h-100" @click="submit($event)">{{answer1Text}}</b-button>
+          </div>
+          <div class="right h-100">
+            <b-button id="two" variant="danger" class="col-sm-12 h-100" @click="submit($event)">{{answer2Text}}</b-button>
+          </div>
+        </div>
+        <div class="h-50">
+          <div class="left h-100">
+            <b-button id="three" variant="success" class="col-sm-12 h-100" @click="submit($event)">{{answer3Text}}</b-button>
+          </div>
+          <div class="right h-100">
+            <b-button id="four" variant="warning" class="col-sm-12 h-100" @click="submit($event)">{{answer4Text}}</b-button>
+          </div>
+        </div>
+        <!--
+        <div class="row h-50">
+          <b-button id="one" variant="primary" class="col-sm-6" @click="submit($event)">{{answer1Text}}</b-button>
+          <b-button id="two" variant="danger" class="col-sm-6" @click="submit($event)">{{answer2Text}}</b-button>
+        </div>
+        <div class="row h-50">
+          <b-button id="three" variant="success" class="col-sm-6" @click="submit($event)">{{answer3Text}}</b-button>
+          <b-button id="four" variant="warning" class="col-sm-6" @click="submit($event)">{{answer4Text}}</b-button>
+        </div>
+        -->
       </div>
-      <div class="row h-50">
-        <b-button id="three" variant="success" class="col-sm-6" @click="submit($event)">{{answer3Text}}</b-button>
-        <b-button id="four" variant="warning" class="col-sm-6" @click="submit($event)">{{answer4Text}}</b-button>
+      <!-- 정답 결과 페이지 -->
+      <div v-else-if="pageType===3" class="h-100">
+        <div v-if="resType===0">
+          <h1>Correct</h1>
+          <b-card bg-variant="dark" text-variant="white" class="text-center m-1">
+            <b-card-text> + {{score}} </b-card-text>
+          </b-card>
+        </div>
+        <div v-else-if="resType===1">
+          <h1>Incorrect</h1>
+          <b-card bg-variant="dark" text-variant="white" class="text-center m-1">
+            <b-card-text> We believe in you! </b-card-text>
+          </b-card>
+        </div>
+        <div v-else>
+          <h1>Time's up</h1>
+          <b-card bg-variant="dark" text-variant="white" class="text-center m-1">
+            <b-card-text> Dust yourself off. Greatness awaits! </b-card-text>
+          </b-card>
+        </div>
       </div>
-    </div>
-    <!-- 정답 결과 페이지 -->
-    <div v-else-if="pageType===3" class="h-100">
-      <div v-if="resType===0">
-        <h1>Correct</h1>
-        <b-card bg-variant="dark" text-variant="white" class="text-center m-1">
-          <b-card-text> + {{score}} </b-card-text>
-        </b-card>
+      <!-- 최종 순위 페이지 -->
+      <div v-else-if="pageType===4">
+        <h1>{{grade}}등</h1>
+        <h2 v-if="grade<=3">축하합니다!</h2>
+        <h2 v-else-if="grade<=10 && grade>=3">조금 아쉽지만, 그래도 잘하셨습니다!</h2>
+        <h2 v-else>다음엔 더 나은 성적을 얻기를 응원합니다!</h2>
       </div>
-      <div v-else-if="resType===1">
-        <h1>Incorrect</h1>
-        <b-card bg-variant="dark" text-variant="white" class="text-center m-1">
-          <b-card-text> We believe in you! </b-card-text>
-        </b-card>
-      </div>
-      <div v-else>
-        <h1>Time's up</h1>
-        <b-card bg-variant="dark" text-variant="white" class="text-center m-1">
-          <b-card-text> Dust yourself off. Greatness awaits! </b-card-text>
-        </b-card>
-      </div>
-    </div>
-    <!-- 최종 순위 페이지 -->
-    <div v-else-if="pageType===4">
-      <h1>{{grade}}등</h1>
-      <h2 v-if="grade<=3">축하합니다!</h2>
-      <h2 v-else-if="grade<=10 && grade>=3">조금 아쉽지만, 그래도 잘하셨습니다!</h2>
-      <h2 v-else>다음엔 더 나은 성적을 얻기를 응원합니다!</h2>
-    </div>
-  </b-overlay>
+</b-overlay>
+  </div>
 </template>
 
 <script>
@@ -89,6 +133,7 @@ export default {
       userList: [],
       resType: 0,
       score: 0,
+      scoreTotal: 0,
       grade: 0,
       answer1Text: "",
       answer2Text: "",
@@ -242,6 +287,7 @@ export default {
         this.pageType = 3;
         this.resType = 0;
         this.score = msg.score;
+        this.scoreTotal += msg.score;
       } else if (msg.type === "INCORRECT") {
         this.show = false;
         this.pageType = 3;
@@ -283,7 +329,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 #true, #false {
   font-size: 100px;
   font-weight: bold;
@@ -291,8 +337,17 @@ export default {
 
 #one, #two, #three, #four {
   color: white;
-  font-size: 100px;
+  font-size: 30px;
   font-weight: bold;
+}
+</style>
+
+<style>
+.tbb-20 {
+  color: black;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
 }
 
 .h-center {

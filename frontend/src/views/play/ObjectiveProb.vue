@@ -27,11 +27,12 @@ export default {
 </script>
 
 <style>
+/*
 #one, #two, #three, #four {
   color: white;
   font-size: 100px;
   font-weight: bold;
 }
-
+*/
 
 </style>

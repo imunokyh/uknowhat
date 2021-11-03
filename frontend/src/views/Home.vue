@@ -76,16 +76,16 @@ export default {
       return this.roomNum.length === 4;
     },
     nicknameState() {
-      return this.participantName.length > 0;
+      return this.participantName.length > 0 && this.participantName.length <= 10;
     },
     invalidRoomNumberFeedback() {
-      /*if (this.roomNum.length > 0) {
-        return "Enter 4 numbers.";
-      }
-      return "Please enter numbers.";*/
+      if (this.roomNum.length > 4)
+        return "Please enter a 4 numbers";
+      //return "Please enter numbers.";*/
     },
     invalidNicknameFeedback() {
-      //return "Please enter something.";
+      if (this.participantName.length > 10)
+        return "Please enter a nickname within 10";
     },
   },
   data() {
@@ -130,6 +130,9 @@ export default {
       } else {
         if (this.participantName === "") {
           alert("닉네임을 입력하세요.");
+          return;
+        } else if (this.participantName.length > 10) {
+          alert("10자리 이내의 닉네임을 입력하세요.");
           return;
         }
         this.$http
