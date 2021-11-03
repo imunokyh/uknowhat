@@ -1,23 +1,9 @@
 <template>
   <div class="h-100">
     <div style="height:5%">
-      <h2 class="tbb-20 mt-2 ml-1 float-left"> {{userName}} </h2>
-      <h2 class="tbb-20 mt-2 mr-1 float-right"> {{scoreTotal}} </h2>
+      <h2 class="tbb-20 ml-1 float-left"> {{userName}} </h2>
+      <h2 class="tbb-20 mr-1 float-right"> {{scoreTotal}} </h2>
     </div>
-    <!--
-    <div style="height:5%">
-        <b-row cols="12" align-v="center">
-          <b-col cols="1">
-            <h2 class="tbb-25"> {{userName}} </h2>
-          </b-col>
-          <b-col cols="10">
-          </b-col>
-          <b-col cols="1">
-            <h2 class="tbb-25"> {{scoreTotal}} </h2>
-          </b-col>
-        </b-row>
-      </div>
-    -->
     <b-overlay :show="show" rounded="lg" style="height:95%">
       <!-- 대기실 페이지 -->
       <div v-if="pageType===0" class="h-100">
@@ -348,6 +334,7 @@ export default {
   font-size: 20px;
   font-weight: bold;
   text-align: center;
+  display: flex;
 }
 
 .h-center {
