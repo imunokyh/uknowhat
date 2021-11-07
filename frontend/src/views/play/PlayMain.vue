@@ -1,8 +1,10 @@
 <template>
   <div class="h-100">
     <div style="height:5%">
-      <h2 class="tbb-20 ml-1 float-left"> {{userName}} </h2>
-      <h2 class="tbb-20 mr-1 float-right"> {{scoreTotal}} </h2>
+      <div class="h-100 outer-center">
+        <h2 class="tbb-p100 ml-1"> {{userName}} </h2>
+        <h2 class="tbb-p100 mr-1"> {{scoreTotal}} </h2>
+      </div>
     </div>
     <b-overlay :show="show" rounded="lg" style="height:95%">
       <!-- 대기실 페이지 -->
@@ -335,6 +337,21 @@ export default {
   font-weight: bold;
   text-align: center;
   display: flex;
+}
+
+.tbb-p100 {
+  color: black;
+  font-size: 100%;
+  font-weight: bold;
+  text-align: center;
+  display: flex;
+}
+
+.outer-center {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  justify-content: space-between;
 }
 
 .h-center {

@@ -103,10 +103,12 @@ public class MessageController {
 			int delay = 0; // delay time mili second
 			int interval = 1000; // interval mili second
 			
-			CommandTimer ct = new CommandTimer(simpMessageTemplate, message.getRoomNumber(), Long.parseLong(message.getContent()));
-			ct.start(howSeconds, delay, interval);
-			
-			timerMap.put(message.getRoomNumber(), ct);
+			if (howSeconds != 0) {
+				CommandTimer ct = new CommandTimer(simpMessageTemplate, message.getRoomNumber(), Long.parseLong(message.getContent()));
+				ct.start(howSeconds, delay, interval);
+				
+				timerMap.put(message.getRoomNumber(), ct);
+			}
 			
 			redisTemplate.opsForValue().set(message.getRoomNumber() + KEY_START_TS, System.currentTimeMillis());
 		} else if (message.getType() == MessageType.TIMEROFF) {
@@ -139,7 +141,14 @@ public class MessageController {
 				if (questionAnswer.equals(String.valueOf(entry.getValue()))) {
 					Long elapsedTs = Long.valueOf(String.valueOf(ptElaspedTs.get(entry.getKey())));
 					Long remainTs = (questionTime - elapsedTs) < 0 ? 0 : questionTime - elapsedTs;
-					Long realScore = (long) (questionScore * ((double)remainTs / (double)questionTime));
+					Long realScore = questionScore;
+					
+					if (questionTime == 0)
+						// 제한 시간 없는 문제는 무조건 문제의 점수로 부여
+						realScore = questionScore;
+					else
+						// 점수 산출 방식 = 기본 점수 (문제 점수 / 2) + 제출 시간에 따른 추가 점수 (나머지 점수 * 문제 시간 대비, 남은 시간 비율)
+						realScore = (long) ((questionScore / 2.0) * ((double)remainTs / (double)questionTime)) + (long) (questionScore / 2.0);
 					
 					log.info(String.valueOf(entry.getKey()) + ": " + realScore);
 					

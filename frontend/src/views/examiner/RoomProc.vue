@@ -500,6 +500,9 @@ export default {
           this.pageType = 2;
           this.sendMessage("RANK", "Rank Check");
           return;
+        } else if (event !== undefined && this.pageType === 1) {
+          this.sendMessage("TIMEROFF", "Timer Off");
+          return;
         }
       } else {
         this.pageType = 1;
@@ -560,6 +563,9 @@ export default {
         else if (this.probList[this.currentProbNum].questionType === "OB")
           this.sendMessage("OBP", this.probList[this.currentProbNum].id.toString()); 
 
+        if (this.probList[this.currentProbNum].questionTime === 0)
+          this.nextDisable = false;
+          
         this.sendMessage("TIMER", this.probList[this.currentProbNum].questionTime);
         this.timerCnt = this.probList[this.currentProbNum].questionTime;
         this.currentUserNum = this.userList.length;
