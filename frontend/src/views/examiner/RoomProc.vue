@@ -50,7 +50,19 @@
             </div>
           </div>
           <div v-else class="h-100 d-flex justify-content-center align-items-center">
-            <bar-comp :chartData="barData" :chartOptions="options"></bar-comp>
+            <b-table v-if="answerUserShow" sticky-header small style="width: 20.8%;" :fields="answerUserFields" :items="answerUserList" responsive="sm">
+              <template #cell(order)="data">
+                {{data.index + 1}}
+              </template>
+              <template #cell(nickname)="data">
+                {{data.item.value}}
+              </template>
+              <template #cell(time)="data">
+                {{data.item.time}}
+              </template>
+            </b-table>
+            <bar-comp v-else :chartData="barData" :chartOptions="options"></bar-comp>
+            <b-button pill class="mb-auto p-2" variant="warning" @click="changeChart($event)">★</b-button>
           </div>
         </div>
       </div>
@@ -92,7 +104,8 @@
       <b-button v-else variant="danger" class="col-sm-1 mt-1 mr-5 float-right" @click="sendExit($event)">Exit</b-button>
       <b-table small :fields="fields" :items="rankList" responsive="sm">
         <template #cell(rank)="data">
-          {{data.index + 1}}
+          <!--{{data.index + 1}}-->
+          {{data.item.rank}}
         </template>
         <template #cell(nickname)="data">
           {{data.item.value}}
@@ -169,6 +182,13 @@ export default {
         'nickname',
         'score'
       ],
+      answerUserList: [],
+      answerUserFields: [
+        'order',
+        'nickname',
+        'time'
+      ],
+      answerUserShow: false,
       currentProbNum: 0,
       submitNum: 0,
       timerCnt: 0,
@@ -437,8 +457,11 @@ export default {
                           this.probList[this.currentProbNum].answer3Text, answer3, 
                           this.probList[this.currentProbNum].answer4Text, answer4);
         }
+      } else if (msg.type === "ANSUSERLIST") {
+        this.answerUserList = msg.result;
       } else if (msg.type === "RANK") {
         this.rankList = msg.result;
+        this.answerUserShow = false;
       } else if (msg.type === "TIMECNT") {
         this.timerCnt = parseInt(msg.content);
       } else if (msg.type === "TIMEOUT") {
@@ -529,6 +552,9 @@ export default {
       this.submitNum = 0;
       this.showProb = true;
     },
+    changeChart(event) {
+      this.answerUserShow = !this.answerUserShow;
+    },
     fillOXData(answer1Count, answer2Count) {
       (this.barData = {
         labels: ["O", "X"],
@@ -565,7 +591,7 @@ export default {
 
         if (this.probList[this.currentProbNum].questionTime === 0)
           this.nextDisable = false;
-          
+
         this.sendMessage("TIMER", this.probList[this.currentProbNum].questionTime);
         this.timerCnt = this.probList[this.currentProbNum].questionTime;
         this.currentUserNum = this.userList.length;

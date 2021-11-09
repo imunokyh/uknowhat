@@ -1,9 +1,12 @@
 package kr.or.uknowhat.api.ubusiness.question.web;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -137,6 +140,8 @@ public class MessageController {
 			Long questionScore = rqrm.getQuestionScore();
 			Long questionTime = rqrm.getQuestionTime() * 1000;
 			
+			JSONArray answerUserList = new JSONArray();
+			
 			for (Map.Entry<Object, Object> entry : ptAnswers.entrySet()) {
 				if (questionAnswer.equals(String.valueOf(entry.getValue()))) {
 					Long elapsedTs = Long.valueOf(String.valueOf(ptElaspedTs.get(entry.getKey())));
@@ -159,6 +164,11 @@ public class MessageController {
 					
 					simpMessageTemplate.convertAndSend("/subscribe/play/room/" + message.getRoomNumber() + "/" + String.valueOf(entry.getKey()), message);
 					log.info("CORRECT " + "/subscribe/play/room/" + message.getRoomNumber() + "/" + String.valueOf(entry.getKey()));
+					
+					JSONObject jsonObject = new JSONObject();
+					jsonObject.put("value", String.valueOf(entry.getKey()));
+					jsonObject.put("time", String.valueOf((double)elapsedTs / (double)1000) + "s");
+					answerUserList.add(jsonObject);
 				} else {
 					message.setType(MessageType.INCORRECT);
 					simpMessageTemplate.convertAndSend("/subscribe/play/room/" + message.getRoomNumber() + "/" + String.valueOf(entry.getKey()), message);
@@ -166,7 +176,8 @@ public class MessageController {
 				}
 			}
 			
-			return;
+			message.setType(MessageType.ANSUSERLIST);
+			message.setResult(answerUserList);
 		} else if (message.getType() == MessageType.ANSCHART) {
 			Map<Object, Object> ptAnswers = redisTemplate.opsForHash().entries(message.getRoomNumber() + KEY_ANSWERS);
 			HashMap<Integer, Integer> answerDt = new HashMap<Integer, Integer>();
@@ -183,7 +194,30 @@ public class MessageController {
 			message.setResult(answerDt);	
 		} else if (message.getType() == MessageType.RANK) {
 			Set<TypedTuple<Object>> rankSet = redisTemplate.opsForZSet().reverseRangeWithScores(message.getRoomNumber(), 0, -1);
-			message.setResult(rankSet);
+			
+			JSONArray rankList = new JSONArray();
+			Double prevScore = (double) 0, curScore = (double) 0;
+			int rank = 1, accumulateRank = 1;
+			
+			Iterator<TypedTuple<Object>> iter = rankSet.iterator();
+			while (iter.hasNext()) {
+				TypedTuple<Object> tuple = iter.next();
+				curScore = tuple.getScore(); 
+				
+				if (Double.compare(prevScore, curScore) != 0)
+					rank = accumulateRank;
+				
+				JSONObject jsonObject = new JSONObject();
+				jsonObject.put("rank", String.valueOf(rank));
+				jsonObject.put("value", String.valueOf(tuple.getValue()));
+				jsonObject.put("score", String.valueOf(curScore));
+				rankList.add(jsonObject);
+				
+				accumulateRank++;
+				prevScore = curScore;
+			}
+			
+			message.setResult(rankList);
 		} else if (message.getType() == MessageType.FINALRANK) {
 			Set<TypedTuple<Object>> rankSet = redisTemplate.opsForZSet().reverseRangeWithScores(message.getRoomNumber(), 0, -1);
 			Double prevScore = (double) 0, curScore = (double) 0;
@@ -192,7 +226,7 @@ public class MessageController {
 			for (TypedTuple<Object> tuple : rankSet) {
 				curScore = Double.valueOf(String.valueOf(tuple.getScore()));
 				
-				if (prevScore != curScore)
+				if (Double.compare(prevScore, curScore) != 0)
 					rank = accumulateRank;
 					
 				message.setContent(String.valueOf(rank));
