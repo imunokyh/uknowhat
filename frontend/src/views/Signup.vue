@@ -9,7 +9,7 @@
       >
         <img class="mt-5 mb-5 img-fluid" alt="Title" src="../assets/title.png">
 
-        <b-form>
+        <b-form onsubmit="return false;">
           <b-form-group id="input-group-1" label-for="input-1">
             <b-form-input
               class="col-sm-4 h-center"
@@ -18,6 +18,7 @@
               type="text"
               placeholder="ID"
               required
+              @keyup.enter="signup()"
             ></b-form-input>
           </b-form-group>
 
@@ -29,6 +30,7 @@
               type="password"
               placeholder="Password"
               required
+              @keyup.enter="signup()"
             ></b-form-input>
           </b-form-group>
 

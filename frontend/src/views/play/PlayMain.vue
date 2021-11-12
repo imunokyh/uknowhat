@@ -6,11 +6,14 @@
         <h2 class="tbb-p100 mr-1"> {{scoreTotal}} </h2>
       </div>
     </div>
-    <b-overlay :show="show" rounded="lg" style="height:95%">
+    <div style="height:95%">
+    <!--<b-overlay :show="show" rounded="lg" style="height:95%">-->
       <!-- 대기실 페이지 -->
       <div v-if="pageType===0" class="h-100">
         <h1>You're in!</h1>
         <h2>See your nickname on screen?</h2>
+        <b-button variant="danger" class="w-10 mr-3 float-right" @click="exit($event)">Exit</b-button>
+        <div>&nbsp;</div>
         <hr class="my-4" />
         <b-container fluid="sm">
           <b-row>
@@ -92,7 +95,37 @@
         <h2 v-else-if="grade<=10 && grade>=3">조금 아쉽지만, 그래도 잘하셨습니다!</h2>
         <h2 v-else>다음엔 더 나은 성적을 얻기를 응원합니다!</h2>
       </div>
-</b-overlay>
+      <!-- 대기 화면 페이지 -->
+      <div v-else-if="pageType===5" class="h-100">
+        <div class="h-100">
+          <h1>Waiting...</h1>
+          <div>&nbsp;</div>
+          <b-overlay :show="true" rounded="lg"></b-overlay>
+        </div>
+      </div>
+    <!--</b-overlay>-->
+    </div>
+    <beautiful-chat
+      :participants="participants"
+      :onMessageWasSent="onMessageWasSent"
+      :messageList="messageList"
+      :newMessagesCount="newMessagesCount"
+      :isOpen="isChatOpen"
+      :close="closeChat"
+      :open="openChat"
+      :showEmoji="true"
+      :showFile="false"
+      :showEdition="false"
+      :showDeletion="false"
+      :showTypingIndicator="showTypingIndicator"
+      :showLauncher="showLch"
+      :showCloseButton="true"
+      :colors="colors"
+      :alwaysScrollToBottom="alwaysScrollToBottom"
+      :disableUserListToggle="true"
+      :messageStyling="messageStyling"
+      @onType="handleOnType"
+      @edit="editMessage" />
   </div>
 </template>
 
@@ -117,7 +150,7 @@ export default {
       roomNum: "",
       userName: "",
       show: true,
-      pageType: 0,
+      pageType: 5,
       userList: [],
       resType: 0,
       score: 0,
@@ -127,6 +160,38 @@ export default {
       answer2Text: "",
       answer3Text: "",
       answer3Text: "",
+      participants: [],
+      messageList: [],
+      newMessagesCount: 0,
+      isChatOpen: false,
+      showTypingIndicator: '',
+      showLch: true,
+      colors: {
+          header: {
+              bg: '#4e8cff',
+              text: '#ffffff'
+          },
+          launcher: {
+              bg: '#4e8cff'
+          },
+          messageList: {
+              bg: '#ffffff'
+          },
+          sentMessage: {
+              bg: '#4e8cff',
+              text: '#ffffff'
+          },
+          receivedMessage: {
+              bg: '#eaeaea',
+              text: '#222222'
+          },
+          userInput: {
+              bg: '#f4f7f9',
+              text: '#565867'
+          }
+      },
+      alwaysScrollToBottom: false,
+      messageStyling: true
     }
   },
   created() {
@@ -150,7 +215,7 @@ export default {
       let key = (e) ? e.keyCode : event.keyCode;
       let ctrl = (e) ? e.ctrlKey  : event.ctrlKey;
       
-      if ((ctrl == true && (key == 78 || key == 82)) || key==8 || key==116) {
+      if ((ctrl == true && (key == 78 || key == 82)) || key==116) {
         if (e) {
           e.preventDefault();
         } else {
@@ -183,7 +248,8 @@ export default {
             frame => {
               // 소켓 연결 성공
               this.connected = true;
-              this.show = false;
+              //this.show = false;
+              this.pageType = 0;
               // 서버의 메시지 전송 endpoint를 구독합니다.
               // 이런형태를 pub sub 구조라고 합니다.                    
               this.stompClient.subscribe("/subscribe/play/room/" + this.roomNum, res => {
@@ -203,6 +269,9 @@ export default {
                     let found = this.userList.find((iter) => iter === user);
                     if (found === undefined)
                       this.userList.push(user);
+
+                    if (user !== this.userName)
+                      this.participants = [ ...this.participants, { id: user,  name: user } ]
                   }
                 })
                 .catch((error) => {console.log(error);});
@@ -228,7 +297,9 @@ export default {
     submit(event) {    
       let ans;
 
-      this.show = true;
+      //this.show = true;
+      this.pageType = 5;
+      this.showLch = true;
 
       if (event.target.id === "true" || event.target.id === "one")
         ans = "1";
@@ -248,47 +319,68 @@ export default {
         let found = this.userList.find((user) => user === msg.participantName);
         if (found === undefined)
           this.userList.push(msg.participantName);
+
+        if (msg.participantName !== this.userName)
+          this.participants = [ ...this.participants, { id: msg.participantName,  name: msg.participantName } ]
       } else if (msg.type === "UNJOIN") {
         this.userList = this.userList.filter((user) => user !== msg.participantName);
+
+        this.participants = this.participants.filter((part) => part.id !== msg.participantName)
       } else if (msg.type === "START") {
-        this.show = true;
+        //this.show = true;
+        this.pageType = 5;
+        this.showLch = true;
       } else if (msg.type === "WAITING") {
         this.pageType = 0;
-        this.show = false;
+        this.showLch = true;
+        //this.show = false;
       } else if (msg.type === "LOADING") {
-        this.show = true;
+        //this.show = true;
+        this.pageType = 5;
+        this.showLch = true;
       }else if (msg.type === "OXP") {
-        this.show = false;
+        //this.show = false;
         this.pageType = 1;
+        this.showLch = false;
+        this.closeChat();
       } else if (msg.type === "OBP") {
-        this.show = false;
+        //this.show = false;
         this.pageType = 2;
+        this.showLch = false;
+        this.closeChat();
         this.answer1Text = msg.answer1Text;
         this.answer2Text = msg.answer2Text;
         this.answer3Text = msg.answer3Text;
         this.answer4Text = msg.answer4Text;
       } else if (msg.type === "TIMEOUT") {
         this.pageType = 3;
+        this.showLch = true;
         this.resType = 2;
       } else if (msg.type === "CORRECT") {
-        this.show = false;
+        //this.show = false;
         this.pageType = 3;
+        this.showLch = true;
         this.resType = 0;
         this.score = msg.score;
         this.scoreTotal += msg.score;
       } else if (msg.type === "INCORRECT") {
-        this.show = false;
+        //this.show = false;
         this.pageType = 3;
+        this.showLch = true;
         this.resType = 1;
       } else if (msg.type === "CHAT") {
-
+        this.recvChatMessage(msg.participantName, msg.chatType, msg.content);
       } else if (msg.type === "FINALRANK") {
         this.grade = msg.content;
         this.pageType = 4;
+        this.showLch = true;
       } else if (msg.type === "EXIT") {
-        //this.$router.go(-1);
-        this.$router.replace({ name: "Home" });
+        this.exit();
       }
+    },
+    exit(event) {
+      //this.$router.go(-1);
+      this.$router.replace({ name: "Home" });
     },
     sendJoinMessage(type) {
       if (this.stompClient && this.stompClient.connected) {
@@ -313,6 +405,57 @@ export default {
         this.stompClient.send("/publish/play/message", JSON.stringify(msg));
       }
     },
+    sendMessage(type, message, chatType) {
+      if (this.stompClient && this.stompClient.connected) {
+        const msg = {
+          roomNumber: this.roomNum,
+          participantName: this.userName,
+          content: message,
+          chatType: chatType,
+          type: type,
+        };
+
+        this.stompClient.send("/publish/play/message", JSON.stringify(msg));
+      }
+    },
+    recvChatMessage(nick, msgt, cont) {
+      if (cont.length > 0) {
+        if (nick !== this.userName) {
+          this.newMessagesCount = this.isChatOpen ? this.newMessagesCount : this.newMessagesCount + 1
+
+          let convMsg = "【" + nick + "】 : " + cont;
+          if (msgt === 'text')
+            this.messageList = [ ...this.messageList, { author: nick, type: msgt, data: { text: convMsg } } ]
+          else if (msgt === 'emoji')
+            this.messageList = [ ...this.messageList, { author: nick, type: msgt, data: { emoji: convMsg } } ]
+        }
+      }
+    },
+    onMessageWasSent(message) {
+      if (message.type === 'text')
+        this.sendMessage("CHAT", message.data.text, message.type)
+      else if (message.type === 'emoji')
+        this.sendMessage("CHAT", message.data.emoji, message.type)
+      this.messageList = [ ...this.messageList, message ]
+    },
+    openChat() {
+      this.isChatOpen = true
+      this.newMessagesCount = 0
+    },
+    closeChat() {
+      this.isChatOpen = false
+    },
+    handleScrollToTop () {
+      //console.log('Handle scroll to top event')
+    },
+    handleOnType () {
+      //console.log('Emit typing event')
+    },
+    editMessage(message){
+      const m = this.messageList.find(m=>m.id === message.id);
+      m.isEdited = true;
+      m.data.text = message.data.text;
+    }
   },
 }
 </script>

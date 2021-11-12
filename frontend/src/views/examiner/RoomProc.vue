@@ -286,7 +286,7 @@ export default {
       let key = (e) ? e.keyCode : event.keyCode;
       let ctrl = (e) ? e.ctrlKey  : event.ctrlKey;
       
-      if ((ctrl == true && (key == 78 || key == 82)) || key==8 || key==116) {
+      if ((ctrl == true && (key == 78 || key == 82)) || key==116) {
         if (e) {
           e.preventDefault();
         } else {

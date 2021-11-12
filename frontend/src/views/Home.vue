@@ -1,6 +1,6 @@
 <template>
   <div style="height: 100%">
-    <b-button class="m-1 float-right" size="sm" variant="success" @click="examiner()">Login</b-button>
+    <b-button v-if="show" class="m-1 float-right" size="sm" variant="success" @click="examiner()">Login</b-button>
     <b-jumbotron
       class="h-100"
       bg-variant="dark"
@@ -24,7 +24,7 @@
       -->
 
       <b-card bg-variant="white" text-variant="white" class="text-center h-center col-md-4">
-        <b-form>
+        <b-form onsubmit="return false;">
           <b-form-group
             id="input-group-1"
             v-if="typeRoomNumber"
@@ -39,6 +39,7 @@
               required
               class="text-center h-center"
               size="lg"
+              @keyup.enter="enter()"
             ></b-form-input>
           </b-form-group>
           <b-form-group
@@ -55,6 +56,7 @@
               required
               class="text-center h-center"
               size="lg"
+              @keyup.enter="enter()"
             ></b-form-input>
           </b-form-group>
           <!--<b-button class="m-1" variant="danger" @click="cancel()">Cancel</b-button>-->
@@ -71,6 +73,13 @@ import { BJumbotron } from "bootstrap-vue";
 Vue.component("b-jumbotron", BJumbotron);
 
 export default {
+  created() {
+    this.show = true;
+    history.pushState(null, document.title, location.href);
+    window.addEventListener('popstate', function(e) {
+      history.pushState(null, document.title, location.href);
+    });
+  },
   computed: {
     roomNumberState() {
       return this.roomNum.length === 4;
@@ -94,7 +103,7 @@ export default {
       roomNum: "",
       participantName: "",
       typeRoomNumber: true,
-      show: false,
+      show: true,
     };
   },
   methods: {
@@ -112,20 +121,23 @@ export default {
           alert("방 번호 4자리를 입력하세요.");
           return;
         }
+
         this.show = true;
         this.$http
           .get("/api/v1/room/check/number/" + this.roomNum)
           .then((res) => {
             if (res.data.code === 0) {
               this.typeRoomNumber = false;
+              alert(this.roomNum + "번 방에 입장하였습니다.\n사용하실 닉네임을 적어주세요.")
+              this.show = false;
             } else {
               alert(res.data.message);
+              this.show = true;
             }
-            this.show = false;
           })
           .catch((error) => {
             console.log(error);
-            this.show = false;
+            this.show = true;
           });
       } else {
         if (this.participantName === "") {
@@ -153,10 +165,12 @@ export default {
               });
             } else {
               alert(res.data.message);
+              this.show = true;
             }
           })
           .catch((error) => {
             console.log(error);
+            this.show = true;
           });
       }
     },

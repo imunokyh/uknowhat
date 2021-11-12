@@ -10,6 +10,8 @@ import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 
+import Chat from 'vue-beautiful-chat'
+
 Vue.prototype.$http = axios // prototype에 axios 추가
 Vue.config.productionTip = false
 
@@ -18,6 +20,7 @@ Vue.use(BootstrapVue)
 // Optionally install the BootstrapVue icon components plugin
 Vue.use(IconsPlugin)
 //Vue.use(LayoutPlugin)
+Vue.use(Chat)
 
 new Vue({
   router,

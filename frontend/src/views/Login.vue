@@ -10,7 +10,7 @@
         <img class="mt-5 mb-5 img-fluid" alt="Title" src="../assets/title.png">
 
         <b-card bg-variant="white" text-variant="white" class="text-center h-center col-md-4 mb-3">
-          <b-form>
+          <b-form onsubmit="return false;">
             <b-form-group id="input-group-1" label-for="input-1">
               <b-form-input
                 id="input-1"
@@ -18,6 +18,7 @@
                 type="text"
                 placeholder="ID"
                 required
+                @keyup.enter="login()"
               ></b-form-input>
             </b-form-group>
 
@@ -28,6 +29,7 @@
                 type="password"
                 placeholder="Password"
                 required
+                @keyup.enter="login()"
               ></b-form-input>
             </b-form-group>
 

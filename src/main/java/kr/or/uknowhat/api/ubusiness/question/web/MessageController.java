@@ -183,6 +183,7 @@ public class MessageController {
 			HashMap<Integer, Integer> answerDt = new HashMap<Integer, Integer>();
 			
 			for (Map.Entry<Object, Object> entry : ptAnswers.entrySet()) {
+				log.info(String.valueOf(entry.getValue()));
 				Integer key = Integer.valueOf(String.valueOf(entry.getValue()));
 				if (answerDt.containsKey(key)) {
 					answerDt.put(key, answerDt.get(key) + 1);

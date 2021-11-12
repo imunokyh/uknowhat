@@ -17,5 +17,6 @@ public class MessageVo {
 	private String answer2Text;
 	private String answer3Text;
 	private String answer4Text;
+	private String chatType;
 	private MessageType type;
 }
