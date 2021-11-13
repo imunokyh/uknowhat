@@ -73,6 +73,10 @@ export default {
       submittedNames: [],
     };
   },
+  created() {
+    document.oncontextmenu = function(){};
+    document.onkeydown = function() {};
+  },
   mounted() {
     this.getRoomData();
   },

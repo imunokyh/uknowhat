@@ -4,12 +4,13 @@
     <div v-if="pageType===0" class="h-100">
       <div style="height:10%;">
         <b-card bg-variant="dark" text-variant="white" class="text-center">
-          <b-card-text class="twb-35"> {{ roomNum }}번 방 </b-card-text>
+          <b-button pill variant="info" @click="open = true" class="ml-3 float-left">채팅</b-button>
+          <b-button pill variant="primary" class="col-sm-1 mr-4 float-right" @click="sendStart($event)">Start</b-button>
+          <b-button pill variant="danger" class="col-sm-1 mr-2 float-right" @click="sendExit($event)">Exit</b-button>
+          <b-card-text class="twb-35 float-center"> {{ roomNum }}번 방 </b-card-text>
         </b-card>
       </div>
       <div style="height:5%;">
-        <b-button variant="primary" class="col-sm-1 mr-5 float-right" @click="sendStart($event)">Start</b-button>
-        <b-button variant="danger" class="col-sm-1 mr-3 float-right" @click="sendExit($event)">Exit</b-button>
       </div>
       <div style="height:85%;"> 
         <b-container fluid="sm">
@@ -27,7 +28,8 @@
     <div v-else-if="pageType===1" class="h-100">
       <div class="h-75">
         <div style="height:10%;">
-          <b-button variant="dark" class="col-sm-1 mt-1 ml-5 float-left">{{ roomNum }}번 방</b-button>
+          <b-button pill variant="info" @click="open = true" class="ml-3 mt-1 float-left">채팅</b-button>
+          <b-button variant="dark" class="col-sm-1 mt-1 ml-3 float-left">{{ roomNum }}번 방</b-button>
           <b-button variant="white" class="col-sm-1 mt-1 float-center">{{currentProbNum + 1}}/{{probList.length}}</b-button>
           <b-button v-if="currentProbNum < probList.length - 1" :disabled="nextDisable" variant="primary" class="col-sm-1 mt-1 mr-5 float-right" @click="sendNext($event)">Next</b-button>
           <b-button v-else-if="currentProbNum === probList.length - 1" :disabled="resultDisable" variant="success" class="col-sm-1 mt-1 mr-5 float-right" @click="sendResult($event)">Result</b-button>
@@ -99,7 +101,8 @@
     </div>
     <!-- 랭킹 페이지 -->
     <div v-else-if="pageType===2" class="h-100">
-      <b-button variant="dark" class="col-sm-1 mt-1 ml-5 mb-5 float-left">{{ roomNum }}번 방</b-button>
+      <b-button pill variant="info" @click="open = true" class="ml-3 mt-1 float-left">채팅</b-button>
+      <b-button variant="dark" class="col-sm-1 mt-1 ml-3 float-left">{{ roomNum }}번 방</b-button>
       <b-button v-if="currentProbNum < probList.length" :disabled="nextDisable" variant="primary" class="col-sm-1 mt-1 mr-5 mb-5 float-right" @click="sendNext($event)">Next</b-button>
       <b-button v-else variant="danger" class="col-sm-1 mt-1 mr-5 float-right" @click="sendExit($event)">Exit</b-button>
       <b-table small :fields="fields" :items="rankList" responsive="sm">
@@ -135,6 +138,23 @@
       <div style="height:10%;">
       </div>
     </div>
+    <window-popup v-model="open">
+      <beautiful-chat
+        :participants="participants"
+        :onMessageWasSent="onMessageWasSent"
+        :messageList="messageList"
+        :isOpen="true"
+        :showEmoji="true"
+        :showFile="false"
+        :showEdition="false"
+        :showDeletion="false"
+        :showLauncher="false"
+        :showCloseButton="false"
+        :colors="colors"
+        :alwaysScrollToBottom="false"
+        :disableUserListToggle="true"
+        :messageStyling="true" />
+    </window-popup>
   </b-overlay>
 </template>
 
@@ -142,11 +162,13 @@
 import Stomp from "webstomp-client";
 import SockJS from "sockjs-client";
 import BarComp from '@/components/BarComp'
+import WindowPopup from "@/components/WindowPopup.vue";
 
 export default {
   name: "RoomProc",
   components: {
     BarComp,
+    WindowPopup,
   },
   props: {
     identification: {
@@ -164,6 +186,7 @@ export default {
   },
   data() {
     return {
+      open: false,
       roomId: -1,
       roomNum: "",
       examinerId: "",
@@ -262,7 +285,33 @@ export default {
         "two": false,
         "three": false,
         "four": false,
-      }
+      },
+      participants: [],
+      messageList: [],
+      colors: {
+          header: {
+              bg: '#4e8cff',
+              text: '#ffffff'
+          },
+          launcher: {
+              bg: '#4e8cff'
+          },
+          messageList: {
+              bg: '#ffffff'
+          },
+          sentMessage: {
+              bg: '#4e8cff',
+              text: '#ffffff'
+          },
+          receivedMessage: {
+              bg: '#eaeaea',
+              text: '#222222'
+          },
+          userInput: {
+              bg: '#f4f7f9',
+              text: '#565867'
+          }
+      },
     };
   },
   created() {
@@ -305,6 +354,9 @@ export default {
       .then((res) => {
         for (const user of res.data.result) {
           this.userList.push(user);
+
+          if (user !== this.userName)
+            this.participants = [ ...this.participants, { id: user,  name: user } ]
         }
       })
       .catch((error) => {console.log(error);});
@@ -374,6 +426,19 @@ export default {
         this.stompClient.send("/publish/play/message", JSON.stringify(msg));
       }
     },
+    sendChatMessage(chatType, message) {
+      if (this.stompClient && this.stompClient.connected) {
+        const msg = {
+          roomNumber: this.roomNum,
+          participantName: '★방 장★',
+          content: message,
+          chatType: chatType,
+          type: 'CHAT',
+        };
+
+        this.stompClient.send("/publish/play/message", JSON.stringify(msg));
+      }
+    },
     recvMessage(resBody) {
       let msg = JSON.parse(resBody);
 
@@ -381,8 +446,13 @@ export default {
         let found = this.userList.find((user) => user === msg.participantName);
         if (found === undefined)
           this.userList.push(msg.participantName);
+
+          if (msg.participantName !== this.userName)
+            this.participants = [ ...this.participants, { id: msg.participantName,  name: msg.participantName } ]
       } else if (msg.type === "UNJOIN") {
         this.userList = this.userList.filter((user) => user !== msg.participantName);
+
+        this.participants = this.participants.filter((part) => part.id !== msg.participantName)
       } else if (msg.type === "READPROB") {
         this.probList = msg.result;
         this.show = false;
@@ -474,6 +544,8 @@ export default {
 
       } else if (msg.type === "OXP" || msg.type === "OBP") {
         this.pageType = 1;
+      } else if (msg.type === "CHAT") {
+        this.recvChatMessage(msg.participantName, msg.chatType, msg.content);
       }
     },
     sendStart(event) {
@@ -598,6 +670,27 @@ export default {
       } else {
         setTimeout(this.timerFunc, 1000); 
       }
+    },
+    recvChatMessage(nick, msgt, cont) {
+      if (cont.length > 0) {
+        if (nick !== this.userName) {
+          this.newMessagesCount = this.isChatOpen ? this.newMessagesCount : this.newMessagesCount + 1
+
+          let convMsg = "【" + nick + "】 : " + cont;
+          if (msgt === 'text')
+            this.messageList = [ ...this.messageList, { author: nick, type: msgt, data: { text: convMsg } } ]
+          else if (msgt === 'emoji')
+            this.messageList = [ ...this.messageList, { author: nick, type: msgt, data: { emoji: convMsg } } ]
+        }
+      }
+    },
+    onMessageWasSent(message) {
+      if (message.type === 'text')
+        this.sendChatMessage(message.type, message.data.text)
+      else if (message.type === 'emoji')
+        this.sendChatMessage(message.type, message.data.emoji)
+      
+      this.messageList = [ ...this.messageList, message ]
     },
   },
 };

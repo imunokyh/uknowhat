@@ -64,7 +64,7 @@ public class MessageController {
 	public void message(@Payload MessageVo message) throws ParseException, JsonMappingException, JsonProcessingException {
 		log.info(message.getType().toString());
 		if (message.getType() == MessageType.CHAT) {
-
+			log.info(message.getParticipantName() + " : " + message.getContent());
 		} else if (message.getType() == MessageType.ANSWER) {
 			Long start = Long.valueOf(String.valueOf(redisTemplate.opsForValue().get(message.getRoomNumber() + KEY_START_TS)));
 			redisTemplate.opsForHash().put(message.getRoomNumber() + KEY_ELAPSED_TS, message.getParticipantName(), System.currentTimeMillis() - start);

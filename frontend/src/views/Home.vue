@@ -79,6 +79,9 @@ export default {
     window.addEventListener('popstate', function(e) {
       history.pushState(null, document.title, location.href);
     });
+
+    document.oncontextmenu = function(){};
+    document.onkeydown = function() {};
   },
   computed: {
     roomNumberState() {

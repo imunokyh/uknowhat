@@ -160,7 +160,12 @@ export default {
       answer2Text: "",
       answer3Text: "",
       answer3Text: "",
-      participants: [],
+      participants: [
+        {
+          "id": "★방 장★",
+          "name": "★방 장★"
+        }
+      ],
       messageList: [],
       newMessagesCount: 0,
       isChatOpen: false,
@@ -405,20 +410,21 @@ export default {
         this.stompClient.send("/publish/play/message", JSON.stringify(msg));
       }
     },
-    sendMessage(type, message, chatType) {
+    sendChatMessage(chatType, message) {
       if (this.stompClient && this.stompClient.connected) {
         const msg = {
           roomNumber: this.roomNum,
           participantName: this.userName,
           content: message,
           chatType: chatType,
-          type: type,
+          type: 'CHAT',
         };
 
         this.stompClient.send("/publish/play/message", JSON.stringify(msg));
       }
     },
     recvChatMessage(nick, msgt, cont) {
+      console.log(nick + " " + msgt + " " + cont)
       if (cont.length > 0) {
         if (nick !== this.userName) {
           this.newMessagesCount = this.isChatOpen ? this.newMessagesCount : this.newMessagesCount + 1
@@ -433,9 +439,10 @@ export default {
     },
     onMessageWasSent(message) {
       if (message.type === 'text')
-        this.sendMessage("CHAT", message.data.text, message.type)
+        this.sendChatMessage(message.type, message.data.text)
       else if (message.type === 'emoji')
-        this.sendMessage("CHAT", message.data.emoji, message.type)
+        this.sendChatMessage(message.type, message.data.emoji)
+
       this.messageList = [ ...this.messageList, message ]
     },
     openChat() {
