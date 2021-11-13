@@ -193,6 +193,13 @@ export default {
       let ans3 = this.$refs.quizdata.ans[3];
       let ans4 = this.$refs.quizdata.ans[4];
 
+      if ((questionType == "OX" && this.$refs.quizdata.selectedTf === null) ||
+          (questionType == "OB" && this.$refs.quizdata.radioSelected === null))
+      {
+        alert("정답을 선택하세요");
+        return;
+      }
+
       //console.log(pointType, timeLimitType, questionType);
       let answer =
         questionType == "OX"
@@ -234,6 +241,7 @@ export default {
     },
     initVal() {
       this.$refs.quizdata.quizId = null;
+      this.$refs.quizdata.questionId = null;
       this.$refs.quizdata.question = null;
       this.$refs.quizdata.selectedType = null;
       this.$refs.quizdata.questionText = null;

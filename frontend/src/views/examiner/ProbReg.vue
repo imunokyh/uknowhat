@@ -258,6 +258,7 @@ export default {
         { key: "questionTime", label: "시간" },
       ],
       bankFields: [{ key: "questionText", label: "내용" }],
+      incrQuizOrder: 0,
     };
   },
   created() {
@@ -389,9 +390,9 @@ export default {
       };
       let roomId = this.getRoomId;
       let questionId = this.$refs.quizdata.questionId;
-      let questionTime = 5;
-      let questionScore = 10;
-      let questionOrder = 0;
+      let questionTime = 10;
+      let questionScore = 100;
+      let questionOrder = this.incrQuizOrder++;
       this.$http({
         method: "post",
         url: "/api/v1/rq",
