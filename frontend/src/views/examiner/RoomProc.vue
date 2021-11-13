@@ -354,9 +354,7 @@ export default {
       .then((res) => {
         for (const user of res.data.result) {
           this.userList.push(user);
-
-          if (user !== this.userName)
-            this.participants = [ ...this.participants, { id: user,  name: user } ]
+          this.participants = [ ...this.participants, { id: user,  name: user } ]
         }
       })
       .catch((error) => {console.log(error);});
@@ -446,9 +444,7 @@ export default {
         let found = this.userList.find((user) => user === msg.participantName);
         if (found === undefined)
           this.userList.push(msg.participantName);
-
-          if (msg.participantName !== this.userName)
-            this.participants = [ ...this.participants, { id: msg.participantName,  name: msg.participantName } ]
+          this.participants = [ ...this.participants, { id: msg.participantName,  name: msg.participantName } ]
       } else if (msg.type === "UNJOIN") {
         this.userList = this.userList.filter((user) => user !== msg.participantName);
 
@@ -673,7 +669,7 @@ export default {
     },
     recvChatMessage(nick, msgt, cont) {
       if (cont.length > 0) {
-        if (nick !== this.userName) {
+        if (nick !== '★방 장★') {
           this.newMessagesCount = this.isChatOpen ? this.newMessagesCount : this.newMessagesCount + 1
 
           let convMsg = "【" + nick + "】 : " + cont;

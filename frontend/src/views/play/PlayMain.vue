@@ -424,7 +424,6 @@ export default {
       }
     },
     recvChatMessage(nick, msgt, cont) {
-      console.log(nick + " " + msgt + " " + cont)
       if (cont.length > 0) {
         if (nick !== this.userName) {
           this.newMessagesCount = this.isChatOpen ? this.newMessagesCount : this.newMessagesCount + 1
