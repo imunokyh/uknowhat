@@ -17,6 +17,7 @@ import kr.or.uknowhat.api.framework.vo.Result;
 import kr.or.uknowhat.api.ubusiness.common.ErrorCode;
 import kr.or.uknowhat.api.ubusiness.question.service.QuestionService;
 import kr.or.uknowhat.api.ubusiness.question.vo.QuestionVo;
+import kr.or.uknowhat.api.ubusiness.util.SecurityUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
@@ -36,6 +37,17 @@ public class QuestionController {
 		Result res = new Result();
 		res.setCode(ErrorCode.SUCCESS);
 		res.setResult(questionService.listQuestion(page, size, searchType, searchText));
+		return res;
+	}
+	
+	@GetMapping("/me")
+	public Result listMyQuestion(@RequestParam(defaultValue = "0") int page,
+								 @RequestParam(defaultValue = "10") int size,
+							   	 @RequestParam(defaultValue = "") String searchType,
+							     @RequestParam(defaultValue = "") String searchText) {
+		Result res = new Result();		
+		res.setCode(ErrorCode.SUCCESS);
+		res.setResult(questionService.listMyQuestion(page, size, searchType, searchText));
 		return res;
 	}
 	

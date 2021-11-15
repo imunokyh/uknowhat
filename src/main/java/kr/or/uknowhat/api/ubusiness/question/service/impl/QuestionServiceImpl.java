@@ -42,6 +42,23 @@ public class QuestionServiceImpl implements QuestionService {
 		return questionPage;
 				
 	}
+	
+	@Override
+	public Page<Question> listMyQuestion(int page, int size, String searchType,  String searchText) {
+		Pageable pageable = PageRequest.of(page, size, Sort.by("createdDate").descending());
+		String userId = SecurityUtil.getUserId();
+		
+		Page<Question> questionPage = null;
+		if(StringUtils.hasText(searchType) && StringUtils.hasText(searchText)) {
+			questionPage = questionRepository.findAllByQuestionTypeAndQuestionTextContainingAndCreatedUserId(pageable, searchType, searchText, userId);
+		} else if (StringUtils.hasText(searchType)) {
+			questionPage = questionRepository.findAllByQuestionTypeAndCreatedUserId(pageable, searchType, userId);
+		} else {
+			questionPage = questionRepository.findAllByQuestionTextContainingAndCreatedUserId(pageable, searchText, userId);
+		}
+		
+		return questionPage;
+	}
 
 	@Override
 	public Question getQuestion(Long id) {

@@ -463,7 +463,7 @@ export default {
       }
     },
     bankProvider(ctx) {
-      let promise = this.$http.get("/api/v1/question", {
+      let promise = this.$http.get("/api/v1/question/me", {
         params: {
           searchType: "",
           searchText: "",
@@ -483,7 +483,7 @@ export default {
           searchText: this.searchText,
         },
       };
-      let promise = this.$http.get("/api/v1/question", config);
+      let promise = this.$http.get("/api/v1/question/me", config);
       promise.then((res) => {
         this.bankItems = [];
         let result = res.data.result.content || [];

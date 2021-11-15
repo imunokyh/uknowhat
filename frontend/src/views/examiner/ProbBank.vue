@@ -159,7 +159,7 @@ export default {
           size: 100000
         }
       };
-      this.$http.get("/api/v1/question", config).then((res) => {
+      this.$http.get("/api/v1/question/me", config).then((res) => {
         this.items = [];
         this.items = this.items.concat(res.data.result.content);
       });
@@ -172,7 +172,7 @@ export default {
           size: ctx.perPage
         }
       };
-      let promise = this.$http.get("/api/v1/question", config);
+      let promise = this.$http.get("/api/v1/question/me", config);
       return promise.then((res) => {
         this.totalRows = res.data.result.totalElements
         return res.data.result.content || [];
@@ -295,6 +295,8 @@ export default {
         this.$refs.quizdata.ans[3] = this.selected.answer3Text;
         this.$refs.quizdata.ans[4] = this.selected.answer4Text;
       }
+
+      console.log(this.$refs.quizdata.questionText)
     },
     parentReceive(val) {
       console.log("parentReceive");

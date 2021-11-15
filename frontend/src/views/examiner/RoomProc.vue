@@ -26,7 +26,7 @@
     </div>
     <!-- 게임 진행 페이지 -->
     <div v-else-if="pageType===1" class="h-100">
-      <div class="h-75">
+      <div style="height:70%;">
         <div style="height:10%;">
           <b-button pill variant="info" @click="open = true" class="ml-3 mt-1 float-left">채팅</b-button>
           <b-button variant="dark" class="col-sm-1 mt-1 ml-3 float-left">{{ roomNum }}번 방</b-button>
@@ -34,7 +34,7 @@
           <b-button v-if="currentProbNum < probList.length - 1" :disabled="nextDisable" variant="primary" class="col-sm-1 mt-1 mr-5 float-right" @click="sendNext($event)">Next</b-button>
           <b-button v-else-if="currentProbNum === probList.length - 1" :disabled="resultDisable" variant="success" class="col-sm-1 mt-1 mr-5 float-right" @click="sendResult($event)">Result</b-button>
         </div>
-        <div style="height:90%;">
+        <div style="height:90%; white-space:pre-wrap;">
           <div v-if="showProb" class="h-100">
             <div class="row h-100">
               <div class="col-sm-1 h-100 d-flex justify-content-center align-items-center">
@@ -68,7 +68,7 @@
           </div>
         </div>
       </div>
-      <div class="h-25">
+      <div style="height:30%;">
         <div v-if="probList[currentProbNum].questionType==='OX'" class="h-100">
           <div class="h-100">
             <div class="left h-100">
@@ -124,7 +124,7 @@
         <p class="twb-50 float-left" style="background-color: green; padding: 0 20px 0">{{currentProbNum + 1}} of {{probList.length}}</p>
         <b-avatar class="float-right mt-2 mr-3" variant="light" size="5em" :text="showProbTimerCnt"></b-avatar>
       </div>
-      <div style="height:80%;">
+      <div style="height:80%; white-space:pre-wrap;">
         <div class="h-25">
           <h2 v-if="probList[currentProbNum].questionType==='OX'" class="twb-50">OX 퀴즈</h2>
           <h2 v-else-if="probList[currentProbNum].questionType==='OB'" class="twb-50">4지선다형 퀴즈</h2>
@@ -700,7 +700,7 @@ export default {
 
 #one, #two, #three, #four {
   color: white;
-  font-size: 60px;
+  font-size: 40px;
   font-weight: bold;
 }
 </style>
