@@ -1,187 +1,122 @@
 <template>
-  <div >
-    <b-container>
-      <br>
-      
-      <b-row cols="3">
-        <b-col>
-          <b-button class="col-sm-4" @click="goRoomMng()">방 관리로</b-button>
-        </b-col>
-        <b-col>
-          <h2>{{oRoomTitle}}</h2>
-        </b-col>
-        <b-col>
-          <b-button class="col-sm-4" @click="goProbBank()">문제은행</b-button>
-        </b-col>
-      </b-row>
-      
-      <hr
-        style="
-          height: 2px;
-          border-width: 0;
-          color: gray;
-          background-color: gray;
-        "
-      />
-      <b-row>&nbsp;</b-row>
+  <div class="uk-admin">
+    <app-bar active="room"></app-bar>
 
-      <b-row><!--left-->
+    <div class="uk-container">
+      <div class="uk-page-head">
+        <div>
+          <a class="uk-link" @click="goRoomMng()">← 내 퀴즈방</a>
+          <h1 class="uk-page-title mt-1">{{ oRoomTitle || '퀴즈방 문제 구성' }}</h1>
+          <p class="uk-page-sub">문제은행에서 문제를 골라 담고, 점수와 제한 시간을 정하세요.</p>
+        </div>
+        <div class="uk-actions">
+          <button class="uk-btn light" @click="goProbBank()">📚 문제은행에서 새 문제 만들기</button>
+        </div>
+      </div>
 
-        <b-col cols="6" class="vl">
-          <!-- Title:{{ roomTitle }} -->
-
-          <b-row style="height: 5%;">
-            <b-col sm="2">
-              <!-- edit -->
-              <b-button variant="info" v-b-modal.modal-prob-modify>편집</b-button>
-              <b-modal
-                id="modal-prob-modify"
-                ref="modal"
-                title="문제 정보 편집"
-                @show="resetModal"
-                @hidden="resetModal"
-                @ok="handleMdfyProb"
-              >
-                <form ref="formProb" @submit.stop.prevent="handleSubmit">
-                  
-                   <b-row >
-                    
-                    <b-col sm="3">아이디</b-col>
-                    <b-col sm="9">
-                      <b-form-input id="rq-id" v-model="formProb.id" disabled>
-                    </b-form-input>
-                    </b-col>
-                  </b-row>
-
-                  <b-row class="my-1">
-                    
-                    <b-col sm="3">점수</b-col>
-                    <b-col sm="9">
-                      <b-form-select
-                        id="question-score-input"
-                        v-model="formProb.questionScore"
-                        :options="scoreOptions"
-                      ></b-form-select>
-                      <!--
-                      <b-form-input
-                      id="question-score-input"
-                      v-model="formProb.questionScore" type="number"
-                      ></b-form-input>
-                      -->
-                    </b-col>
-                  </b-row>
-
-                  <b-row class="my-1">
-                    
-                    <b-col sm="3">시간</b-col>
-                    <b-col sm="9">
-                      <b-form-select
-                        id="question-time-input"
-                        v-model="formProb.questionTime"
-                        :options="timeOptions"
-                      ></b-form-select>
-                      <!--
-                      <b-form-input
-                      id="question-time-input"
-                      v-model="formProb.questionTime" type="number"
-                      ></b-form-input>
-                      -->
-                    </b-col>
-                  </b-row>
-
-                  <b-row class="my-1">
-                    
-                    <b-col sm="3">순서</b-col>
-                    <b-col sm="9">
-                      <b-form-input
-                      id="question-time-input"
-                      v-model="formProb.questionOrder" type="number"
-                    ></b-form-input>
-                    </b-col>
-                  </b-row>
-                    
-                    
-                    
-                </form>
-              </b-modal>
-              <!-- e.edit-->
-            </b-col>
-            <b-col sm="2">
-              <b-button variant="danger" @click="delProb()">삭제</b-button>
-            </b-col>
-            
-          </b-row>
-          <br />
-          <b-row class="overflow-auto" style="height: 90%;">
+      <div class="reg-layout">
+        <!-- 이 방의 문제 -->
+        <div class="uk-card">
+          <div class="card-head">
+            <h2 class="uk-section-title">🎯 이 방의 문제 <span class="uk-badge">{{ probCount }}</span></h2>
+          </div>
+          <div class="uk-table-wrap">
             <b-table
-              selectable
-              select-mode="single"
-              @row-selected="onProbSelected"
-              striped
               hover
               ref="probtable"
               :items="probProvider"
               :fields="probFields"
-            ></b-table>
-          </b-row>
-        </b-col>
-        <b-col cols="6" class="vl">
-          <b-row style="height: 5%;">
-            <b-col sm="5">
-              <b-form-input
-                v-model="searchText"
-                placeholder="검색어"
-              ></b-form-input>
-            </b-col>
-            <b-col sm="3">
-              <b-form-select
-                v-model="selectedSearchType"
-                :options="optionsSearchType"
-              >
-              </b-form-select
-            ></b-col>
-            <b-col sm="2">
-              <b-button variant="primary" @click="searchQuestion()">검색</b-button>
-            </b-col>
-            <b-col sm="2">
-              <b-button variant="success" @click="addRoomQuestion()">추가</b-button>
-            </b-col>
-          </b-row>
-          <br />
-          <b-row class="overflow-auto" style="height: 90%;">
+              show-empty
+              empty-text="오른쪽 문제은행에서 문제를 추가하세요"
+            >
+              <template #cell(questionOrder)="data">
+                <span class="order">{{ data.index + 1 }}</span>
+              </template>
+              <template #cell(questionType)="data">
+                <span class="uk-badge" :class="data.value === 'OX' ? 'ox' : 'ob'">{{ data.value === 'OX' ? 'OX' : '객관식' }}</span>
+              </template>
+              <template #cell(questionText)="data">
+                <span class="q-text" :title="data.value">{{ data.value }}</span>
+              </template>
+              <template #cell(questionScore)="data">{{ data.value }}점</template>
+              <template #cell(questionTime)="data">{{ data.value > 0 ? data.value + '초' : '∞' }}</template>
+              <template #cell(actions)="data">
+                <div class="row-actions">
+                  <button class="uk-btn ghost sm" title="점수/시간 편집" @click.stop="editProb(data.item)">✏️</button>
+                  <button class="uk-btn ghost sm" title="방에서 빼기" @click.stop="removeProb(data.item)">✕</button>
+                </div>
+              </template>
+            </b-table>
+          </div>
+        </div>
+
+        <!-- 문제은행 -->
+        <div class="uk-card">
+          <div class="card-head">
+            <h2 class="uk-section-title">📚 문제은행</h2>
+          </div>
+          <form class="search" @submit.prevent="searchQuestion()">
+            <b-form-select v-model="selectedSearchType" :options="optionsSearchType" class="type-select"></b-form-select>
+            <b-form-input v-model="searchText" placeholder="문제 검색"></b-form-input>
+            <button class="uk-btn sm" type="submit">검색</button>
+          </form>
+          <div class="uk-table-wrap bank-wrap">
             <b-table
-              selectable
-              select-mode="single"
-              @row-selected="onBankSelected"
-              striped
-              hover
               ref="banktable"
               :items="bankItems"
               :fields="bankFields"
+              show-empty
+              empty-text="검색 결과가 없어요"
             >
+              <template #cell(questionType)="data">
+                <span class="uk-badge" :class="data.value === 'OX' ? 'ox' : 'ob'">{{ data.value === 'OX' ? 'OX' : '객관식' }}</span>
+              </template>
+              <template #cell(questionText)="data">
+                <span class="q-text" :title="data.value">{{ data.value }}</span>
+              </template>
+              <template #cell(add)="data">
+                <button class="uk-btn success sm" @click="addRoomQuestion(data.item.questionId)">＋ 담기</button>
+              </template>
             </b-table>
-          </b-row>
-        </b-col>
-      </b-row>
+          </div>
+        </div>
+      </div>
+    </div>
 
-      <b-row>&nbsp;</b-row>
-
-      <b-row>
-        <b-col cols="12">
-          <quiz-comp ref="quizdata"></quiz-comp>
-        </b-col>
-      </b-row>
-    </b-container>
+    <b-modal
+      id="modal-prob-modify"
+      ref="modal"
+      title="문제 설정"
+      ok-title="저장"
+      cancel-title="취소"
+      centered
+      @show="resetModal"
+      @hidden="resetModal"
+      @ok="handleMdfyProb"
+    >
+      <form ref="formProb" @submit.stop.prevent="handleSubmit">
+        <b-form-group label="점수">
+          <b-form-select v-model="formProb.questionScore" :options="scoreOptions"></b-form-select>
+        </b-form-group>
+        <b-form-group label="제한 시간">
+          <b-form-select v-model="formProb.questionTime" :options="timeOptions"></b-form-select>
+        </b-form-group>
+        <b-form-group label="순서 (작을수록 먼저 출제)" class="mb-0">
+          <b-form-input v-model="formProb.questionOrder" type="number"></b-form-input>
+        </b-form-group>
+      </form>
+    </b-modal>
   </div>
 </template>
 
 <script>
-import QuizComp from "@/components/QuizComp";
 import {mapGetters, mapMutations, mapActions} from 'vuex'
+import AppBar from "@/components/layout/AppBar.vue";
+import { errorMessage } from "@/utils/gameSession";
 
 export default {
   components: {
-    QuizComp,
+    AppBar,
   },
   props: {
     newRoomYn: {
@@ -209,7 +144,7 @@ export default {
       oRoomId:'',
       oRoomTitle:'',
       timeOptions: [
-        { value: 0, text: "없음"},
+        { value: 0, text: "제한 없음"},
         { value: 5, text: "5초"},
         { value: 10, text: "10초"},
         { value: 15, text: "15초"},
@@ -233,7 +168,7 @@ export default {
       searchText: "",
       selectedSearchType: null,
       optionsSearchType: [
-        { value: null, text: "문제타입" },
+        { value: null, text: "전체" },
         { value: "OX", text: "OX" },
         { value: "OB", text: "객관식" },
       ],
@@ -251,23 +186,29 @@ export default {
       //probItems: [],
       bankItems: [],
       probFields: [
-        { key: "questionOrder", label: "순서" },
-        { key: "questionType", label: "문제유형" },
-        { key: "questionText", label: "문제내용" },
+        { key: "questionOrder", label: "#" },
+        { key: "questionType", label: "유형" },
+        { key: "questionText", label: "문제" },
         { key: "questionScore", label: "점수" },
         { key: "questionTime", label: "시간" },
+        { key: "actions", label: "" },
       ],
-      bankFields: [{ key: "questionText", label: "내용" }],
-      incrQuizOrder: 0,
+      bankFields: [
+        { key: "questionType", label: "유형" },
+        { key: "questionText", label: "문제" },
+        { key: "add", label: "" },
+      ],
+      probCount: 0,
+      maxQuizOrder: 0,
     };
   },
   created() {
     //this.genQuizId();
-    
+
     if(this.roomId != -1){ // refresh 인경우값
       this.setRoomId(this.roomId);
     }
-    
+
     this.searchQuestion();
   },
   computed: {
@@ -281,7 +222,8 @@ export default {
   },
   mounted() {
     this.oRoomId = this.roomId;
-    this.oRoomTitle = this.roomTitle
+    this.oRoomTitle = this.roomTitle || sessionStorage.getItem("probRegRoomTitle") || "";
+    if (this.roomTitle) sessionStorage.setItem("probRegRoomTitle", this.roomTitle);
     // this.$root.$on('bv::modal::show', (bvEvent, modalId) => {
     //   if (bvEvent.type == 'show' && modalId == 'modal-prob-modify' ){
     //     console.log('event:' + this.formProb.id);
@@ -299,14 +241,14 @@ export default {
 
     } else{
     }
-    
+
   },
   methods: {
     goRoomMng(){
       // 방관리로 이동
       this.$router.push({ name: "RoomMng" });
     },
-    goProbBank(){ 
+    goProbBank(){
       // 문제은행으로 이동
       this.$router.push({ name: "ProbBank" });
     },
@@ -353,12 +295,26 @@ export default {
           this.$bvModal.hide("modal-prob-modify");
         });
         this.$refs.probtable.refresh();
-        
+
+      }).catch((error) => {
+        console.log(error);
+        alert(errorMessage(error, "문제 설정 저장 중 오류가 발생했습니다."));
       });
+    },
+    editProb(item) {
+      this.formProb.id = item.id;
+      this.formProb.questionScore = item.questionScore;
+      this.formProb.questionTime = item.questionTime;
+      this.formProb.questionOrder = item.questionOrder;
+      this.$bvModal.show("modal-prob-modify");
+    },
+    removeProb(item) {
+      this.formProb.id = item.id;
+      this.delProb();
     },
     delProb() {
       if(this.formProb.id == null || this.formProb.id == ''){
-            
+
         alert('삭제할 문제를 선택해 주세요');
         return;
       }
@@ -380,19 +336,22 @@ export default {
         } else {
           alert("삭제시 문제가 발생했습니다");
         }
+      }).catch((error) => {
+        console.log(error);
+        alert(errorMessage(error, "삭제 중 오류가 발생했습니다."));
       });
 
     },
-    addRoomQuestion() {
+    addRoomQuestion(questionId) {
       /* 방문제에 추가 */
       const config = {
         headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
       };
       let roomId = this.getRoomId;
-      let questionId = this.$refs.quizdata.questionId;
       let questionTime = 10;
       let questionScore = 100;
-      let questionOrder = this.incrQuizOrder++;
+      // 기존 문제들 뒤에 추가 (페이지를 다시 열어도 순서가 겹치지 않도록)
+      let questionOrder = ++this.maxQuizOrder;
       this.$http({
         method: "post",
         url: "/api/v1/rq",
@@ -402,7 +361,7 @@ export default {
           questionTime: questionTime,
           questionScore: questionScore,
           questionOrder: questionOrder,
-          
+
         },
         headers: config.headers
       }).then((res) => {
@@ -412,6 +371,9 @@ export default {
         } else {
           alert("문제 추가시 문제가 발생했습니다");
         }
+      }).catch((error) => {
+        console.log(error);
+        alert(errorMessage(error, "문제 추가 중 오류가 발생했습니다."));
       });
     },
     probProvider(ctx) {
@@ -424,7 +386,17 @@ export default {
       //console.log(sessionStorage.getItem("token"))
       let promise = this.$http.get("/api/v1/rq",config);
       return promise.then((res) => {
-        return res.data.result || [];
+        const list = res.data.result || [];
+        this.probCount = list.length;
+        this.maxQuizOrder = list.reduce((max, q) => Math.max(max, Number(q.questionOrder) || 0), 0);
+        return list;
+      }).catch((error) => {
+        console.log(error);
+        if (error.response && error.response.status === 401) {
+          alert("로그인이 필요합니다.");
+          this.$router.replace({ name: "Login" });
+        }
+        return [];
       });
     },
     onProbSelected(items) {
@@ -437,7 +409,7 @@ export default {
       let ps = items[0]; // problem selected
       console.log('prob selected');
       console.log(ps);
-      
+
       this.formProb.id = ps.id;
       this.formProb.questionScore = ps.questionScore
       this.formProb.questionTime = ps.questionTime
@@ -492,7 +464,8 @@ export default {
           this.bankItems.push(item);
         });
 
-        this.$refs.banktable.refresh();
+      }).catch((error) => {
+        console.log(error);
       });
     },
     genQuizId() {
@@ -511,7 +484,7 @@ export default {
         }
       );
     },
-    
+
     parentReceive(val) {
       console.log("parentReceive");
     },
@@ -519,18 +492,27 @@ export default {
 };
 </script>
 
-<style>
-.vl {
-  border-bottom: 1px solid gray;
-  border-left: 1px solid gray;
-  border-right: 1px solid gray;
-  height: 500px;
+<style scoped>
+.reg-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
 }
-.topbar {
-  display: block;
-  width: 100%;
-  height: 900px;
-  background-color: white;
-  overflow: scroll;
+.card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.card-head .uk-section-title { margin: 0; }
+.order {
+  display: inline-flex; width: 28px; height: 28px; border-radius: 8px;
+  align-items: center; justify-content: center;
+  background: var(--uk-primary-soft); color: var(--uk-primary); font-weight: 800;
+}
+.q-text { display: block; max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+.row-actions { display: flex; gap: 2px; justify-content: flex-end; }
+.row-actions .uk-btn { padding: 0 10px; }
+.search { display: flex; gap: 8px; margin-bottom: 14px; }
+.search .type-select { width: 120px; flex: none; }
+.bank-wrap { max-height: 560px; overflow-y: auto; }
+@media (max-width: 992px) {
+  .reg-layout { grid-template-columns: 1fr; }
 }
 </style>

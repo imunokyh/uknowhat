@@ -1,146 +1,145 @@
 <template>
-  <b-overlay :show="show" rounded="lg" class="h-100">
-    <b-alert :show="reconnecting" variant="warning" class="m-0 text-center" style="position: fixed; top: 0; left: 0; right: 0; z-index: 2000;">
-      서버와 연결이 끊어졌습니다. 재연결 중입니다... (게임은 서버에서 계속 진행됩니다)
-    </b-alert>
-    <!-- 대기실 페이지 -->
-    <div v-if="pageType===0" class="h-100">
-      <div style="height:10%;">
-        <b-card bg-variant="dark" text-variant="white" class="text-center">
-          <b-button pill variant="info" @click="open = true" class="ml-3 float-left">채팅</b-button>
-          <b-button pill variant="primary" class="col-sm-1 mr-4 float-right" @click="sendStart($event)">Start</b-button>
-          <b-button pill variant="danger" class="col-sm-1 mr-2 float-right" @click="sendExit($event)">Exit</b-button>
-          <b-card-text class="twb-35 float-center"> {{ roomNum }}번 방 </b-card-text>
-        </b-card>
-      </div>
-      <div style="height:5%;">
-      </div>
-      <div style="height:85%;"> 
-        <b-container fluid="sm">
-          <b-row>
-            <b-col sm="2" v-for="(user, index) in userList" :key="index">
-              <b-card :bg-variant="isOffline(user) ? 'secondary' : 'dark'" text-variant="white" class="text-center m-1">
-                <b-card-text> {{user}} <small v-if="isOffline(user)">(연결 끊김)</small> </b-card-text>
-              </b-card>
-            </b-col>
-          </b-row>
-        </b-container>
-      </div>
+  <div class="uk-game proc">
+    <div v-if="reconnecting" class="uk-banner">
+      <span class="spin"></span>서버와 연결이 끊어졌어요. 다시 연결하는 중... (게임은 서버에서 계속 진행됩니다)
     </div>
-    <!-- 게임 진행 페이지 -->
-    <div v-else-if="pageType===1" class="h-100">
-      <div style="height:70%;">
-        <div style="height:10%;">
-          <b-button pill variant="info" @click="open = true" class="ml-3 mt-1 float-left">채팅</b-button>
-          <b-button variant="dark" class="col-sm-1 mt-1 ml-3 float-left">{{ roomNum }}번 방</b-button>
-          <b-button variant="white" class="col-sm-1 mt-1 float-center">{{currentProbNum + 1}}/{{probList.length}}</b-button>
-          <b-button v-if="currentProbNum < probList.length - 1" :disabled="nextDisable" variant="primary" class="col-sm-1 mt-1 mr-5 float-right" @click="sendNext($event)">Next</b-button>
-          <b-button v-else-if="currentProbNum === probList.length - 1" :disabled="resultDisable" variant="success" class="col-sm-1 mt-1 mr-5 float-right" @click="sendResult($event)">Result</b-button>
-        </div>
-        <div style="height:90%; white-space:pre-wrap;">
-          <div v-if="showProb" class="h-100">
-            <div class="row h-100">
-              <div class="col-sm-1 h-100 d-flex justify-content-center align-items-center">
-                <b-avatar variant="primary" size="5em" :text="timerCnt"></b-avatar>
-              </div>
-              <div class="col-sm-10 h-100 d-flex justify-content-center align-items-center">
-                <h2 class="tbb-70">{{currentProb.questionText}}</h2>
-              </div>
-              <div class="col-sm-1 h-100 d-flex justify-content-center align-items-center">
-                <p class="tbb-25">
-                    {{submitNum}}<br>
-                    Answers
-                </p>
-              </div>
-            </div>
-          </div>
-          <div v-else class="h-100 d-flex justify-content-center align-items-center">
-            <b-table v-if="answerUserShow" sticky-header small style="width: 20.8%;" :fields="answerUserFields" :items="answerUserList" responsive="sm">
-              <template #cell(order)="data">
-                {{data.index + 1}}
-              </template>
-              <template #cell(nickname)="data">
-                {{data.item.value}}
-              </template>
-              <template #cell(time)="data">
-                {{data.item.time}}
-              </template>
-            </b-table>
-            <bar-comp v-else :chartData="barData" :chartOptions="options"></bar-comp>
-            <b-button pill class="mb-auto p-2" variant="warning" @click="changeChart($event)">★</b-button>
-          </div>
-        </div>
+    <div v-if="show" class="proc-loading"><div class="uk-spinner"></div></div>
+
+    <!-- 상단 바 -->
+    <header class="proc-bar">
+      <div class="left">
+        <span class="pin-sm">{{ roomNum }}</span>
+        <span v-if="pageType !== 0 && probList.length" class="progress-text">
+          {{ Math.min(currentProbNum + 1, probList.length) }} / {{ probList.length }}
+        </span>
       </div>
-      <div style="height:30%;">
-        <div v-if="currentProb.questionType==='OX'" class="h-100">
-          <div class="h-100">
-            <div class="left h-100">
-              <b-button :disabled="bdisable['true']" id="true" variant="primary" class="col-sm-12 h-100">O</b-button>
-            </div>
-            <div class="right h-100">
-              <b-button :disabled="bdisable['false']" id="false" variant="danger" class="col-sm-12 h-100">X</b-button>
-            </div>
-          </div>
-        </div>
-        <div v-else-if="currentProb.questionType==='OB'" class="h-100">
-          <div class="h-50">
-            <div class="left h-100">
-              <b-button :disabled="bdisable['one']" id="one" variant="primary" class="col-sm-12 h-100">{{currentProb.answer1Text}}</b-button>
-            </div>
-            <div class="right h-100">
-              <b-button :disabled="bdisable['two']" id="two" variant="danger" class="col-sm-12 h-100">{{currentProb.answer2Text}}</b-button>
-            </div>
-          </div>
-          <div class="h-50">
-            <div class="left h-100">
-              <b-button :disabled="bdisable['three']" id="three" variant="success" class="col-sm-12 h-100">{{currentProb.answer3Text}}</b-button>
-            </div>
-            <div class="right h-100">
-              <b-button :disabled="bdisable['four']" id="four" variant="warning" class="col-sm-12 h-100">{{currentProb.answer4Text}}</b-button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- 랭킹 페이지 -->
-    <div v-else-if="pageType===2" class="h-100">
-      <b-button pill variant="info" @click="open = true" class="ml-3 mt-1 float-left">채팅</b-button>
-      <b-button variant="dark" class="col-sm-1 mt-1 ml-3 float-left">{{ roomNum }}번 방</b-button>
-      <b-button v-if="currentProbNum < probList.length" :disabled="nextDisable" variant="primary" class="col-sm-1 mt-1 mr-5 mb-5 float-right" @click="sendNext($event)">Next</b-button>
-      <b-button v-else variant="danger" class="col-sm-1 mt-1 mr-5 float-right" @click="sendExit($event)">Exit</b-button>
-      <b-table small :fields="fields" :items="rankList" responsive="sm">
-        <template #cell(rank)="data">
-          <!--{{data.index + 1}}-->
-          {{data.item.rank}}
+      <div class="right">
+        <button class="uk-btn glass sm" @click="open = true">💬 채팅</button>
+        <template v-if="pageType===0">
+          <button class="uk-btn glass sm" @click="sendExit($event)">방 종료</button>
         </template>
-        <template #cell(nickname)="data">
-          {{data.item.value}}
+        <template v-else-if="pageType===1">
+          <button v-if="currentProbNum < probList.length - 1" class="uk-btn accent sm" :disabled="nextDisable" @click="sendNext($event)">
+            {{ showProb ? "문제 마감" : "순위 보기" }} →
+          </button>
+          <button v-else-if="currentProbNum === probList.length - 1" class="uk-btn accent sm" :disabled="resultDisable" @click="sendResult($event)">
+            {{ showProb ? "문제 마감" : "최종 결과" }} 🏁
+          </button>
         </template>
-        <template #cell(score)="data">
-          {{data.item.score}}
+        <template v-else-if="pageType===2">
+          <button v-if="currentProbNum < probList.length" class="uk-btn accent sm" :disabled="nextDisable" @click="sendNext($event)">다음 문제 →</button>
+          <button v-else class="uk-btn danger sm" @click="sendExit($event)">방 종료</button>
         </template>
-      </b-table>
-    </div>
-    <!-- 문제 페이지 -->
-    <div v-else-if="pageType===3" class="h-100" style="background-color: #81c147;">
-      <div style="height:10%;">
-        <p class="twb-50 float-left" style="background-color: green; padding: 0 20px 0">{{currentProbNum + 1}} of {{probList.length}}</p>
-        <b-avatar class="float-right mt-2 mr-3" variant="light" size="5em" :text="showProbTimerCnt"></b-avatar>
       </div>
-      <div style="height:80%; white-space:pre-wrap;">
-        <div class="h-25">
-          <h2 v-if="currentProb.questionType==='OX'" class="twb-50">OX 퀴즈</h2>
-          <h2 v-else-if="currentProb.questionType==='OB'" class="twb-50">4지선다형 퀴즈</h2>
-          <h3 class="twb-25"> 점수: {{currentProb.questionScore}}점 </h3>
-          <h3 class="twb-25"> 제한시간: {{currentProb.questionTime}}초 </h3>
+    </header>
+
+    <!-- 대기실 -->
+    <section v-if="pageType===0" class="lobby">
+      <div class="join-box">
+        <p class="join-label">참여 방법: 이 사이트에 접속 후 방 번호 입력</p>
+        <div class="uk-pin pin-big">{{ roomNum }}</div>
+      </div>
+
+      <div class="lobby-head">
+        <span class="count">👥 {{ userList.length }}명 참가</span>
+        <button class="uk-btn accent lg" :disabled="userList.length === 0" @click="sendStart($event)">게임 시작 ▶</button>
+      </div>
+
+      <div v-if="userList.length === 0" class="waiting-empty">
+        <div class="uk-spinner"></div>
+        <p>참가자를 기다리는 중...</p>
+      </div>
+      <div v-else class="players">
+        <span v-for="user in userList" :key="user" class="uk-chip" :class="{ offline: isOffline(user) }">
+          <span class="dot"></span>{{ user }}
+        </span>
+      </div>
+    </section>
+
+    <!-- 문제 공개 전 카운트다운 -->
+    <section v-else-if="pageType===3" class="intro">
+      <div class="intro-meta">
+        <span class="uk-badge" :class="currentProb.questionType === 'OX' ? 'ox' : 'ob'">
+          {{ currentProb.questionType === 'OX' ? 'OX 퀴즈' : '4지선다' }}
+        </span>
+        <span class="meta-item">⭐ {{ currentProb.questionScore }}점</span>
+        <span class="meta-item">⏱ {{ currentProb.questionTime > 0 ? currentProb.questionTime + '초' : '제한 없음' }}</span>
+      </div>
+      <h1 class="intro-question">{{ currentProb.questionText }}</h1>
+      <div :key="showProbTimerCnt" class="uk-countdown small">{{ showProbTimerCnt }}</div>
+    </section>
+
+    <!-- 문제 진행 / 결과 -->
+    <section v-else-if="pageType===1" class="question">
+      <div class="q-main">
+        <div v-if="showProb" class="q-live">
+          <div class="uk-timer" :class="{ urgent: timerCnt > 0 && timerCnt <= 5 }">
+            {{ currentProb.questionTime > 0 ? timerCnt : '∞' }}<small>남은 시간</small>
+          </div>
+          <div class="q-card">
+            <h2>{{ currentProb.questionText }}</h2>
+          </div>
+          <div class="submit-count">
+            <strong>{{ submitNum }}</strong>
+            <span>/ {{ userList.length }} 제출</span>
+          </div>
         </div>
-        <div class="h-75 d-flex justify-content-center align-items-center" style="background-color: white;">
-          <h2 class="tbb-70 ml-5 mr-5">{{currentProb.questionText}}</h2>
+
+        <div v-else class="q-result">
+          <div class="result-card">
+            <div class="result-head">
+              <h3>{{ answerUserShow ? '정답자 (빠른 순)' : '선택 분포' }}</h3>
+              <button class="uk-btn ghost sm" @click="changeChart($event)">
+                {{ answerUserShow ? '📊 분포 보기' : '🏃 정답자 보기' }}
+              </button>
+            </div>
+            <div v-if="answerUserShow" class="answer-users">
+              <p v-if="answerUserList.length === 0" class="uk-empty">정답자가 없어요 😢</p>
+              <ol v-else class="uk-rank-list">
+                <li v-for="(u, idx) in answerUserList" :key="u.value" class="uk-rank-item" :style="{ animationDelay: idx * 60 + 'ms' }">
+                  <span class="rank">{{ idx + 1 }}</span>
+                  <span class="name">{{ u.value }}</span>
+                  <span class="score">{{ u.time }}</span>
+                </li>
+              </ol>
+            </div>
+            <div v-else class="chart-box">
+              <bar-comp :chartData="barData" :chartOptions="options"></bar-comp>
+            </div>
+          </div>
         </div>
       </div>
-      <div style="height:10%;">
+
+      <div class="q-answers">
+        <div v-if="currentProb.questionType==='OX'" class="uk-answers">
+          <button class="uk-answer a2 ox" disabled :class="tileClass('true')">O</button>
+          <button class="uk-answer a1 ox" disabled :class="tileClass('false')">X</button>
+        </div>
+        <div v-else-if="currentProb.questionType==='OB'" class="uk-answers">
+          <button class="uk-answer a1" disabled :class="tileClass('one')"><span class="num">1</span>{{currentProb.answer1Text}}</button>
+          <button class="uk-answer a2" disabled :class="tileClass('two')"><span class="num">2</span>{{currentProb.answer2Text}}</button>
+          <button class="uk-answer a3" disabled :class="tileClass('three')"><span class="num">3</span>{{currentProb.answer3Text}}</button>
+          <button class="uk-answer a4" disabled :class="tileClass('four')"><span class="num">4</span>{{currentProb.answer4Text}}</button>
+        </div>
       </div>
-    </div>
+    </section>
+
+    <!-- 순위 -->
+    <section v-else-if="pageType===2" class="ranking">
+      <div class="rank-head">
+        <div class="stage-icon">{{ currentProbNum >= probList.length ? '🏆' : '📈' }}</div>
+        <h1>{{ currentProbNum >= probList.length ? '최종 순위' : '현재 순위' }}</h1>
+      </div>
+      <ol class="uk-rank-list rank-board">
+        <li v-for="(item, idx) in rankList" :key="item.value" class="uk-rank-item"
+            :class="'r' + item.rank" :style="{ animationDelay: idx * 70 + 'ms' }">
+          <span class="rank">{{ item.rank }}</span>
+          <span class="name">{{ item.value }}</span>
+          <span class="score">{{ formatScore(item.score) }}점</span>
+        </li>
+      </ol>
+    </section>
+
     <window-popup v-model="open">
       <beautiful-chat
         :participants="participants"
@@ -158,7 +157,7 @@
         :disableUserListToggle="true"
         :messageStyling="true" />
     </window-popup>
-  </b-overlay>
+  </div>
 </template>
 
 <script>
@@ -231,9 +230,9 @@ export default {
       options: {
         plugins: {
           datalabels: {
-            color: 'black',
+            color: '#1d1638',
             font: {
-              size: 20,
+              size: 22,
               weight: 'bold'
             },
             anchor: 'end',
@@ -273,8 +272,9 @@ export default {
             {
               ticks: {
                 beginAtZero: true,
-                fontSize: 20,
-                fontStyle: "bold"
+                fontSize: 18,
+                fontStyle: "bold",
+                fontColor: "#1d1638"
               },
               gridLines: {
                 display: false,
@@ -679,6 +679,15 @@ export default {
     isOffline(user) {
       return this.offlineUsers.includes(user);
     },
+    // 결과 화면에서 정답 보기는 강조, 나머지는 흐리게
+    tileClass(key) {
+      if (this.showProb) return {};
+      return { dim: this.bdisable[key], correct: !this.bdisable[key] };
+    },
+    formatScore(score) {
+      const n = parseFloat(score);
+      return isNaN(n) ? score : Math.round(n).toLocaleString();
+    },
     fillOXData(answer1Count, answer2Count) {
       (this.barData = {
         labels: ["O", "X"],
@@ -733,61 +742,99 @@ export default {
 </script>
 
 <style scoped>
-#true, #false {
-  font-size: 100px;
-  font-weight: bold;
+.proc {
+  display: flex;
+  flex-direction: column;
 }
-
-#one, #two, #three, #four {
-  color: white;
-  font-size: 40px;
-  font-weight: bold;
+.proc-loading {
+  position: fixed; inset: 0; z-index: 1900;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(30, 10, 80, 0.45);
 }
-</style>
-
-<style>
-.twb-50 {
-  color: white;
-  font-size: 50px;
-  font-weight: bold;
-  text-align: center;
+.proc-bar {
+  position: relative; z-index: 2;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 22px;
+  background: rgba(0, 0, 0, 0.18);
 }
-
-.twb-35 {
-  color: white;
-  font-size: 35px;
-  font-weight: bold;
-  text-align: center;
+.proc-bar .left, .proc-bar .right { display: flex; align-items: center; gap: 10px; }
+.pin-sm {
+  background: #fff; color: var(--uk-text);
+  font-weight: 900; letter-spacing: 0.1em;
+  padding: 4px 14px; border-radius: 10px; font-size: 18px;
 }
+.progress-text { font-weight: 800; font-size: 17px; color: rgba(255, 255, 255, 0.9); }
 
-.twb-25 {
-  color: white;
-  font-size: 25px;
-  font-weight: bold;
-  text-align: center;
+/* lobby */
+.lobby { position: relative; z-index: 1; flex: 1; padding: 28px 24px 40px; display: flex; flex-direction: column; align-items: center; }
+.join-box {
+  background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 24px; padding: 22px 40px; text-align: center;
 }
-
-.tbb-70 {
-  color: black;
-  font-size: 70px;
-  font-weight: bold;
-  text-align: center;
+.join-label { margin: 0 0 12px; color: rgba(255, 255, 255, 0.85); font-weight: 700; }
+.pin-big { font-size: clamp(56px, 10vw, 96px); padding: 8px 36px; border-radius: 20px; }
+.lobby-head {
+  width: 100%; max-width: 1000px;
+  display: flex; align-items: center; justify-content: space-between;
+  margin: 32px 0 20px; gap: 16px; flex-wrap: wrap;
 }
+.lobby-head .count { font-size: 22px; font-weight: 900; }
+.players { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; max-width: 1000px; }
+.waiting-empty { margin-top: 40px; text-align: center; color: rgba(255, 255, 255, 0.85); font-weight: 700; }
+.waiting-empty p { margin-top: 16px; }
 
-.tbb-25 {
-  color: black;
-  font-size: 25px;
-  font-weight: bold;
-  text-align: center;
+/* intro */
+.intro { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; }
+.intro-meta { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; }
+.meta-item { font-weight: 800; color: rgba(255, 255, 255, 0.9); }
+.intro-question {
+  background: #fff; color: var(--uk-text);
+  border-radius: 24px; padding: 32px 44px; max-width: 1100px;
+  font-size: clamp(28px, 4.5vw, 52px); font-weight: 900; line-height: 1.3;
+  box-shadow: var(--uk-shadow-lg); white-space: pre-wrap; word-break: keep-all;
 }
+.uk-countdown.small { font-size: clamp(72px, 12vw, 120px); margin-top: 28px; }
 
-div.left {
-  width: 50%;
-  float: left;
+/* question */
+.question { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; padding: 20px 22px 22px; gap: 20px; min-height: 0; }
+.q-main { flex: 1.4; display: flex; min-height: 0; }
+.q-live { flex: 1; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 24px; }
+.q-card {
+  background: #fff; color: var(--uk-text);
+  border-radius: 24px; padding: 32px; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--uk-shadow-lg);
 }
+.q-card h2 { font-size: clamp(26px, 4vw, 52px); font-weight: 900; margin: 0; line-height: 1.3; white-space: pre-wrap; word-break: keep-all; }
+.submit-count {
+  width: 110px; text-align: center;
+  background: rgba(255, 255, 255, 0.14); border-radius: 18px; padding: 16px 8px;
+}
+.submit-count strong { display: block; font-size: 42px; font-weight: 900; line-height: 1; }
+.submit-count span { font-size: 13px; font-weight: 700; color: rgba(255, 255, 255, 0.8); }
+.q-result { flex: 1; display: flex; justify-content: center; }
+.result-card {
+  background: #fff; color: var(--uk-text);
+  border-radius: 24px; padding: 20px 24px; width: 100%; max-width: 900px;
+  display: flex; flex-direction: column; box-shadow: var(--uk-shadow-lg);
+}
+.result-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.result-head h3 { margin: 0; font-size: 20px; font-weight: 900; }
+.chart-box { flex: 1; position: relative; min-height: 240px; }
+.chart-box > div { height: 100%; }
+.answer-users { flex: 1; overflow-y: auto; max-height: 360px; }
+.answer-users .uk-rank-item { box-shadow: none; background: #f7f5fe; font-size: 17px; padding: 10px 16px; }
+.q-answers { flex: 1; min-height: 170px; }
 
-div.right {
-  width: 50%;
-  float: right;
+/* ranking */
+.ranking { position: relative; z-index: 1; flex: 1; padding: 24px; display: flex; flex-direction: column; align-items: center; }
+.rank-head { text-align: center; margin-bottom: 20px; }
+.rank-head h1 { font-size: 40px; font-weight: 900; margin: 0; }
+.stage-icon { font-size: 56px; }
+.rank-board { width: 100%; max-width: 720px; }
+
+@media (max-width: 768px) {
+  .q-live { grid-template-columns: 1fr; }
+  .submit-count { width: auto; }
 }
 </style>

@@ -1,117 +1,51 @@
 <template>
-  <div>
-    <!-- main content -->
-
-    <!--
-      data props
-      https://question0.tistory.com/20
-      https://sas-study.tistory.com/236
-      -->
-
-    <!-- s -->
-    <div>
-      <b-row>
-        <b-col sm="12">
-          <b-form-select
-            v-model="selectedType"
-            :options="optionsType"
-          ></b-form-select>
-        </b-col>
-       
-      </b-row>
+  <div class="quiz-editor">
+    <label class="uk-label">문제 유형</label>
+    <div class="type-toggle">
+      <button type="button" :class="{ on: selectedType === 'OX' }" @click="selectedType = 'OX'">⭕ OX 퀴즈</button>
+      <button type="button" :class="{ on: selectedType === 'OB' }" @click="selectedType = 'OB'">🔢 4지선다</button>
     </div>
-    <!-- e -->
-    <!--
-    <label >{{ quizId }}</label>-->
-    
-    <div>&nbsp;</div>
 
-    <div>
-      <b-row>
-        <b-col sm="12">
-          <b-form-textarea
-            v-model="questionText"
-            placeholder="문제를 입력하세요" rows=2
-            no-resize
-          ></b-form-textarea>
-        </b-col>
-      </b-row>
+    <label class="uk-label mt-4">문제</label>
+    <textarea
+      v-model="questionText"
+      class="uk-input question-input"
+      placeholder="문제를 입력하세요"
+      rows="3"
+    ></textarea>
 
-      <div>&nbsp;</div>
+    <template v-if="selectedType === 'OX'">
+      <label class="uk-label mt-4">정답 선택</label>
+      <div class="ox-grid">
+        <button
+          v-for="(opt, idx) in optionsTf"
+          :key="opt.value"
+          type="button"
+          class="uk-answer ox-pick"
+          :class="[idx === 0 ? 'a2' : 'a1', { dim: selectedTf !== opt.value, correct: selectedTf === opt.value }]"
+          @click="selectedTf = opt.value"
+        >{{ opt.text }}</button>
+      </div>
+    </template>
 
-      <!--s.tfprob -->
-      <b-row v-show="selectedType == 'OX'"> 
-        <div v-for="(inputTf, idx) in optionsTf" :key="idx" class="form-check form-group col-sm-6">
-          <input
-            class="form-check-input"
-            v-model="selectedTf"
-            type="radio"
-            :value="inputTf.value"
-            :id="inputTf.value"
-          >
-          <div>&nbsp;</div>
-          <b-button
-            :class="backgroundColor[idx]"
-            class="col-sm-12"
-            size="lg"
-            style="text-align: center; border: none;"
-          >{{inputTf.text}}</b-button>
-          <!--
-          <b-form-textarea
-            :class="backgroundColor[idx]"
-            style="text-align: center;"
-            v-model="ans[inputTf.value]"
-            placeholder="답을 입력하세요"
-            rows="1"
-            no-resize
-          ></b-form-textarea>
-          -->
+    <template v-else-if="selectedType === 'OB'">
+      <label class="uk-label mt-4">보기 입력 · 정답 보기를 눌러 선택하세요</label>
+      <div class="ob-grid">
+        <div
+          v-for="(r, idx) in radios"
+          :key="r.value"
+          class="ob-item"
+          :class="['a' + (idx + 1), { picked: radioSelected === r.value }]"
+        >
+          <button type="button" class="pick" :title="'정답으로 선택'" @click="radioSelected = r.value">
+            {{ radioSelected === r.value ? '✓' : r.value }}
+          </button>
+          <input v-model="ans[r.value]" class="ob-input" :placeholder="r.value + '번 보기'" maxlength="500" />
         </div>
-       
+      </div>
+    </template>
 
-        <!--
-        <b-form-group v-slot="{ ariaDescribedby }">
-          <b-form-radio-group
-            v-model="selectedTf"
-            :options="optionsTf"
-            :aria-describedby="ariaDescribedby"
-            name="radio-inline"
-          ></b-form-radio-group>
-        </b-form-group>
-        -->
-      </b-row>
-      <!--e.tfprob-->
-
-      <b-row v-show="selectedType == 'OB'">
-        <!-- radio -->
-        <div v-for="(inputRadio, idx) in radios" :key="idx" class="form-check form-group col-sm-3">
-          <input
-            class="form-check-input"
-            v-model="radioSelected"
-            type="radio"
-            :value="inputRadio.value"
-            :id="inputRadio.value"
-          />
-          <div>&nbsp;</div>
-          <b-form-textarea
-            :class="backgroundColor[idx]"
-            class="obans"
-            style="text-align: center;"
-            v-model="ans[inputRadio.value]"
-            placeholder="답을 입력하세요"
-            rows="2"
-            no-resize
-          ></b-form-textarea>
-          <br />
-        </div>
-
-        <!-- e.radio -->
-      </b-row>
-    </div>
-    <!-- debug
-    selected is: {{ selectedTf }} / {{ radioSelected }}
-    -->
-    <!-- e.main content -->
+    <p v-else class="type-hint">먼저 문제 유형을 선택하세요.</p>
   </div>
 </template>
 
@@ -122,7 +56,8 @@ export default {
     return {
       questionId: "",
       questionText: "",
-      ans: [],
+      // 인덱스 대입(ans[1] = ...)도 반응형으로 동작하도록 키를 미리 선언한 객체 사용
+      ans: { 1: "", 2: "", 3: "", 4: "" },
       selectedTf: "1",
       optionsTf: [
         { value: "1", text: "O" },
@@ -192,24 +127,77 @@ export default {
 };
 </script>
 
-<style>
-textarea.obans::placeholder {
-  color: white;
-  text-align: center;
+<style scoped>
+.quiz-editor { text-align: left; }
+.type-toggle {
+  display: inline-flex;
+  background: #f1eef9;
+  border-radius: 14px;
+  padding: 4px;
+  gap: 4px;
 }
-
-textarea.obans::-webkit-input-placeholder {
-  color: white;
-  text-align: center;
+.type-toggle button {
+  border: none;
+  background: transparent;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-weight: 800;
+  color: var(--uk-text-sub);
+  font-family: inherit;
+  cursor: pointer;
 }
-
-textarea.obans::-ms-input-placeholder {
-  color: white;
-  text-align: center;
+.type-toggle button.on { background: #fff; color: var(--uk-primary); box-shadow: 0 2px 8px rgba(39, 16, 105, 0.12); }
+.question-input {
+  height: auto;
+  padding: 14px 18px;
+  resize: none;
+  font-size: 18px;
+  line-height: 1.5;
 }
-
-textarea.obans::-moz-placeholder {
-  color: white;
-  text-align: center;
+.ox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.ox-pick { min-height: 110px; font-size: 56px; font-weight: 900; }
+.ox-pick.dim { opacity: 0.35; }
+.ob-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ob-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 14px;
+  padding: 10px;
+  transition: box-shadow 0.15s;
+}
+.ob-item.a1 { background: var(--uk-a1); }
+.ob-item.a2 { background: var(--uk-a2); }
+.ob-item.a3 { background: var(--uk-a3); }
+.ob-item.a4 { background: var(--uk-a4); }
+.ob-item.picked { box-shadow: 0 0 0 4px #fff, 0 0 0 7px var(--uk-text); }
+.ob-item .pick {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(255, 255, 255, 0.28);
+  color: #fff;
+  font-weight: 900;
+  font-size: 18px;
+  cursor: pointer;
+}
+.ob-item.picked .pick { background: #fff; color: var(--uk-a4-dark); }
+.ob-input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 0 12px;
+  font-weight: 700;
+  font-family: inherit;
+  outline: none;
+}
+.type-hint { color: var(--uk-text-sub); margin-top: 20px; }
+@media (max-width: 576px) {
+  .ob-grid { grid-template-columns: 1fr; }
 }
 </style>

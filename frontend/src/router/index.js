@@ -11,7 +11,6 @@ import CorrectAns from '../views/play/CorrectAns.vue'
 import IncorrectAns from '../views/play/IncorrectAns.vue'
 import FinalRank from '../views/play/FinalRank.vue'
 import TimeUp from '../views/play/TimeUp.vue'
-import PtEnter from '../views/play/PtEnter.vue'
 import Chat from '../views/play/Chat.vue'
 import PlayMain from '../views/play/PlayMain.vue'
 import PlayChat from '../views/play/PlayChat.vue'
@@ -85,9 +84,10 @@ const routes = [
     name: 'FinalRank',
     component: FinalRank
   }, {
+    // 예전 참여자 입장 화면 → 메인(Home)으로 통합
     path: '/play/enter',
     name: 'PtEnter',
-    component: PtEnter
+    redirect: { name: 'Home' }
   }, {
     path: '/play/main',
     name: 'PlayMain',

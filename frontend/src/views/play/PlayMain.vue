@@ -1,113 +1,88 @@
 <template>
-  <div class="h-100">
-    <b-alert :show="reconnecting" variant="warning" class="m-0 text-center" style="position: fixed; top: 0; left: 0; right: 0; z-index: 2000;">
-      연결이 끊어졌습니다. 재연결 중입니다... (게임은 계속 진행되고 있습니다)
-    </b-alert>
-    <div style="height:5%">
-      <div class="h-100 outer-center">
-        <h2 class="tbb-p100 ml-1"> {{userName}} </h2>
-        <h2 class="tbb-p100 mr-1"> {{scoreTotal}} </h2>
-      </div>
+  <div class="uk-game play">
+    <div v-if="reconnecting" class="uk-banner">
+      <span class="spin"></span>연결이 끊어졌어요. 다시 연결하는 중... (게임은 계속 진행 중이에요)
     </div>
-    <div style="height:95%">
-    <!--<b-overlay :show="show" rounded="lg" style="height:95%">-->
-      <!-- 대기실 페이지 -->
-      <div v-if="pageType===0" class="h-100">
-        <h1>You're in!</h1>
-        <h2>See your nickname on screen?</h2>
-        <b-button variant="danger" class="w-10 mr-3 float-right" @click="exit($event)">Exit</b-button>
-        <div>&nbsp;</div>
-        <hr class="my-4" />
-        <b-container fluid="sm">
-          <b-row>
-            <b-col sm="2" v-for="(user, index) in userList" :key="index">
-              <b-card bg-variant="dark" text-variant="white" class="text-center m-1">
-                <b-card-text> {{user}} </b-card-text>
-              </b-card>
-            </b-col>
-          </b-row>
-        </b-container>
-      </div>
-      <!-- OX 문제 정답 선택 페이지 -->
-      <div v-else-if="pageType===1" class="h-100">
-        <div class="left h-100">
-          <b-button id="true" variant="primary" class="col-sm-12 h-100" @click="submit($event)">O</b-button>
+
+    <!-- 상단 바 -->
+    <header class="play-bar">
+      <span class="uk-badge">{{ roomNum }}번 방</span>
+      <span class="me">{{ userName }}</span>
+      <span class="total">{{ scoreTotal }}<small>점</small></span>
+    </header>
+
+    <main class="play-body">
+      <!-- 대기실 -->
+      <section v-if="pageType===0" class="stage">
+        <div class="stage-icon">🎉</div>
+        <h1 class="stage-title">입장 완료!</h1>
+        <p class="stage-sub">화면에서 내 닉네임을 찾아보세요. 출제자가 곧 게임을 시작해요.</p>
+        <div class="players">
+          <span v-for="user in userList" :key="user" class="uk-chip" :class="{ me: user === userName }">{{ user }}</span>
         </div>
-        <div class="right h-100">
-          <b-button id="false" variant="danger" class="col-sm-12 h-100" @click="submit($event)">X</b-button>
+        <button class="uk-btn glass sm mt-4" @click="exit($event)">나가기</button>
+      </section>
+
+      <!-- OX 문제 -->
+      <section v-else-if="pageType===1" class="answer-stage">
+        <p class="answer-hint">정답을 선택하세요</p>
+        <div class="uk-answers">
+          <button id="true" class="uk-answer a2 ox" @click="submit($event)">O</button>
+          <button id="false" class="uk-answer a1 ox" @click="submit($event)">X</button>
         </div>
-        <!--
-        <b-button id="true" variant="primary" class="col-sm-6" @click="submit($event)">O</b-button>
-        <b-button id="false" variant="danger" class="col-sm-6" @click="submit($event)">X</b-button>
-        -->
-      </div>
-      <!-- OB(객관식) 문제 정답 선택 페이지 -->
-      <div v-else-if="pageType===2" class="h-100">
-        <div class="h-50">
-          <div class="left h-100">
-            <b-button id="one" variant="primary" class="col-sm-12 h-100" @click="submit($event)">{{answer1Text}}</b-button>
-          </div>
-          <div class="right h-100">
-            <b-button id="two" variant="danger" class="col-sm-12 h-100" @click="submit($event)">{{answer2Text}}</b-button>
-          </div>
+      </section>
+
+      <!-- 객관식 문제 -->
+      <section v-else-if="pageType===2" class="answer-stage">
+        <p class="answer-hint">정답을 선택하세요</p>
+        <div class="uk-answers">
+          <button id="one" class="uk-answer a1" @click="submit($event)"><span class="num">1</span>{{answer1Text}}</button>
+          <button id="two" class="uk-answer a2" @click="submit($event)"><span class="num">2</span>{{answer2Text}}</button>
+          <button id="three" class="uk-answer a3" @click="submit($event)"><span class="num">3</span>{{answer3Text}}</button>
+          <button id="four" class="uk-answer a4" @click="submit($event)"><span class="num">4</span>{{answer4Text}}</button>
         </div>
-        <div class="h-50">
-          <div class="left h-100">
-            <b-button id="three" variant="success" class="col-sm-12 h-100" @click="submit($event)">{{answer3Text}}</b-button>
-          </div>
-          <div class="right h-100">
-            <b-button id="four" variant="warning" class="col-sm-12 h-100" @click="submit($event)">{{answer4Text}}</b-button>
-          </div>
-        </div>
-        <!--
-        <div class="row h-50">
-          <b-button id="one" variant="primary" class="col-sm-6" @click="submit($event)">{{answer1Text}}</b-button>
-          <b-button id="two" variant="danger" class="col-sm-6" @click="submit($event)">{{answer2Text}}</b-button>
-        </div>
-        <div class="row h-50">
-          <b-button id="three" variant="success" class="col-sm-6" @click="submit($event)">{{answer3Text}}</b-button>
-          <b-button id="four" variant="warning" class="col-sm-6" @click="submit($event)">{{answer4Text}}</b-button>
-        </div>
-        -->
-      </div>
-      <!-- 정답 결과 페이지 -->
-      <div v-else-if="pageType===3" class="h-100">
-        <div v-if="resType===0">
-          <h1>Correct</h1>
-          <b-card bg-variant="dark" text-variant="white" class="text-center m-1">
-            <b-card-text> + {{score}} </b-card-text>
-          </b-card>
-        </div>
-        <div v-else-if="resType===1">
-          <h1>Incorrect</h1>
-          <b-card bg-variant="dark" text-variant="white" class="text-center m-1">
-            <b-card-text> We believe in you! </b-card-text>
-          </b-card>
-        </div>
-        <div v-else>
-          <h1>Time's up</h1>
-          <b-card bg-variant="dark" text-variant="white" class="text-center m-1">
-            <b-card-text> Dust yourself off. Greatness awaits! </b-card-text>
-          </b-card>
-        </div>
-      </div>
-      <!-- 최종 순위 페이지 -->
-      <div v-else-if="pageType===4">
-        <h1>{{grade}}등</h1>
-        <h2 v-if="grade<=3">축하합니다!</h2>
-        <h2 v-else-if="grade<=10 && grade>=3">조금 아쉽지만, 그래도 잘하셨습니다!</h2>
-        <h2 v-else>다음엔 더 나은 성적을 얻기를 응원합니다!</h2>
-      </div>
-      <!-- 대기 화면 페이지 -->
-      <div v-else-if="pageType===5" class="h-100">
-        <div class="h-100">
-          <h1>Waiting...</h1>
-          <div>&nbsp;</div>
-          <b-overlay :show="true" rounded="lg"></b-overlay>
-        </div>
-      </div>
-    <!--</b-overlay>-->
-    </div>
+      </section>
+
+      <!-- 채점 결과 -->
+      <section v-else-if="pageType===3" class="stage">
+        <template v-if="resType===0">
+          <div class="uk-result-icon correct">✓</div>
+          <h1 class="uk-result-title">정답이에요!</h1>
+          <span class="uk-score-pill">+ {{ score }}점</span>
+        </template>
+        <template v-else-if="resType===1">
+          <div class="uk-result-icon incorrect">✕</div>
+          <h1 class="uk-result-title">아쉬워요</h1>
+          <p class="stage-sub">다음 문제는 맞힐 수 있어요. 힘내세요!</p>
+        </template>
+        <template v-else>
+          <div class="uk-result-icon timeout">⏱</div>
+          <h1 class="uk-result-title">시간 초과</h1>
+          <p class="stage-sub">다음엔 조금 더 빠르게! 기회는 또 있어요.</p>
+        </template>
+        <p class="stage-foot">현재 총점 <strong>{{ scoreTotal }}점</strong></p>
+      </section>
+
+      <!-- 최종 순위 -->
+      <section v-else-if="pageType===4" class="stage">
+        <div class="stage-icon big">{{ grade == 1 ? "🏆" : grade <= 3 ? "🥳" : "👏" }}</div>
+        <p class="stage-sub mb-1">최종 순위</p>
+        <h1 class="final-rank">{{grade}}<small>등</small></h1>
+        <p v-if="grade<=3" class="stage-sub">축하합니다! 정말 대단해요!</p>
+        <p v-else-if="grade<=10" class="stage-sub">조금 아쉽지만, 그래도 잘하셨습니다!</p>
+        <p v-else class="stage-sub">다음엔 더 나은 성적을 얻기를 응원합니다!</p>
+        <span class="uk-score-pill mt-2">총 {{ scoreTotal }}점</span>
+        <button class="uk-btn light mt-5" @click="exit($event)">처음으로</button>
+      </section>
+
+      <!-- 대기 -->
+      <section v-else-if="pageType===5" class="stage">
+        <div v-if="countdown > 0" :key="countdown" class="uk-countdown">{{ countdown }}</div>
+        <div v-else class="uk-spinner"></div>
+        <h2 class="stage-title mt-4">{{ waitMessage }}</h2>
+      </section>
+    </main>
+
     <beautiful-chat
       :participants="participants"
       :onMessageWasSent="onMessageWasSent"
@@ -165,8 +140,12 @@ export default {
       connected: false,
       reconnecting: false,
       leaving: false,
+      awaitingJoin: false,
+      joinFallbackTimer: null,
       show: true,
       pageType: 5,
+      waitMessage: "연결 중...",
+      countdown: 0,
       questionIndex: -1,
       userList: [],
       resType: 0,
@@ -267,6 +246,7 @@ export default {
     this.connect();
   },
   destroyed() {
+    clearTimeout(this.joinFallbackTimer);
     window.removeEventListener('beforeunload', this.unLoadEvent);
     if (this.socket) {
       this.socket.close();
@@ -284,8 +264,18 @@ export default {
         onConnect: () => {
           this.connected = true;
           this.reconnecting = false;
+          // JOIN 처리가 끝난 뒤(내 JOIN 브로드캐스트 수신)에 상태를 조회해야 한다.
+          // 동시에 조회하면 아직 참여자로 등록되기 전이라 "참여 정보가 없습니다" 오류가 난다.
+          this.awaitingJoin = true;
           this.sendJoinMessage("JOIN");
-          this.syncState();
+          clearTimeout(this.joinFallbackTimer);
+          this.joinFallbackTimer = setTimeout(() => {
+            // JOIN 브로드캐스트를 놓친 경우 대비
+            if (this.awaitingJoin) {
+              this.awaitingJoin = false;
+              this.syncState();
+            }
+          }, 2000);
         },
         onDisconnect: () => {
           this.connected = false;
@@ -302,7 +292,7 @@ export default {
       }
     },
     // 서버의 현재 진행 상태로 화면 복원
-    syncState() {
+    syncState(retries = 1) {
       this.$http
         .get("/api/v1/room/check/state", {
           params: { number: this.roomNum, nickname: this.userName, token: this.token },
@@ -316,6 +306,11 @@ export default {
         })
         .catch((error) => {
           if (error.response && error.response.status >= 400 && error.response.status < 500) {
+            if (retries > 0) {
+              // 입장 처리 직후의 일시적인 불일치일 수 있으므로 한 번 더 확인
+              setTimeout(() => this.syncState(retries - 1), 1000);
+              return;
+            }
             // 방이 종료됐거나 참여 정보가 유효하지 않음
             this.leaveWithMessage(errorMessage(error, "게임에 다시 참여할 수 없습니다."));
           } else {
@@ -338,13 +333,11 @@ export default {
           this.showLch = true;
           break;
         case "COUNTDOWN":
-          this.pageType = 5;
-          this.showLch = true;
+          this.setWaiting("다음 문제를 준비하고 있어요", state.remainSec);
           break;
         case "QUESTION":
           if (state.answered) {
-            this.pageType = 5;
-            this.showLch = true;
+            this.setWaiting("답안 제출 완료! 결과를 기다리는 중...");
           } else {
             this.answer1Text = state.answer1Text;
             this.answer2Text = state.answer2Text;
@@ -393,6 +386,11 @@ export default {
         return;
       }
 
+      this.setWaiting("답안 제출 완료! 결과를 기다리는 중...");
+    },
+    setWaiting(message, countdown) {
+      this.waitMessage = message;
+      this.countdown = countdown || 0;
       this.pageType = 5;
       this.showLch = true;
     },
@@ -417,6 +415,11 @@ export default {
       }
 
       if (msg.type === "JOIN") {
+        if (msg.participantName === this.userName && this.awaitingJoin) {
+          this.awaitingJoin = false;
+          clearTimeout(this.joinFallbackTimer);
+          this.syncState();
+        }
         let found = this.userList.find((user) => user === msg.participantName);
         if (found === undefined)
           this.userList.push(msg.participantName);
@@ -428,14 +431,12 @@ export default {
 
         this.participants = this.participants.filter((part) => part.id !== msg.participantName)
       } else if (msg.type === "START") {
-        this.pageType = 5;
-        this.showLch = true;
+        this.setWaiting("게임이 곧 시작돼요!");
       } else if (msg.type === "WAITING") {
         this.pageType = 0;
         this.showLch = true;
       } else if (msg.type === "LOADING" || msg.type === "COUNTDOWN") {
-        this.pageType = 5;
-        this.showLch = true;
+        this.setWaiting("다음 문제를 준비하고 있어요", parseInt(msg.content) || 0);
         if (msg.questionIndex !== null && msg.questionIndex !== undefined)
           this.questionIndex = msg.questionIndex;
       } else if (msg.type === "OXP") {
@@ -574,44 +575,66 @@ export default {
 </script>
 
 <style scoped>
-#true, #false {
-  font-size: 100px;
-  font-weight: bold;
-}
-
-#one, #two, #three, #four {
-  color: white;
-  font-size: 30px;
-  font-weight: bold;
-}
-</style>
-
-<style>
-.tbb-20 {
-  color: black;
-  font-size: 20px;
-  font-weight: bold;
-  text-align: center;
+.play {
   display: flex;
+  flex-direction: column;
 }
-
-.tbb-p100 {
-  color: black;
-  font-size: 100%;
-  font-weight: bold;
-  text-align: center;
-  display: flex;
-}
-
-.outer-center {
+.play-bar {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
-  flex-direction: row;
-  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+  background: rgba(0, 0, 0, 0.18);
 }
+.play-bar .uk-badge { background: rgba(255, 255, 255, 0.2); color: #fff; }
+.play-bar .me { flex: 1; text-align: left; font-weight: 800; font-size: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.play-bar .total { font-weight: 900; font-size: 22px; color: var(--uk-accent); }
+.play-bar .total small { font-size: 13px; margin-left: 2px; color: rgba(255, 255, 255, 0.8); }
 
-.h-center {
-  float: none; 
-  margin: 0 auto
+.play-body {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
+.stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px 96px;
+  text-align: center;
+}
+.stage-icon { font-size: 64px; margin-bottom: 8px; animation: uk-pop 0.5s; }
+.stage-icon.big { font-size: 88px; }
+.stage-title { font-size: clamp(28px, 6vw, 44px); font-weight: 900; margin: 0 0 8px; }
+.stage-sub { color: rgba(255, 255, 255, 0.8); font-size: 17px; margin: 0 0 8px; }
+.stage-foot { margin-top: 28px; color: rgba(255, 255, 255, 0.75); }
+.stage-foot strong { color: #fff; }
+.players {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 24px;
+  max-width: 720px;
+}
+.uk-chip.me { background: var(--uk-accent); color: #2a1470; }
+
+.answer-stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 16px 24px;
+}
+.answer-hint { font-weight: 800; font-size: 18px; margin: 4px 0 14px; color: rgba(255, 255, 255, 0.9); }
+.answer-stage .uk-answers { flex: 1; }
+
+.final-rank { font-size: clamp(80px, 18vw, 140px); font-weight: 900; line-height: 1; margin: 0 0 12px; }
+.final-rank small { font-size: 0.35em; margin-left: 4px; }
 </style>
