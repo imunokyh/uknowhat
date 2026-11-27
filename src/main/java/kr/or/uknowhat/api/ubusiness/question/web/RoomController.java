@@ -1,5 +1,7 @@
 package kr.or.uknowhat.api.ubusiness.question.web;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import javax.validation.Valid;
@@ -16,9 +18,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import kr.or.uknowhat.api.framework.exception.BizException;
 import kr.or.uknowhat.api.framework.vo.Result;
 import kr.or.uknowhat.api.ubusiness.common.ErrorCode;
 import kr.or.uknowhat.api.ubusiness.question.domain.Room;
+import kr.or.uknowhat.api.ubusiness.question.service.GameService;
 import kr.or.uknowhat.api.ubusiness.question.service.RoomService;
 import kr.or.uknowhat.api.ubusiness.question.vo.RoomVo;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +37,9 @@ public class RoomController {
 	
 	@Autowired
 	private RedisTemplate<String, Object> redisTemplate;
+	
+	@Autowired
+	private GameService gameService;
 	
 	@GetMapping
 	public Result listRoom(@RequestParam(value = "page", defaultValue = "0") int page,
@@ -114,11 +121,10 @@ public class RoomController {
 	@GetMapping(value = "/check/number/{number}")
 	public Result checkNumber(@PathVariable(value = "number") String roomNumber) {
 		Result res = new Result();
-		if (roomService.existRoom(roomNumber)) {
-			Room room = null;
+		Room room = roomService.getRoomByRoomNumber(roomNumber);
+		if (room != null && "PLAY".equals(room.getRoomState())) {
 			RoomVo roomVo = new RoomVo();
 			
-			room = roomService.getRoomByRoomNumber(roomNumber);
 			roomVo.setId(room.getRoomId());
 			roomVo.setTitle(room.getRoomTitle());
 			roomVo.setState(room.getRoomState());
@@ -131,21 +137,40 @@ public class RoomController {
 		return res;
 	}
 	
+	/**
+	 * 닉네임 중복 확인.
+	 * 같은 닉네임이라도 입장 시 발급한 토큰이 일치하면 재접속으로 판단한다. (result.rejoin = true)
+	 */
 	@GetMapping(value = "/check/nickname")
 	public Result checkNickname(@RequestParam(value = "number", defaultValue = "") String roomNumber,
-								@RequestParam(value = "nickname", defaultValue = "") String nickname) {
+								@RequestParam(value = "nickname", defaultValue = "") String nickname,
+								@RequestParam(value = "token", required = false) String token) {
 		Result res = new Result();
 		
-		//HashOperations<String, Object, Object> hashOperations = redisTemplate.opsForHash();
-		//Object value = hashOperations.get(roomNumber, nickname);
-		Long value = redisTemplate.opsForZSet().rank(roomNumber, nickname);
-		if (value == null) {
+		try {
+			boolean rejoin = gameService.checkNickname(roomNumber, nickname, token);
+			Map<String, Object> result = new HashMap<>();
+			result.put("rejoin", rejoin);
 			res.setCode(ErrorCode.SUCCESS);
-		} else {
-			res.setCode(ErrorCode.ERROR);
-			res.setMessage("중복되는 닉네임이 존재합니다.");
+			res.setResult(result);
+		} catch (BizException e) {
+			res.setCode(e.getBizErrorCode());
+			res.setMessage(e.getMessage());
 		}
 		
+		return res;
+	}
+	
+	/**
+	 * 참여자 재접속 시 현재 게임 진행 상태 조회
+	 */
+	@GetMapping(value = "/check/state")
+	public Result checkState(@RequestParam(value = "number", defaultValue = "") String roomNumber,
+							 @RequestParam(value = "nickname", defaultValue = "") String nickname,
+							 @RequestParam(value = "token", required = false) String token) {
+		Result res = new Result();
+		res.setCode(ErrorCode.SUCCESS);
+		res.setResult(gameService.participantState(roomNumber, nickname, token));
 		return res;
 	}
 	

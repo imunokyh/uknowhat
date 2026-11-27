@@ -1,60 +1,43 @@
 <template>
-  <div class="h-100">
-    <b-overlay :show="show" rounded="sm" class="h-100">
-      <b-jumbotron
-        class="h-100"
-        bg-variant="dark"
-        text-variant="white"
-        border-variant="dark"
-      >
-        <img class="mt-5 mb-5 img-fluid" alt="Title" src="../assets/title.png">
+  <div class="uk-game">
+    <div class="uk-center">
+      <h1 class="uk-logo" style="cursor: pointer;" @click="home()">Uknowhat<span>?</span></h1>
+      <p class="uk-tagline">출제자 계정을 만들어보세요</p>
 
-        <b-form onsubmit="return false;">
-          <b-form-group id="input-group-1" label-for="input-1">
-            <b-form-input
-              class="col-sm-4 h-center"
-              id="input-1"
-              v-model="form.id"
-              type="text"
-              placeholder="ID"
-              required
-              @keyup.enter="signup()"
-            ></b-form-input>
-          </b-form-group>
+      <form class="uk-card uk-card-narrow" @submit.prevent="signup()">
+        <h2 class="uk-card-title">회원가입</h2>
+        <p class="uk-card-sub">아이디와 비밀번호만 있으면 바로 시작할 수 있어요</p>
 
-          <b-form-group id="input-group-2" label-for="input-2">
-            <b-form-input
-              class="col-sm-4 h-center"
-              id="input-2"
-              v-model="form.password"
-              type="password"
-              placeholder="Password"
-              required
-              @keyup.enter="signup()"
-            ></b-form-input>
-          </b-form-group>
+        <div class="uk-field">
+          <label class="uk-label" for="su-id">아이디</label>
+          <input id="su-id" ref="idInput" v-model="form.id" class="uk-input" autocomplete="username" placeholder="아이디" />
+        </div>
+        <div class="uk-field">
+          <label class="uk-label" for="su-pw">비밀번호</label>
+          <input id="su-pw" v-model="form.password" class="uk-input" type="password" autocomplete="new-password" placeholder="비밀번호" />
+        </div>
+        <div class="uk-field">
+          <label class="uk-label" for="su-pw2">비밀번호 확인</label>
+          <input id="su-pw2" v-model="form.passwordCheck" class="uk-input" type="password" autocomplete="new-password" placeholder="비밀번호 확인" />
+          <p v-if="mismatch" class="hint">비밀번호가 일치하지 않아요</p>
+        </div>
 
-          <b-form-group id="input-group-3" label-for="input-3">
-            <b-form-input
-              class="col-sm-4 h-center"
-              id="input-3"
-              v-model="form.passwordCheck"
-              type="password"
-              placeholder="Check the Password"
-              required
-              @keyup.enter="signup()"
-            ></b-form-input>
-          </b-form-group>
+        <button class="uk-btn block lg mt-4" type="submit" :disabled="show">
+          {{ show ? "가입 중..." : "가입하기" }}
+        </button>
 
-          <b-button class="col-sm-2 mr-1" variant="primary" @click="signup()">Submit</b-button>
-          <b-button class="col-sm-2 ml-1" variant="danger" @click="cancel()">Cancel</b-button>
-        </b-form>
-      </b-jumbotron>
-    </b-overlay>
+        <div class="footer-links">
+          <span>이미 계정이 있으신가요?</span>
+          <a class="uk-link" @click="cancel()">로그인</a>
+        </div>
+      </form>
+    </div>
   </div>
 </template>
 
 <script>
+  import { errorMessage } from "@/utils/gameSession";
+
   export default {
     data() {
       return {
@@ -66,6 +49,14 @@
         },
         show: false
       };
+    },
+    computed: {
+      mismatch() {
+        return this.form.passwordCheck.length > 0 && this.form.password !== this.form.passwordCheck;
+      },
+    },
+    mounted() {
+      this.$refs.idInput.focus();
     },
     methods: {
       signup() {
@@ -92,14 +83,33 @@
               alert("계정이 생성되었습니다.");
               this.$router.push({name: "Login"});
             }
-            this.show = false;
           })
-          .catch((error) => {console.log(error); this.show = false;});
+          .catch((error) => {
+            console.log(error);
+            alert(errorMessage(error, "회원가입 중 오류가 발생했습니다."));
+          })
+          .finally(() => { this.show = false; });
       },
       cancel() {
-        this.$router.go(-1);
-        //this.$router.push({name: "Login"});
+        this.$router.push({name: "Login"});
+      },
+      home() {
+        this.$router.push({name: 'Home'});
       },
     }
   }
 </script>
+
+<style scoped>
+.uk-card { text-align: left; }
+.hint { color: var(--uk-danger); font-size: 13px; font-weight: 600; margin: 6px 0 0; }
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+  font-size: 14px;
+  color: var(--uk-text-sub);
+}
+.footer-links .uk-link { color: var(--uk-primary); }
+</style>

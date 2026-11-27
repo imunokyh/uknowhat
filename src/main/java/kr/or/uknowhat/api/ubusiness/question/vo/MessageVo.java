@@ -2,6 +2,8 @@ package kr.or.uknowhat.api.ubusiness.question.vo;
 
 import java.util.HashMap;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import kr.or.uknowhat.api.ubusiness.common.MessageType;
 import lombok.Data;
 
@@ -19,4 +21,9 @@ public class MessageVo {
 	private String answer4Text;
 	private String chatType;
 	private MessageType type;
+	/** 현재 문제 순번 (0부터 시작) */
+	private Integer questionIndex;
+	/** 참여자 재접속용 토큰 - 클라이언트 → 서버 방향으로만 사용하며 브로드캐스트되지 않는다. */
+	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+	private String token;
 }

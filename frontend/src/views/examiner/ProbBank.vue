@@ -1,102 +1,94 @@
 <template>
-  <div class="overflow-auto">
-    <b-container class="bv-example-row bv-example-row-flex-cols h-100" fluid="sm">
-      <b-row>&nbsp;</b-row>
+  <div class="uk-admin">
+    <app-bar active="bank"></app-bar>
 
-      <b-row cols="3">
-        <b-col>
-          <b-button class="col-sm-4" @click="goRoomMng()">방 관리로</b-button>
-        </b-col>
-        <b-col><h1>문제은행</h1></b-col>
-        <b-col></b-col>
-      </b-row>
+    <div class="uk-container">
+      <div class="uk-page-head">
+        <div>
+          <h1 class="uk-page-title">문제은행</h1>
+          <p class="uk-page-sub">내가 만든 문제를 관리하고, 퀴즈방에서 골라 쓸 수 있어요.</p>
+        </div>
+        <div class="uk-actions">
+          <button class="uk-btn light" @click="goRoomMng()">← 내 퀴즈방</button>
+        </div>
+      </div>
 
-      <hr
-        style="
-          height: 2px;
-          border-width: 0;
-          color: gray;
-          background-color: gray;
-        "
-      />
+      <div class="bank-layout">
+        <!-- 문제 목록 -->
+        <div class="uk-card list-card">
+          <div class="card-head">
+            <h2 class="uk-section-title">📋 내 문제 <span class="uk-badge">{{ totalRows }}</span></h2>
+            <div class="uk-actions">
+              <button class="uk-btn light sm" :disabled="!selected || !selected.questionId" @click="delProb()">🗑 삭제</button>
+              <button class="uk-btn sm" @click="newProb()">＋ 새 문제</button>
+            </div>
+          </div>
 
-      <b-row cols="3" align-h="center">
-        <b-col></b-col>
-        <b-col>
+          <div class="uk-table-wrap">
+            <b-table
+              selectable
+              select-mode="single"
+              @row-selected="onRowSelected"
+              hover
+              ref="quiztable"
+              :items="myProvider"
+              :fields="fields"
+              :per-page="perPage"
+              :current-page="currentPage"
+              show-empty
+              empty-text="아직 등록한 문제가 없어요"
+            >
+              <template #cell(questionType)="data">
+                <span class="uk-badge" :class="data.value === 'OX' ? 'ox' : 'ob'">{{ data.value === 'OX' ? 'OX' : '객관식' }}</span>
+              </template>
+              <template #cell(questionText)="data">
+                <span class="q-text">{{ data.value }}</span>
+              </template>
+            </b-table>
+          </div>
+
           <b-pagination
+            v-if="totalRows > perPage"
             v-model="currentPage"
             :total-rows="totalRows"
             :per-page="perPage"
-            aria-controls="my-table"
             align="center"
+            class="mt-3 mb-0"
           ></b-pagination>
-        </b-col>
-        <b-col>
-          <b-button class="col-sm-4 mr-2" variant="danger" @click="delProb()">삭제</b-button>
-          <b-button class="col-sm-4 ml-2" variant="primary" @click="initVal()">추가</b-button>
-        </b-col>
-      </b-row>
+        </div>
 
-      <b-row>
-        <b-table
-          selectable
-          select-mode="single"
-          @row-selected="onRowSelected"
-          striped
-          hover
-          ref="quiztable"
-          :items="myProvider"
-          :fields="fields"
-          :per-page="perPage"
-          :current-page="currentPage"
-        ></b-table>
-      </b-row>
-
-<!--
-      <b-row align-h="end">
-        <b-col cols="1">
-          <b-button class="col-sm-12" variant="danger" @click="delProb()">삭제</b-button>
-        </b-col>
-        <b-col cols="1">
-          <b-button class="col-sm-12" variant="primary" @click="initVal()">추가</b-button>
-        </b-col>
-      </b-row>
--->
-
-      <b-row>
-        <!-- main content -->
-        <b-col cols="11">
+        <!-- 문제 편집 -->
+        <div class="uk-card editor-card">
+          <div class="card-head">
+            <h2 class="uk-section-title">{{ editing ? '✏️ 문제 수정' : '✨ 새 문제 만들기' }}</h2>
+          </div>
           <quiz-comp ref="quizdata" @child-event="parentReceive"></quiz-comp>
-        </b-col>
-        <!-- e.main content -->
-        <b-col cols="1">
-          <b-button class="col-sm-12" variant="success" @click="save()">저장</b-button>
-        </b-col>
-      </b-row>
-
-      <!-- debug
-      <p>
-        Selected Rows:<br />
-        {{ selected }}
-      </p>
-      -->
-    </b-container>
+          <div class="editor-actions">
+            <button v-if="editing" class="uk-btn ghost" @click="newProb()">취소</button>
+            <button class="uk-btn success" @click="save()">💾 저장</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import QuizComp from "@/components/QuizComp";
+import AppBar from "@/components/layout/AppBar.vue";
 
 export default {
   components: {
     QuizComp,
+    AppBar,
   },
   data() {
     return {
-      perPage: 7,
+      perPage: 8,
       currentPage: 1,
       totalRows: 0,
-      selected: [],
+      selected: null,
+      editing: false,
       cardCnt: 4,
       status1: "not_accepted",
       status2: "not_accepted",
@@ -110,10 +102,9 @@ export default {
       quizid: "",
       items: [],
       fields: [
-        { key: "questionId", label: "ID" },
-        { key: "questionType", label: "TYPE" },
-        { key: "questionText", label: "내용" },
-        { key: "questionAnswer", label: "답" },
+        { key: "questionType", label: "유형" },
+        { key: "questionText", label: "문제" },
+        { key: "questionAnswer", label: "정답" },
       ],
     };
   },
@@ -176,6 +167,13 @@ export default {
       return promise.then((res) => {
         this.totalRows = res.data.result.totalElements
         return res.data.result.content || [];
+      }).catch((error) => {
+        console.log(error);
+        if (error.response && error.response.status === 401) {
+          alert("로그인이 필요합니다.");
+          this.$router.replace({ name: "Login" });
+        }
+        return [];
       });
     },
     save() {
@@ -184,6 +182,10 @@ export default {
       let questionType = this.$refs.quizdata.selectedType;
       if (questionType == null) {
         alert("퀴즈타입을 선택해주세요");
+        return;
+      }
+      if (!questionText || !questionText.trim()) {
+        alert("문제를 입력해주세요");
         return;
       }
       //let timeLimitType = this.$refs.quizdata.selectedTimeLimit;
@@ -237,7 +239,14 @@ export default {
         } else {
           alert("저장시 문제가 발생했습니다");
         }
+      }).catch((error) => {
+        console.log(error);
+        alert("저장 중 오류가 발생했습니다. 입력값을 확인해 주세요.");
       });
+    },
+    newProb() {
+      this.initVal();
+      if (this.$refs.quiztable) this.$refs.quiztable.clearSelected();
     },
     initVal() {
       this.$refs.quizdata.quizId = null;
@@ -251,9 +260,11 @@ export default {
       this.$refs.quizdata.ans[2] = null;
       this.$refs.quizdata.ans[3] = null;
       this.$refs.quizdata.ans[4] = null;
+      this.selected = null;
+      this.editing = false;
     },
     delProb() {
-      if (this.selected == null) {
+      if (this.selected == null || !this.selected.questionId) {
         alert("삭제할 문제를 선택해 주십시오.");
         return;
       }
@@ -275,6 +286,9 @@ export default {
         } else {
           alert("삭제시 문제가 발생했습니다");
         }
+      }).catch((error) => {
+        console.log(error);
+        alert("삭제 중 오류가 발생했습니다. 퀴즈방에서 사용 중인 문제인지 확인해 주세요.");
       });
     },
     onRowSelected(items) {
@@ -282,6 +296,7 @@ export default {
         return;
       }
       this.selected = items[0];
+      this.editing = true;
       this.$refs.quizdata.questionText = this.selected.questionText;
       this.$refs.quizdata.questionId = this.selected.questionId;
       this.$refs.quizdata.selectedType = this.selected.questionType;
@@ -296,7 +311,6 @@ export default {
         this.$refs.quizdata.ans[4] = this.selected.answer4Text;
       }
 
-      console.log(this.$refs.quizdata.questionText)
     },
     parentReceive(val) {
       console.log("parentReceive");
@@ -305,9 +319,20 @@ export default {
 };
 </script>
 
-<style>
-.vl {
-  border-left: 2px solid gray;
-  height: 500px;
+<style scoped>
+.bank-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.card-head .uk-section-title { margin: 0; }
+.q-text { display: block; max-width: 340px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+.editor-card { position: sticky; top: 84px; }
+.editor-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+@media (max-width: 992px) {
+  .bank-layout { grid-template-columns: 1fr; }
+  .editor-card { position: static; }
 }
 </style>

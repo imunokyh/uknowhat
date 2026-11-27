@@ -1,257 +1,195 @@
 package kr.or.uknowhat.api.ubusiness.question.web;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.security.Principal;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
+import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-
+import kr.or.uknowhat.api.framework.exception.BizException;
+import kr.or.uknowhat.api.ubusiness.common.ErrorCode;
+import kr.or.uknowhat.api.ubusiness.common.GameSessionRegistry;
 import kr.or.uknowhat.api.ubusiness.common.MessageType;
-import kr.or.uknowhat.api.ubusiness.question.service.RoomQuestionService;
+import kr.or.uknowhat.api.ubusiness.question.service.GameService;
 import kr.or.uknowhat.api.ubusiness.question.vo.MessageVo;
-import kr.or.uknowhat.api.ubusiness.question.vo.RoomQuestionResMapping;
-import kr.or.uknowhat.api.ubusiness.util.CommandTimer;
 import lombok.extern.slf4j.Slf4j;
 
-
+/**
+ * 게임 진행 STOMP 메시지 처리.
+ * 실제 진행 로직(카운트다운/타이머/채점)은 {@link GameService} 가 서버에서 수행하며,
+ * 이 컨트롤러는 요청 검증과 오류 응답만 담당한다.
+ */
 @Controller
 @Slf4j
 public class MessageController {
-	
+
+	private static final int MAX_CHAT_LENGTH = 500;
+
 	@Autowired
 	private SimpMessagingTemplate simpMessageTemplate;
-	
+
 	@Autowired
-	private RedisTemplate<String, Object> redisTemplate;
-	
+	private GameService gameService;
+
 	@Autowired
-	private RoomQuestionService roomQuestionService;
-	
-	HashMap<String, CommandTimer> timerMap = new HashMap<String, CommandTimer>();
-	
-	private static final String KEY_PROBLEM = "_problem";
-	private static final String KEY_ANSWERS = "_answers";
-	private static final String KEY_START_TS = "_start_ts";
-	private static final String KEY_ELAPSED_TS = "_elapsed_ts";
-	
+	private GameSessionRegistry sessionRegistry;
+
 	@MessageMapping(value = "/play/join")
-	public void join(@Payload MessageVo message) {
-		if (message.getType() == MessageType.JOIN) {
-			redisTemplate.opsForZSet().add(message.getRoomNumber(), message.getParticipantName(), 0);
-			message.setContent(message.getParticipantName() + "님이 입장하셨습니다.");
-		} else if (message.getType() == MessageType.UNJOIN){
-			redisTemplate.opsForZSet().remove(message.getRoomNumber(), message.getParticipantName());
-			message.setContent(message.getParticipantName() + "님이 퇴장하셨습니다.");
+	public void join(@Payload MessageVo message, SimpMessageHeaderAccessor accessor) {
+		String sessionId = accessor.getSessionId();
+		try {
+			requireMessage(message);
+			String roomNumber = message.getRoomNumber();
+			String name = message.getParticipantName();
+
+			if (message.getType() == MessageType.JOIN) {
+				boolean rejoin = gameService.join(roomNumber, name, message.getToken(), sessionId);
+				MessageVo joinMsg = new MessageVo();
+				joinMsg.setType(MessageType.JOIN);
+				joinMsg.setRoomNumber(roomNumber);
+				joinMsg.setParticipantName(name);
+				joinMsg.setContent(name + (rejoin ? "님이 다시 접속하셨습니다." : "님이 입장하셨습니다."));
+				simpMessageTemplate.convertAndSend("/subscribe/play/room/" + roomNumber, joinMsg);
+			} else if (message.getType() == MessageType.UNJOIN) {
+				gameService.leave(roomNumber, name, message.getToken(), sessionId);
+			} else {
+				throw new BizException(ErrorCode.WRONG_REQUEST, "지원하지 않는 요청입니다.");
+			}
+		} catch (Exception e) {
+			sendError(sessionId, message, e);
 		}
-		
-		simpMessageTemplate.convertAndSend("/subscribe/play/room/" + message.getRoomNumber(), message);
 	}
-		
+
+	/** 출제자 화면 접속 등록 */
+	@MessageMapping(value = "/play/examiner")
+	public void examiner(@Payload MessageVo message, SimpMessageHeaderAccessor accessor) {
+		String sessionId = accessor.getSessionId();
+		Principal principal = accessor.getUser(); // 참여자는 null
+		try {
+			requireMessage(message);
+			gameService.registerExaminer(message.getRoomNumber(), principal, sessionId);
+		} catch (Exception e) {
+			sendError(sessionId, message, e);
+		}
+	}
+
 	@MessageMapping(value = "/play/message")
-	public void message(@Payload MessageVo message) throws ParseException, JsonMappingException, JsonProcessingException {
-		log.info(message.getType().toString());
-		if (message.getType() == MessageType.CHAT) {
-			log.info(message.getParticipantName() + " : " + message.getContent());
-		} else if (message.getType() == MessageType.ANSWER) {
-			Long start = Long.valueOf(String.valueOf(redisTemplate.opsForValue().get(message.getRoomNumber() + KEY_START_TS)));
-			redisTemplate.opsForHash().put(message.getRoomNumber() + KEY_ELAPSED_TS, message.getParticipantName(), System.currentTimeMillis() - start);
-			redisTemplate.opsForHash().put(message.getRoomNumber() + KEY_ANSWERS, message.getParticipantName(), message.getContent());
-		} else if (message.getType() == MessageType.START) {
-			
-		} else if (message.getType() == MessageType.READPROB) {
-			message.setResult(roomQuestionService.readQuestion(message.getRoomNumber()));
-		} else if (message.getType() == MessageType.OXP) {
-			Long rqId = Long.valueOf(message.getContent());
-			
-			redisTemplate.opsForValue().set(message.getRoomNumber() + KEY_PROBLEM, rqId);
-			
-			if (redisTemplate.hasKey(message.getRoomNumber() + KEY_ANSWERS))
-				redisTemplate.delete(message.getRoomNumber() + KEY_ANSWERS);
-			if (redisTemplate.hasKey(message.getRoomNumber() + KEY_ELAPSED_TS))
-				redisTemplate.delete(message.getRoomNumber() + KEY_ELAPSED_TS);
-			
-			RoomQuestionResMapping rqrm = roomQuestionService.readOneQuestion(Long.valueOf(message.getContent()));
-			message.setContent(rqrm.getQuestionText());
-		} else if (message.getType() == MessageType.OBP) {
-			Long rqId = Long.valueOf(message.getContent());
-			
-			redisTemplate.opsForValue().set(message.getRoomNumber() + KEY_PROBLEM, rqId);
-			
-			if (redisTemplate.hasKey(message.getRoomNumber() + KEY_ANSWERS))
-				redisTemplate.delete(message.getRoomNumber() + KEY_ANSWERS);
-			if (redisTemplate.hasKey(message.getRoomNumber() + KEY_ELAPSED_TS))
-				redisTemplate.delete(message.getRoomNumber() + KEY_ELAPSED_TS);
-			
-			RoomQuestionResMapping rqrm = roomQuestionService.readOneQuestion(Long.valueOf(message.getContent()));
-			message.setContent(rqrm.getQuestionText());
-			message.setAnswer1Text(rqrm.getAnswer1Text());
-			message.setAnswer2Text(rqrm.getAnswer2Text());
-			message.setAnswer3Text(rqrm.getAnswer3Text());
-			message.setAnswer4Text(rqrm.getAnswer4Text());
-		} else if (message.getType() == MessageType.TIMER) {
-			long howSeconds =  Long.parseLong(message.getContent()) * 1000; // mili second
-			int delay = 0; // delay time mili second
-			int interval = 1000; // interval mili second
-			
-			if (howSeconds != 0) {
-				CommandTimer ct = new CommandTimer(simpMessageTemplate, message.getRoomNumber(), Long.parseLong(message.getContent()));
-				ct.start(howSeconds, delay, interval);
-				
-				timerMap.put(message.getRoomNumber(), ct);
+	public void message(@Payload MessageVo message, SimpMessageHeaderAccessor accessor) {
+		String sessionId = accessor.getSessionId();
+		Principal principal = accessor.getUser(); // 참여자는 null
+		try {
+			requireMessage(message);
+			String roomNumber = message.getRoomNumber();
+
+			switch (message.getType()) {
+			case CHAT:
+				chat(message, sessionId, principal);
+				break;
+			case ANSWER:
+				gameService.submitAnswer(roomNumber, message.getParticipantName(), sessionId,
+						message.getQuestionIndex(), message.getContent());
+				break;
+			case START:
+				gameService.start(roomNumber, principal);
+				break;
+			case READPROB:
+				// 이전 버전 호환: START 에서 문제 목록을 함께 전송하므로 별도 처리 없음
+				break;
+			case NEXT:
+			case FINISH:
+				gameService.next(roomNumber, principal, message.getContent());
+				break;
+			case TIMEROFF:
+				gameService.closeQuestion(roomNumber, principal);
+				break;
+			case EXIT:
+				gameService.assertOwner(roomNumber, principal);
+				gameService.closeRoom(roomNumber);
+				break;
+			default:
+				throw new BizException(ErrorCode.WRONG_REQUEST, "지원하지 않는 메시지 타입입니다: " + message.getType());
 			}
-			
-			redisTemplate.opsForValue().set(message.getRoomNumber() + KEY_START_TS, System.currentTimeMillis());
-		} else if (message.getType() == MessageType.TIMEROFF) {
-			CommandTimer ct = null; 
-			
-			if (timerMap.containsKey(message.getRoomNumber()))
-				ct = timerMap.get(message.getRoomNumber());
-			
-			if (ct != null) {
-				ct.end();
-				timerMap.remove(message.getRoomNumber());
-			}	
-				
-			message.setType(MessageType.TIMEOUT);
-		} else if (message.getType() == MessageType.TIMECNT) {
-			
-		} else if (message.getType() == MessageType.TIMEOUT) {
-			if (timerMap.containsKey(message.getRoomNumber()))
-				timerMap.remove(message.getRoomNumber());
-		} else if (message.getType() == MessageType.ANSCHK) {
-			Map<Object, Object> ptAnswers = redisTemplate.opsForHash().entries(message.getRoomNumber() + KEY_ANSWERS);
-			Map<Object, Object> ptElaspedTs = redisTemplate.opsForHash().entries(message.getRoomNumber() + KEY_ELAPSED_TS);
-			
-			RoomQuestionResMapping rqrm = roomQuestionService.readOneQuestion(Long.valueOf(String.valueOf(redisTemplate.opsForValue().get(message.getRoomNumber() + KEY_PROBLEM))));
-			String questionAnswer = rqrm.getQuestionAnswer();
-			Long questionScore = rqrm.getQuestionScore();
-			Long questionTime = rqrm.getQuestionTime() * 1000;
-			
-			JSONArray answerUserList = new JSONArray();
-			
-			for (Map.Entry<Object, Object> entry : ptAnswers.entrySet()) {
-				if (questionAnswer.equals(String.valueOf(entry.getValue()))) {
-					Long elapsedTs = Long.valueOf(String.valueOf(ptElaspedTs.get(entry.getKey())));
-					Long remainTs = (questionTime - elapsedTs) < 0 ? 0 : questionTime - elapsedTs;
-					Long realScore = questionScore;
-					
-					if (questionTime == 0)
-						// 제한 시간 없는 문제는 무조건 문제의 점수로 부여
-						realScore = questionScore;
-					else
-						// 점수 산출 방식 = 기본 점수 (문제 점수 / 2) + 제출 시간에 따른 추가 점수 (나머지 점수 * 문제 시간 대비, 남은 시간 비율)
-						realScore = (long) ((questionScore / 2.0) * ((double)remainTs / (double)questionTime)) + (long) (questionScore / 2.0);
-					
-					log.info(String.valueOf(entry.getKey()) + ": " + realScore);
-					
-					message.setType(MessageType.CORRECT);
-					message.setScore(realScore);
-					
-					redisTemplate.opsForZSet().incrementScore(message.getRoomNumber(), entry.getKey(), realScore);
-					
-					simpMessageTemplate.convertAndSend("/subscribe/play/room/" + message.getRoomNumber() + "/" + String.valueOf(entry.getKey()), message);
-					log.info("CORRECT " + "/subscribe/play/room/" + message.getRoomNumber() + "/" + String.valueOf(entry.getKey()));
-					
-					JSONObject jsonObject = new JSONObject();
-					jsonObject.put("value", String.valueOf(entry.getKey()));
-					jsonObject.put("time", String.valueOf((double)elapsedTs / (double)1000) + "s");
-					answerUserList.add(jsonObject);
-				} else {
-					message.setType(MessageType.INCORRECT);
-					simpMessageTemplate.convertAndSend("/subscribe/play/room/" + message.getRoomNumber() + "/" + String.valueOf(entry.getKey()), message);
-					log.info("INCORRECT " + "/subscribe/play/room/" + message.getRoomNumber() + "/" + String.valueOf(entry.getKey()));
-				}
-			}
-			
-			message.setType(MessageType.ANSUSERLIST);
-			message.setResult(answerUserList);
-		} else if (message.getType() == MessageType.ANSCHART) {
-			Map<Object, Object> ptAnswers = redisTemplate.opsForHash().entries(message.getRoomNumber() + KEY_ANSWERS);
-			HashMap<Integer, Integer> answerDt = new HashMap<Integer, Integer>();
-			
-			for (Map.Entry<Object, Object> entry : ptAnswers.entrySet()) {
-				log.info(String.valueOf(entry.getValue()));
-				Integer key = Integer.valueOf(String.valueOf(entry.getValue()));
-				if (answerDt.containsKey(key)) {
-					answerDt.put(key, answerDt.get(key) + 1);
-				} else {
-					answerDt.put(key, 1);
-				}
-			}
-			
-			message.setResult(answerDt);	
-		} else if (message.getType() == MessageType.RANK) {
-			Set<TypedTuple<Object>> rankSet = redisTemplate.opsForZSet().reverseRangeWithScores(message.getRoomNumber(), 0, -1);
-			
-			JSONArray rankList = new JSONArray();
-			Double prevScore = (double) 0, curScore = (double) 0;
-			int rank = 1, accumulateRank = 1;
-			
-			Iterator<TypedTuple<Object>> iter = rankSet.iterator();
-			while (iter.hasNext()) {
-				TypedTuple<Object> tuple = iter.next();
-				curScore = tuple.getScore(); 
-				
-				if (Double.compare(prevScore, curScore) != 0)
-					rank = accumulateRank;
-				
-				JSONObject jsonObject = new JSONObject();
-				jsonObject.put("rank", String.valueOf(rank));
-				jsonObject.put("value", String.valueOf(tuple.getValue()));
-				jsonObject.put("score", String.valueOf(curScore));
-				rankList.add(jsonObject);
-				
-				accumulateRank++;
-				prevScore = curScore;
-			}
-			
-			message.setResult(rankList);
-		} else if (message.getType() == MessageType.FINALRANK) {
-			Set<TypedTuple<Object>> rankSet = redisTemplate.opsForZSet().reverseRangeWithScores(message.getRoomNumber(), 0, -1);
-			Double prevScore = (double) 0, curScore = (double) 0;
-			int rank = 1, accumulateRank = 1;
-			
-			for (TypedTuple<Object> tuple : rankSet) {
-				curScore = Double.valueOf(String.valueOf(tuple.getScore()));
-				
-				if (Double.compare(prevScore, curScore) != 0)
-					rank = accumulateRank;
-					
-				message.setContent(String.valueOf(rank));
-				simpMessageTemplate.convertAndSend("/subscribe/play/room/" + message.getRoomNumber() + "/" + String.valueOf(tuple.getValue()), message);
-				log.info("FINALRANK " + "/subscribe/play/room/" + message.getRoomNumber() + "/" + String.valueOf(tuple.getValue()));
-				
-				accumulateRank++;
-				prevScore = curScore;
-			}
-			
+		} catch (Exception e) {
+			sendError(sessionId, message, e);
+		}
+	}
+
+	/** 메시지 변환 실패 등 핸들러 진입 전 오류 */
+	@MessageExceptionHandler
+	public void handleException(Exception e, SimpMessageHeaderAccessor accessor) {
+		sendError(accessor.getSessionId(), null, e);
+	}
+
+	private void chat(MessageVo message, String sessionId, Principal principal) {
+		String content = message.getContent();
+		if (!StringUtils.hasText(content))
 			return;
-		} else if (message.getType() == MessageType.EXIT) {
-			if (redisTemplate.hasKey(message.getRoomNumber()))
-				redisTemplate.delete(message.getRoomNumber());
-			if (redisTemplate.hasKey(message.getRoomNumber() + KEY_ANSWERS))
-				redisTemplate.delete(message.getRoomNumber() + KEY_ANSWERS);
-			if (redisTemplate.hasKey(message.getRoomNumber() + KEY_PROBLEM))
-				redisTemplate.delete(message.getRoomNumber() + KEY_PROBLEM);
-			if (redisTemplate.hasKey(message.getRoomNumber() + KEY_START_TS))
-				redisTemplate.delete(message.getRoomNumber() + KEY_START_TS);
-			if (redisTemplate.hasKey(message.getRoomNumber() + KEY_ELAPSED_TS))
-				redisTemplate.delete(message.getRoomNumber() + KEY_ELAPSED_TS);
+		if (content.length() > MAX_CHAT_LENGTH)
+			throw new BizException(ErrorCode.WRONG_REQUEST, "채팅은 " + MAX_CHAT_LENGTH + "자까지 입력할 수 있습니다.");
+
+		String name = message.getParticipantName();
+		if (GameService.EXAMINER_NAME.equals(name)) {
+			// 방장 이름 사칭 방지
+			gameService.assertOwner(message.getRoomNumber(), principal);
+		} else if (!sessionRegistry.isSessionOf(sessionId, message.getRoomNumber(), name)) {
+			throw new BizException(ErrorCode.INVALID_SESSION, "참여 정보가 확인되지 않아 채팅을 보낼 수 없습니다.");
 		}
 
-		simpMessageTemplate.convertAndSend("/subscribe/play/room/" + message.getRoomNumber(), message);
+		MessageVo chatMsg = new MessageVo();
+		chatMsg.setType(MessageType.CHAT);
+		chatMsg.setRoomNumber(message.getRoomNumber());
+		chatMsg.setParticipantName(name);
+		chatMsg.setChatType(message.getChatType());
+		chatMsg.setContent(content);
+		simpMessageTemplate.convertAndSend("/subscribe/play/room/" + message.getRoomNumber(), chatMsg);
+	}
+
+	private void requireMessage(MessageVo message) {
+		if (message == null || message.getType() == null || !StringUtils.hasText(message.getRoomNumber()))
+			throw new BizException(ErrorCode.WRONG_REQUEST, ErrorCode.WRONG_REQUEST.getMessage());
+	}
+
+	/**
+	 * 요청한 세션에게만 오류를 전달한다. (클라이언트는 /user/queue/errors 구독)
+	 */
+	private void sendError(String sessionId, MessageVo request, Exception e) {
+		String errorMessage;
+		ErrorCode errorCode;
+		if (e instanceof BizException) {
+			BizException be = (BizException) e;
+			errorCode = be.getBizErrorCode();
+			errorMessage = be.getMessage();
+			log.info("STOMP 요청 처리 실패 [{}] {} - {}", sessionId, request == null ? null : request.getType(), errorMessage);
+		} else {
+			errorCode = ErrorCode.ERROR;
+			errorMessage = "요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+			log.error("STOMP 요청 처리 중 오류 [{}] {}", sessionId, request, e);
+		}
+
+		if (sessionId == null)
+			return;
+
+		try {
+			MessageVo error = new MessageVo();
+			error.setType(MessageType.ERROR);
+			error.setRoomNumber(request == null ? null : request.getRoomNumber());
+			error.setContent(errorMessage);
+			error.setScore((long) errorCode.getCode());
+			if (request != null && request.getType() != null)
+				error.setResult(request.getType().name());
+
+			SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
+			headers.setSessionId(sessionId);
+			headers.setLeaveMutable(true);
+			simpMessageTemplate.convertAndSendToUser(sessionId, "/queue/errors", error, headers.getMessageHeaders());
+		} catch (Exception sendEx) {
+			log.warn("오류 메시지 전송 실패 [{}]: {}", sessionId, sendEx.getMessage());
+		}
 	}
 }

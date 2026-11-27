@@ -1,143 +1,145 @@
 <template>
-  <b-overlay :show="show" rounded="lg" class="h-100">
-    <!-- 대기실 페이지 -->
-    <div v-if="pageType===0" class="h-100">
-      <div style="height:10%;">
-        <b-card bg-variant="dark" text-variant="white" class="text-center">
-          <b-button pill variant="info" @click="open = true" class="ml-3 float-left">채팅</b-button>
-          <b-button pill variant="primary" class="col-sm-1 mr-4 float-right" @click="sendStart($event)">Start</b-button>
-          <b-button pill variant="danger" class="col-sm-1 mr-2 float-right" @click="sendExit($event)">Exit</b-button>
-          <b-card-text class="twb-35 float-center"> {{ roomNum }}번 방 </b-card-text>
-        </b-card>
-      </div>
-      <div style="height:5%;">
-      </div>
-      <div style="height:85%;"> 
-        <b-container fluid="sm">
-          <b-row>
-            <b-col sm="2" v-for="(user, index) in userList" :key="index">
-              <b-card bg-variant="dark" text-variant="white" class="text-center m-1">
-                <b-card-text> {{user}} </b-card-text>
-              </b-card>
-            </b-col>
-          </b-row>
-        </b-container>
-      </div>
+  <div class="uk-game proc">
+    <div v-if="reconnecting" class="uk-banner">
+      <span class="spin"></span>서버와 연결이 끊어졌어요. 다시 연결하는 중... (게임은 서버에서 계속 진행됩니다)
     </div>
-    <!-- 게임 진행 페이지 -->
-    <div v-else-if="pageType===1" class="h-100">
-      <div style="height:70%;">
-        <div style="height:10%;">
-          <b-button pill variant="info" @click="open = true" class="ml-3 mt-1 float-left">채팅</b-button>
-          <b-button variant="dark" class="col-sm-1 mt-1 ml-3 float-left">{{ roomNum }}번 방</b-button>
-          <b-button variant="white" class="col-sm-1 mt-1 float-center">{{currentProbNum + 1}}/{{probList.length}}</b-button>
-          <b-button v-if="currentProbNum < probList.length - 1" :disabled="nextDisable" variant="primary" class="col-sm-1 mt-1 mr-5 float-right" @click="sendNext($event)">Next</b-button>
-          <b-button v-else-if="currentProbNum === probList.length - 1" :disabled="resultDisable" variant="success" class="col-sm-1 mt-1 mr-5 float-right" @click="sendResult($event)">Result</b-button>
-        </div>
-        <div style="height:90%; white-space:pre-wrap;">
-          <div v-if="showProb" class="h-100">
-            <div class="row h-100">
-              <div class="col-sm-1 h-100 d-flex justify-content-center align-items-center">
-                <b-avatar variant="primary" size="5em" :text="timerCnt"></b-avatar>
-              </div>
-              <div class="col-sm-10 h-100 d-flex justify-content-center align-items-center">
-                <h2 class="tbb-70">{{probList[currentProbNum].questionText}}</h2>
-              </div>
-              <div class="col-sm-1 h-100 d-flex justify-content-center align-items-center">
-                <p class="tbb-25">
-                    {{submitNum}}<br>
-                    Answers
-                </p>
-              </div>
-            </div>
-          </div>
-          <div v-else class="h-100 d-flex justify-content-center align-items-center">
-            <b-table v-if="answerUserShow" sticky-header small style="width: 20.8%;" :fields="answerUserFields" :items="answerUserList" responsive="sm">
-              <template #cell(order)="data">
-                {{data.index + 1}}
-              </template>
-              <template #cell(nickname)="data">
-                {{data.item.value}}
-              </template>
-              <template #cell(time)="data">
-                {{data.item.time}}
-              </template>
-            </b-table>
-            <bar-comp v-else :chartData="barData" :chartOptions="options"></bar-comp>
-            <b-button pill class="mb-auto p-2" variant="warning" @click="changeChart($event)">★</b-button>
-          </div>
-        </div>
+    <div v-if="show" class="proc-loading"><div class="uk-spinner"></div></div>
+
+    <!-- 상단 바 -->
+    <header class="proc-bar">
+      <div class="left">
+        <span class="pin-sm">{{ roomNum }}</span>
+        <span v-if="pageType !== 0 && probList.length" class="progress-text">
+          {{ Math.min(currentProbNum + 1, probList.length) }} / {{ probList.length }}
+        </span>
       </div>
-      <div style="height:30%;">
-        <div v-if="probList[currentProbNum].questionType==='OX'" class="h-100">
-          <div class="h-100">
-            <div class="left h-100">
-              <b-button :disabled="bdisable['true']" id="true" variant="primary" class="col-sm-12 h-100">O</b-button>
-            </div>
-            <div class="right h-100">
-              <b-button :disabled="bdisable['false']" id="false" variant="danger" class="col-sm-12 h-100">X</b-button>
-            </div>
-          </div>
-        </div>
-        <div v-else-if="probList[currentProbNum].questionType==='OB'" class="h-100">
-          <div class="h-50">
-            <div class="left h-100">
-              <b-button :disabled="bdisable['one']" id="one" variant="primary" class="col-sm-12 h-100">{{probList[currentProbNum].answer1Text}}</b-button>
-            </div>
-            <div class="right h-100">
-              <b-button :disabled="bdisable['two']" id="two" variant="danger" class="col-sm-12 h-100">{{probList[currentProbNum].answer2Text}}</b-button>
-            </div>
-          </div>
-          <div class="h-50">
-            <div class="left h-100">
-              <b-button :disabled="bdisable['three']" id="three" variant="success" class="col-sm-12 h-100">{{probList[currentProbNum].answer3Text}}</b-button>
-            </div>
-            <div class="right h-100">
-              <b-button :disabled="bdisable['four']" id="four" variant="warning" class="col-sm-12 h-100">{{probList[currentProbNum].answer4Text}}</b-button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- 랭킹 페이지 -->
-    <div v-else-if="pageType===2" class="h-100">
-      <b-button pill variant="info" @click="open = true" class="ml-3 mt-1 float-left">채팅</b-button>
-      <b-button variant="dark" class="col-sm-1 mt-1 ml-3 float-left">{{ roomNum }}번 방</b-button>
-      <b-button v-if="currentProbNum < probList.length" :disabled="nextDisable" variant="primary" class="col-sm-1 mt-1 mr-5 mb-5 float-right" @click="sendNext($event)">Next</b-button>
-      <b-button v-else variant="danger" class="col-sm-1 mt-1 mr-5 float-right" @click="sendExit($event)">Exit</b-button>
-      <b-table small :fields="fields" :items="rankList" responsive="sm">
-        <template #cell(rank)="data">
-          <!--{{data.index + 1}}-->
-          {{data.item.rank}}
+      <div class="right">
+        <button class="uk-btn glass sm" @click="open = true">💬 채팅</button>
+        <template v-if="pageType===0">
+          <button class="uk-btn glass sm" @click="sendExit($event)">방 종료</button>
         </template>
-        <template #cell(nickname)="data">
-          {{data.item.value}}
+        <template v-else-if="pageType===1">
+          <button v-if="currentProbNum < probList.length - 1" class="uk-btn accent sm" :disabled="nextDisable" @click="sendNext($event)">
+            {{ showProb ? "문제 마감" : "순위 보기" }} →
+          </button>
+          <button v-else-if="currentProbNum === probList.length - 1" class="uk-btn accent sm" :disabled="resultDisable" @click="sendResult($event)">
+            {{ showProb ? "문제 마감" : "최종 결과" }} 🏁
+          </button>
         </template>
-        <template #cell(score)="data">
-          {{data.item.score}}
+        <template v-else-if="pageType===2">
+          <button v-if="currentProbNum < probList.length" class="uk-btn accent sm" :disabled="nextDisable" @click="sendNext($event)">다음 문제 →</button>
+          <button v-else class="uk-btn danger sm" @click="sendExit($event)">방 종료</button>
         </template>
-      </b-table>
-    </div>
-    <!-- 문제 페이지 -->
-    <div v-else-if="pageType===3" class="h-100" style="background-color: #81c147;">
-      <div style="height:10%;">
-        <p class="twb-50 float-left" style="background-color: green; padding: 0 20px 0">{{currentProbNum + 1}} of {{probList.length}}</p>
-        <b-avatar class="float-right mt-2 mr-3" variant="light" size="5em" :text="showProbTimerCnt"></b-avatar>
       </div>
-      <div style="height:80%; white-space:pre-wrap;">
-        <div class="h-25">
-          <h2 v-if="probList[currentProbNum].questionType==='OX'" class="twb-50">OX 퀴즈</h2>
-          <h2 v-else-if="probList[currentProbNum].questionType==='OB'" class="twb-50">4지선다형 퀴즈</h2>
-          <h3 class="twb-25"> 점수: {{probList[currentProbNum].questionScore}}점 </h3>
-          <h3 class="twb-25"> 제한시간: {{probList[currentProbNum].questionTime}}초 </h3>
+    </header>
+
+    <!-- 대기실 -->
+    <section v-if="pageType===0" class="lobby">
+      <div class="join-box">
+        <p class="join-label">참여 방법: 이 사이트에 접속 후 방 번호 입력</p>
+        <div class="uk-pin pin-big">{{ roomNum }}</div>
+      </div>
+
+      <div class="lobby-head">
+        <span class="count">👥 {{ userList.length }}명 참가</span>
+        <button class="uk-btn accent lg" :disabled="userList.length === 0" @click="sendStart($event)">게임 시작 ▶</button>
+      </div>
+
+      <div v-if="userList.length === 0" class="waiting-empty">
+        <div class="uk-spinner"></div>
+        <p>참가자를 기다리는 중...</p>
+      </div>
+      <div v-else class="players">
+        <span v-for="user in userList" :key="user" class="uk-chip" :class="{ offline: isOffline(user) }">
+          <span class="dot"></span>{{ user }}
+        </span>
+      </div>
+    </section>
+
+    <!-- 문제 공개 전 카운트다운 -->
+    <section v-else-if="pageType===3" class="intro">
+      <div class="intro-meta">
+        <span class="uk-badge" :class="currentProb.questionType === 'OX' ? 'ox' : 'ob'">
+          {{ currentProb.questionType === 'OX' ? 'OX 퀴즈' : '4지선다' }}
+        </span>
+        <span class="meta-item">⭐ {{ currentProb.questionScore }}점</span>
+        <span class="meta-item">⏱ {{ currentProb.questionTime > 0 ? currentProb.questionTime + '초' : '제한 없음' }}</span>
+      </div>
+      <h1 class="intro-question">{{ currentProb.questionText }}</h1>
+      <div :key="showProbTimerCnt" class="uk-countdown small">{{ showProbTimerCnt }}</div>
+    </section>
+
+    <!-- 문제 진행 / 결과 -->
+    <section v-else-if="pageType===1" class="question">
+      <div class="q-main">
+        <div v-if="showProb" class="q-live">
+          <div class="uk-timer" :class="{ urgent: timerCnt > 0 && timerCnt <= 5 }">
+            {{ currentProb.questionTime > 0 ? timerCnt : '∞' }}<small>남은 시간</small>
+          </div>
+          <div class="q-card">
+            <h2>{{ currentProb.questionText }}</h2>
+          </div>
+          <div class="submit-count">
+            <strong>{{ submitNum }}</strong>
+            <span>/ {{ userList.length }} 제출</span>
+          </div>
         </div>
-        <div class="h-75 d-flex justify-content-center align-items-center" style="background-color: white;">
-          <h2 class="tbb-70 ml-5 mr-5">{{probList[currentProbNum].questionText}}</h2>
+
+        <div v-else class="q-result">
+          <div class="result-card">
+            <div class="result-head">
+              <h3>{{ answerUserShow ? '정답자 (빠른 순)' : '선택 분포' }}</h3>
+              <button class="uk-btn ghost sm" @click="changeChart($event)">
+                {{ answerUserShow ? '📊 분포 보기' : '🏃 정답자 보기' }}
+              </button>
+            </div>
+            <div v-if="answerUserShow" class="answer-users">
+              <p v-if="answerUserList.length === 0" class="uk-empty">정답자가 없어요 😢</p>
+              <ol v-else class="uk-rank-list">
+                <li v-for="(u, idx) in answerUserList" :key="u.value" class="uk-rank-item" :style="{ animationDelay: idx * 60 + 'ms' }">
+                  <span class="rank">{{ idx + 1 }}</span>
+                  <span class="name">{{ u.value }}</span>
+                  <span class="score">{{ u.time }}</span>
+                </li>
+              </ol>
+            </div>
+            <div v-else class="chart-box">
+              <bar-comp :chartData="barData" :chartOptions="options"></bar-comp>
+            </div>
+          </div>
         </div>
       </div>
-      <div style="height:10%;">
+
+      <div class="q-answers">
+        <div v-if="currentProb.questionType==='OX'" class="uk-answers">
+          <button class="uk-answer a2 ox" disabled :class="tileClass('true')">O</button>
+          <button class="uk-answer a1 ox" disabled :class="tileClass('false')">X</button>
+        </div>
+        <div v-else-if="currentProb.questionType==='OB'" class="uk-answers">
+          <button class="uk-answer a1" disabled :class="tileClass('one')"><span class="num">1</span>{{currentProb.answer1Text}}</button>
+          <button class="uk-answer a2" disabled :class="tileClass('two')"><span class="num">2</span>{{currentProb.answer2Text}}</button>
+          <button class="uk-answer a3" disabled :class="tileClass('three')"><span class="num">3</span>{{currentProb.answer3Text}}</button>
+          <button class="uk-answer a4" disabled :class="tileClass('four')"><span class="num">4</span>{{currentProb.answer4Text}}</button>
+        </div>
       </div>
-    </div>
+    </section>
+
+    <!-- 순위 -->
+    <section v-else-if="pageType===2" class="ranking">
+      <div class="rank-head">
+        <div class="stage-icon">{{ currentProbNum >= probList.length ? '🏆' : '📈' }}</div>
+        <h1>{{ currentProbNum >= probList.length ? '최종 순위' : '현재 순위' }}</h1>
+      </div>
+      <ol class="uk-rank-list rank-board">
+        <li v-for="(item, idx) in rankList" :key="item.value" class="uk-rank-item"
+            :class="'r' + item.rank" :style="{ animationDelay: idx * 70 + 'ms' }">
+          <span class="rank">{{ item.rank }}</span>
+          <span class="name">{{ item.value }}</span>
+          <span class="score">{{ formatScore(item.score) }}점</span>
+        </li>
+      </ol>
+    </section>
+
     <window-popup v-model="open">
       <beautiful-chat
         :participants="participants"
@@ -155,14 +157,16 @@
         :disableUserListToggle="true"
         :messageStyling="true" />
     </window-popup>
-  </b-overlay>
+  </div>
 </template>
 
 <script>
-import Stomp from "webstomp-client";
-import SockJS from "sockjs-client";
+import GameSocket from "@/utils/gameSocket";
+import { saveExaminer, loadExaminer, clearExaminer, errorMessage } from "@/utils/gameSession";
 import BarComp from '@/components/BarComp'
 import WindowPopup from "@/components/WindowPopup.vue";
+
+const EXAMINER_NAME = "★방 장★";
 
 export default {
   name: "RoomProc",
@@ -173,7 +177,7 @@ export default {
   props: {
     identification: {
       type: Number,
-      default: "",
+      default: -1,
     },
     number: {
       type: String,
@@ -190,14 +194,19 @@ export default {
       roomId: -1,
       roomNum: "",
       examinerId: "",
+      socket: null,
+      connected: false,
+      reconnecting: false,
+      leaving: false,
+      phase: "WAITING",
       message: "",
       show: true,
       pageType: 0,
       showProb: true,
       nextDisable: false,
       resultDisable: true,
-      currentUserNum: 0,
       userList: [],
+      offlineUsers: [],
       probList: [],
       rankList: [],
       fields: [
@@ -221,9 +230,9 @@ export default {
       options: {
         plugins: {
           datalabels: {
-            color: 'black',
+            color: '#1d1638',
             font: {
-              size: 20,
+              size: 22,
               weight: 'bold'
             },
             anchor: 'end',
@@ -263,8 +272,9 @@ export default {
             {
               ticks: {
                 beginAtZero: true,
-                fontSize: 20,
-                fontStyle: "bold"
+                fontSize: 18,
+                fontStyle: "bold",
+                fontColor: "#1d1638"
               },
               gridLines: {
                 display: false,
@@ -314,6 +324,11 @@ export default {
       },
     };
   },
+  computed: {
+    currentProb() {
+      return this.probList[this.currentProbNum] || {};
+    },
+  },
   created() {
     window.addEventListener("beforeunload", this.unLoadEvent);
 
@@ -334,7 +349,7 @@ export default {
     document.onkeydown = function(e) {
       let key = (e) ? e.keyCode : event.keyCode;
       let ctrl = (e) ? e.ctrlKey  : event.ctrlKey;
-      
+
       if ((ctrl == true && (key == 78 || key == 82)) || key==116) {
         if (e) {
           e.preventDefault();
@@ -345,283 +360,333 @@ export default {
       }
     }
 
-    this.roomId = this.identification;
-    this.roomNum = this.number;
-    this.examinerId = this.examiner;
-
-    this.$http
-      .get("/api/v1/room/check/ptlist?number=" + this.roomNum)
-      .then((res) => {
-        for (const user of res.data.result) {
-          this.userList.push(user);
-          this.participants = [ ...this.participants, { id: user,  name: user } ]
-        }
-      })
-      .catch((error) => {console.log(error);});
+    // 새로고침 시 라우터 params 가 사라지므로 저장된 정보로 복원
+    if (this.number) {
+      this.roomId = this.identification;
+      this.roomNum = this.number;
+      this.examinerId = this.examiner;
+    } else {
+      const saved = loadExaminer();
+      if (!saved) {
+        this.$router.replace({ name: "RoomMng" });
+        return;
+      }
+      this.roomId = saved.roomId;
+      this.roomNum = saved.roomNum;
+      this.examinerId = saved.examinerId;
+    }
+    saveExaminer({ roomId: this.roomId, roomNum: this.roomNum, examinerId: this.examinerId });
 
     this.connect();
   },
   destroyed() {
-    if (this.stompClient !== null) {
-      this.sendMessage("EXIT", "Room Exit");
-      this.stompClient.unsubscribe("/subscribe/play/room/" + this.roomNum, {});
-      this.stompClient.disconnect();
-      this.stompClient = null;
+    // 화면을 벗어나도 게임은 서버에서 계속 진행된다. (방 종료는 Exit 버튼으로만)
+    window.removeEventListener("beforeunload", this.unLoadEvent);
+    if (this.socket) {
+      this.socket.close();
+      this.socket = null;
     }
   },
   methods: {
+    authHeader() {
+      return { Authorization: `Bearer ${sessionStorage.getItem("token")}` };
+    },
     connect() {
-      let sock = new SockJS("/stomp");
-      this.stompClient = Stomp.over(sock, {debug: false});
-      this.stompClient.connect(
-        {},
-        (frame) => {
-          // 소켓 연결 성공
-          this.connected = true;
-          this.show = false;
-
-          this.stompClient.subscribe("/subscribe/play/room/" + this.roomNum, res => {
-              this.recvMessage(res.body);
-          });
+      this.socket = new GameSocket({
+        headers: () => this.authHeader(),
+        subscribe: (client) => {
+          client.subscribe("/subscribe/play/room/" + this.roomNum, res => this.recvMessage(res.body));
+          client.subscribe("/user/queue/game", res => this.recvMessage(res.body));
+          client.subscribe("/user/queue/errors", res => this.recvError(res.body));
         },
-        error => {
-          // 소켓 연결 실패
-          console.log("소켓 연결 실패", error);
+        onConnect: () => {
+          this.connected = true;
+          this.reconnecting = false;
+          this.socket.send("/publish/play/examiner", { roomNumber: this.roomNum, type: "JOIN" });
+          this.syncState();
+        },
+        onDisconnect: () => {
           this.connected = false;
-        }
-      );
+          if (!this.leaving) this.reconnecting = true;
+        },
+      });
+      this.socket.connect();
     },
     unLoadEvent(event) {
-      if (this.stompClient !== null) {
-        this.stompClient.unsubscribe("/subscribe/chat/room/" + this.roomNum, {});
-        this.stompClient.disconnect();
-        this.stompClient = null;
+      if (this.socket) {
+        this.socket.close();
+        this.socket = null;
+      }
+    },
+    // 서버의 현재 진행 상태로 화면 복원 (최초 접속 / 재접속)
+    syncState() {
+      this.$http
+        .get("/api/v1/play/state", { params: { number: this.roomNum }, headers: this.authHeader() })
+        .then((res) => {
+          this.applyState(res.data.result);
+          this.show = false;
+        })
+        .catch((error) => {
+          this.show = false;
+          const status = error.response ? error.response.status : 0;
+          if (status === 401) {
+            this.leaving = true;
+            alert("로그인이 만료되었습니다. 다시 로그인 후 방 관리에서 '이어하기'를 눌러주세요.");
+            this.$router.replace({ name: "Login" });
+          } else if (status >= 400 && status < 500) {
+            this.leaving = true;
+            clearExaminer();
+            alert(errorMessage(error, "진행 중인 방이 아닙니다."));
+            this.$router.replace({ name: "RoomMng" });
+          } else {
+            console.log(error);
+          }
+        });
+    },
+    applyState(state) {
+      this.phase = state.phase;
+      this.probList = state.questions || [];
+      this.currentProbNum = state.questionIndex || 0;
+
+      this.userList = (state.participants || []).map((p) => p.name);
+      this.offlineUsers = (state.participants || []).filter((p) => !p.online).map((p) => p.name);
+      this.participants = this.userList.map((u) => ({ id: u, name: u }));
+
+      this.resetButtons();
+      this.submitNum = state.answerCount || 0;
+      this.answerUserShow = false;
+
+      switch (state.phase) {
+        case "WAITING":
+          this.pageType = 0;
+          break;
+        case "COUNTDOWN":
+          this.pageType = 3;
+          this.showProbTimerCnt = state.remainSec;
+          this.nextDisable = true;
+          this.showProb = true;
+          break;
+        case "QUESTION":
+          this.pageType = 1;
+          this.showProb = true;
+          this.timerCnt = state.remainSec;
+          // 제한시간 없는 문제는 출제자가 Next(마지막 문제는 Result) 로 종료
+          this.nextDisable = this.currentProb.questionTime > 0;
+          this.resultDisable = this.currentProb.questionTime > 0;
+          break;
+        case "RESULT":
+          this.pageType = 1;
+          this.answerUserList = state.answerUserList || [];
+          this.showResultChart(state.answerChart || {});
+          break;
+        case "RANK":
+          this.pageType = 2;
+          this.rankList = state.rankList || [];
+          this.nextDisable = false;
+          break;
+        case "FINISHED":
+          this.pageType = 2;
+          this.rankList = state.rankList || [];
+          this.currentProbNum = this.probList.length;
+          break;
       }
     },
     sendMessage(type, message) {
-      if (this.stompClient && this.stompClient.connected) {
-        const msg = {
-          roomNumber: this.roomNum,
-          examinerId: this.examinerId,
-          content: message,
-          type: type,
-        };
-        this.stompClient.send("/publish/play/message", JSON.stringify(msg));
-      }
-    },
-    sendMessage(type, message, answer1Text, answer2Text, answer3Text, answer4Text) {
-      if (this.stompClient && this.stompClient.connected) {
-        const msg = {
-          roomNumber: this.roomNum,
-          examinerId: this.examinerId,
-          content: message,
-          answer1Text: answer1Text,
-          answer2Text: answer2Text,
-          answer3Text: answer3Text,
-          answer4Text: answer4Text,
-          type: type,
-        };
-        this.stompClient.send("/publish/play/message", JSON.stringify(msg));
-      }
+      const sent = this.socket ? this.socket.send("/publish/play/message", {
+        roomNumber: this.roomNum,
+        examinerId: this.examinerId,
+        content: message,
+        type: type,
+      }) : false;
+      if (!sent)
+        alert("서버와 연결이 끊어져 있습니다. 재연결 후 다시 시도해 주세요.\n(진행 중인 문제는 서버에서 계속 진행됩니다)");
+      return sent;
     },
     sendChatMessage(chatType, message) {
-      if (this.stompClient && this.stompClient.connected) {
-        const msg = {
-          roomNumber: this.roomNum,
-          participantName: '★방 장★',
-          content: message,
-          chatType: chatType,
-          type: 'CHAT',
-        };
-
-        this.stompClient.send("/publish/play/message", JSON.stringify(msg));
+      return this.socket ? this.socket.send("/publish/play/message", {
+        roomNumber: this.roomNum,
+        participantName: EXAMINER_NAME,
+        content: message,
+        chatType: chatType,
+        type: 'CHAT',
+      }) : false;
+    },
+    recvError(resBody) {
+      let msg;
+      try {
+        msg = JSON.parse(resBody);
+      } catch (e) {
+        return;
       }
+      this.show = false;
+      alert(msg.content);
+      // 화면과 서버 상태가 어긋났을 수 있으므로 다시 동기화
+      this.syncState();
     },
     recvMessage(resBody) {
-      let msg = JSON.parse(resBody);
+      let msg;
+      try {
+        msg = JSON.parse(resBody);
+      } catch (e) {
+        console.log("잘못된 메시지", resBody);
+        return;
+      }
 
       if (msg.type === "JOIN") {
         let found = this.userList.find((user) => user === msg.participantName);
-        if (found === undefined)
+        if (found === undefined) {
           this.userList.push(msg.participantName);
           this.participants = [ ...this.participants, { id: msg.participantName,  name: msg.participantName } ]
+        }
+        this.offlineUsers = this.offlineUsers.filter((user) => user !== msg.participantName);
       } else if (msg.type === "UNJOIN") {
         this.userList = this.userList.filter((user) => user !== msg.participantName);
-
+        this.offlineUsers = this.offlineUsers.filter((user) => user !== msg.participantName);
         this.participants = this.participants.filter((part) => part.id !== msg.participantName)
+      } else if (msg.type === "OFFLINE") {
+        if (!this.offlineUsers.includes(msg.participantName))
+          this.offlineUsers.push(msg.participantName);
       } else if (msg.type === "READPROB") {
         this.probList = msg.result;
         this.show = false;
-        this.pageType = 1;
-        this.sendNext();
-      } else if (msg.type === "ANSWER") {
-        this.submitNum++;
-        if (this.submitNum === this.currentUserNum)
-          this.sendMessage("TIMEROFF", "Timer Off");
-      } else if (msg.type === "ANSCHART") {
-        this.showProb = false;
-        this.chartData = msg.result;
-        if (this.probList[this.currentProbNum].questionType === "OX") {
-          let answer1 = 0, answer2 = 0;
-
-          for (var key in this.chartData) {
-            if (key === '1') {
-              answer1 = this.chartData[key];
-            } else if (key === '2') {
-              answer2 = this.chartData[key];
-            }
-          }
-
-          if (this.probList[this.currentProbNum].questionAnswer === "1") {
-            this.bdisable['true'] = false;
-            this.bdisable['false'] = true;
-          } else if (this.probList[this.currentProbNum].questionAnswer === "2") {
-            this.bdisable['true'] = true;
-            this.bdisable['false'] = false;
-          }
-
-          this.fillOXData(answer1, answer2);
-        } else if (this.probList[this.currentProbNum].questionType === "OB") {
-          let answer1 = 0, answer2 = 0, answer3 = 0, answer4 = 0;
-
-          for (var key in this.chartData) {
-            if (key === '1') {
-              answer1 = this.chartData[key];
-            } else if (key === '2') {
-              answer2 = this.chartData[key];
-            } else if (key === '3') {
-              answer3 = this.chartData[key];
-            } else if (key === '4') {
-              answer4 = this.chartData[key];
-            }
-          }
-
-          if (this.probList[this.currentProbNum].questionAnswer === "1") {
-            this.bdisable['one'] = false;
-            this.bdisable['two'] = true;
-            this.bdisable['three'] = true;
-            this.bdisable['four'] = true;
-          } else if (this.probList[this.currentProbNum].questionAnswer === "2") {
-            this.bdisable['one'] = true;
-            this.bdisable['two'] = false;
-            this.bdisable['three'] = true;
-            this.bdisable['four'] = true;
-          } else if (this.probList[this.currentProbNum].questionAnswer === "3") {
-            this.bdisable['one'] = true;
-            this.bdisable['two'] = true;
-            this.bdisable['three'] = false;
-            this.bdisable['four'] = true;
-          } else if (this.probList[this.currentProbNum].questionAnswer === "4") {
-            this.bdisable['one'] = true;
-            this.bdisable['two'] = true;
-            this.bdisable['three'] = true;
-            this.bdisable['four'] = false;
-          }
-
-          this.fillOBData(this.probList[this.currentProbNum].answer1Text, answer1, 
-                          this.probList[this.currentProbNum].answer2Text, answer2, 
-                          this.probList[this.currentProbNum].answer3Text, answer3, 
-                          this.probList[this.currentProbNum].answer4Text, answer4);
+      } else if (msg.type === "LOADING" || msg.type === "COUNTDOWN") {
+        if (this.probList.length === 0) {
+          // 문제 목록을 못 받은 경우(재접속 직후 등) 서버 상태로 복원
+          this.syncState();
+          return;
         }
-      } else if (msg.type === "ANSUSERLIST") {
-        this.answerUserList = msg.result;
-      } else if (msg.type === "RANK") {
-        this.rankList = msg.result;
-        this.answerUserShow = false;
+        this.show = false;
+        this.phase = "COUNTDOWN";
+        this.pageType = 3;
+        this.currentProbNum = msg.questionIndex;
+        this.showProbTimerCnt = parseInt(msg.content);
+        this.resetButtons();
+        this.nextDisable = true;
+        this.resultDisable = true;
+        this.submitNum = 0;
+        this.showProb = true;
+      } else if (msg.type === "OXP" || msg.type === "OBP") {
+        this.phase = "QUESTION";
+        this.pageType = 1;
+        this.currentProbNum = msg.questionIndex;
+        this.showProb = true;
+        this.submitNum = 0;
+        this.timerCnt = this.currentProb.questionTime;
+        this.nextDisable = this.currentProb.questionTime > 0;
+        this.resultDisable = this.currentProb.questionTime > 0;
+      } else if (msg.type === "ANSWER") {
+        this.submitNum = parseInt(msg.content) || this.submitNum + 1;
       } else if (msg.type === "TIMECNT") {
         this.timerCnt = parseInt(msg.content);
       } else if (msg.type === "TIMEOUT") {
-        this.sendMessage("ANSCHK", "Answer Check");
-        this.sendMessage("ANSCHART", "Answer Chart");
-        this.nextDisable = false;
-
-        if (this.currentProbNum === this.probList.length - 1)
-          this.resultDisable = false;
-
-      } else if (msg.type === "OXP" || msg.type === "OBP") {
+        this.phase = "RESULT";
+        this.timerCnt = 0;
+      } else if (msg.type === "ANSUSERLIST") {
+        this.answerUserList = msg.result;
+      } else if (msg.type === "ANSCHART") {
+        this.phase = "RESULT";
         this.pageType = 1;
+        this.showResultChart(msg.result || {});
+      } else if (msg.type === "RANK") {
+        this.phase = "RANK";
+        this.pageType = 2;
+        this.rankList = msg.result;
+        this.answerUserShow = false;
+        this.nextDisable = false;
+      } else if (msg.type === "FINISH") {
+        this.phase = "FINISHED";
+        this.pageType = 2;
+        this.currentProbNum = this.probList.length;
       } else if (msg.type === "CHAT") {
         this.recvChatMessage(msg.participantName, msg.chatType, msg.content);
       }
     },
+    resetButtons() {
+      for (var key in this.bdisable) {
+        this.bdisable[key] = false;
+      }
+    },
+    // 채점 결과(정답 분포) 표시
+    showResultChart(chartData) {
+      const prob = this.currentProb;
+      this.showProb = false;
+      this.chartData = chartData;
+      this.nextDisable = false;
+      this.resultDisable = this.currentProbNum !== this.probList.length - 1;
+
+      const count = (key) => chartData[key] || 0;
+
+      if (prob.questionType === "OX") {
+        this.bdisable['true'] = prob.questionAnswer !== "1";
+        this.bdisable['false'] = prob.questionAnswer !== "2";
+        this.fillOXData(count('1'), count('2'));
+      } else if (prob.questionType === "OB") {
+        this.bdisable['one'] = prob.questionAnswer !== "1";
+        this.bdisable['two'] = prob.questionAnswer !== "2";
+        this.bdisable['three'] = prob.questionAnswer !== "3";
+        this.bdisable['four'] = prob.questionAnswer !== "4";
+        this.fillOBData(prob.answer1Text, count('1'), prob.answer2Text, count('2'),
+                        prob.answer3Text, count('3'), prob.answer4Text, count('4'));
+      }
+    },
     sendStart(event) {
       if (this.userList.length > 0) {
-        this.sendMessage("START", "Room Start");
-        this.sendMessage("READPROB", "Read Problem");
-        this.show = true;
+        if (this.sendMessage("START", "Room Start"))
+          this.show = true;
       } else {
         alert("아직 참가자가 없습니다.");
       }
     },
     sendExit(event) {
-      const config = {
-        headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
-      };
+      if (this.phase !== "FINISHED" && this.phase !== "WAITING"
+          && !confirm("게임이 진행 중입니다. 방을 종료하시겠습니까?"))
+        return;
 
       this.$http
         .put("/api/v1/room/state", {
           "id": this.roomId,
           "state": "END"
-        }, config)
+        }, { headers: this.authHeader() })
         .then((res) => {
           if (res.data.code !== 0) {
             alert(res.data.message);
-          } else {
-            alert(this.roomNum + "방이 종료되었습니다.");
+            return;
           }
-          //this.$router.go(-1);
+          alert(this.roomNum + "방이 종료되었습니다.");
+          this.leaving = true;
+          clearExaminer();
           this.$router.replace({ name: "RoomMng" });
         })
-        .catch((error) => { console.log(error); });
+        .catch((error) => {
+          console.log(error);
+          alert(errorMessage(error, "방 종료 중 오류가 발생했습니다. 다시 시도해 주세요."));
+        });
     },
+    // 마지막 문제 결과 → 최종 순위
     sendResult(event) {
-      if (this.pageType !== 2) {
-        if (this.showProb === false) {
-          this.pageType = 2;
-          this.sendMessage("RANK", "Rank Check");
-          this.sendMessage("FINALRANK", "Send Final Rank");
-        }
-      }
-
-      this.currentProbNum++;
+      this.sendNext(event);
     },
+    // 다음 단계 진행은 서버가 판단한다. (현재 단계를 함께 보내 중복 클릭 방지)
     sendNext(event) {
-      if (this.pageType !== 2) {
-        if (this.showProb === false) {
-          this.pageType = 2;
-          this.sendMessage("RANK", "Rank Check");
-          return;
-        } else if (event !== undefined && this.pageType === 1) {
-          this.sendMessage("TIMEROFF", "Timer Off");
-          return;
-        }
-      } else {
-        this.pageType = 1;
+      if (this.sendMessage("NEXT", this.phase)) {
+        this.nextDisable = true;
+        this.resultDisable = true;
       }
-
-      if (event !== undefined)
-        this.currentProbNum++;
-
-      if (this.currentProbNum < this.probList.length) {
-        this.showProbTimerCnt = 5;
-        this.pageType = 3;
-
-        this.sendMessage("LOADING", "Please Loading");
-        setTimeout(this.timerFunc, 1000);
-      } else {
-        this.sendResult();
-      }
-
-      for (var key in this.bdisable) {
-        this.bdisable[key] = false;
-      }
-
-      this.nextDisable = true;
-      this.submitNum = 0;
-      this.showProb = true;
     },
     changeChart(event) {
       this.answerUserShow = !this.answerUserShow;
+    },
+    isOffline(user) {
+      return this.offlineUsers.includes(user);
+    },
+    // 결과 화면에서 정답 보기는 강조, 나머지는 흐리게
+    tileClass(key) {
+      if (this.showProb) return {};
+      return { dim: this.bdisable[key], correct: !this.bdisable[key] };
+    },
+    formatScore(score) {
+      const n = parseFloat(score);
+      return isNaN(n) ? score : Math.round(n).toLocaleString();
     },
     fillOXData(answer1Count, answer2Count) {
       (this.barData = {
@@ -648,30 +713,9 @@ export default {
         ],
       });
     },
-    timerFunc() {
-      this.showProbTimerCnt--;
-
-      if (this.showProbTimerCnt === 0) {
-        if (this.probList[this.currentProbNum].questionType === "OX")
-          this.sendMessage("OXP", this.probList[this.currentProbNum].id.toString());
-        else if (this.probList[this.currentProbNum].questionType === "OB")
-          this.sendMessage("OBP", this.probList[this.currentProbNum].id.toString()); 
-
-        if (this.probList[this.currentProbNum].questionTime === 0)
-          this.nextDisable = false;
-
-        this.sendMessage("TIMER", this.probList[this.currentProbNum].questionTime);
-        this.timerCnt = this.probList[this.currentProbNum].questionTime;
-        this.currentUserNum = this.userList.length;
-      } else {
-        setTimeout(this.timerFunc, 1000); 
-      }
-    },
     recvChatMessage(nick, msgt, cont) {
-      if (cont.length > 0) {
-        if (nick !== '★방 장★') {
-          this.newMessagesCount = this.isChatOpen ? this.newMessagesCount : this.newMessagesCount + 1
-
+      if (cont && cont.length > 0) {
+        if (nick !== EXAMINER_NAME) {
           let convMsg = "【" + nick + "】 : " + cont;
           if (msgt === 'text')
             this.messageList = [ ...this.messageList, { author: nick, type: msgt, data: { text: convMsg } } ]
@@ -681,11 +725,16 @@ export default {
       }
     },
     onMessageWasSent(message) {
+      let sent = false;
       if (message.type === 'text')
-        this.sendChatMessage(message.type, message.data.text)
+        sent = this.sendChatMessage(message.type, message.data.text)
       else if (message.type === 'emoji')
-        this.sendChatMessage(message.type, message.data.emoji)
-      
+        sent = this.sendChatMessage(message.type, message.data.emoji)
+
+      if (!sent) {
+        alert("연결이 끊어져 메시지를 보내지 못했습니다.");
+        return;
+      }
       this.messageList = [ ...this.messageList, message ]
     },
   },
@@ -693,61 +742,99 @@ export default {
 </script>
 
 <style scoped>
-#true, #false {
-  font-size: 100px;
-  font-weight: bold;
+.proc {
+  display: flex;
+  flex-direction: column;
 }
-
-#one, #two, #three, #four {
-  color: white;
-  font-size: 40px;
-  font-weight: bold;
+.proc-loading {
+  position: fixed; inset: 0; z-index: 1900;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(30, 10, 80, 0.45);
 }
-</style>
-
-<style>
-.twb-50 {
-  color: white;
-  font-size: 50px;
-  font-weight: bold;
-  text-align: center;
+.proc-bar {
+  position: relative; z-index: 2;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 22px;
+  background: rgba(0, 0, 0, 0.18);
 }
-
-.twb-35 {
-  color: white;
-  font-size: 35px;
-  font-weight: bold;
-  text-align: center;
+.proc-bar .left, .proc-bar .right { display: flex; align-items: center; gap: 10px; }
+.pin-sm {
+  background: #fff; color: var(--uk-text);
+  font-weight: 900; letter-spacing: 0.1em;
+  padding: 4px 14px; border-radius: 10px; font-size: 18px;
 }
+.progress-text { font-weight: 800; font-size: 17px; color: rgba(255, 255, 255, 0.9); }
 
-.twb-25 {
-  color: white;
-  font-size: 25px;
-  font-weight: bold;
-  text-align: center;
+/* lobby */
+.lobby { position: relative; z-index: 1; flex: 1; padding: 28px 24px 40px; display: flex; flex-direction: column; align-items: center; }
+.join-box {
+  background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 24px; padding: 22px 40px; text-align: center;
 }
-
-.tbb-70 {
-  color: black;
-  font-size: 70px;
-  font-weight: bold;
-  text-align: center;
+.join-label { margin: 0 0 12px; color: rgba(255, 255, 255, 0.85); font-weight: 700; }
+.pin-big { font-size: clamp(56px, 10vw, 96px); padding: 8px 36px; border-radius: 20px; }
+.lobby-head {
+  width: 100%; max-width: 1000px;
+  display: flex; align-items: center; justify-content: space-between;
+  margin: 32px 0 20px; gap: 16px; flex-wrap: wrap;
 }
+.lobby-head .count { font-size: 22px; font-weight: 900; }
+.players { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; max-width: 1000px; }
+.waiting-empty { margin-top: 40px; text-align: center; color: rgba(255, 255, 255, 0.85); font-weight: 700; }
+.waiting-empty p { margin-top: 16px; }
 
-.tbb-25 {
-  color: black;
-  font-size: 25px;
-  font-weight: bold;
-  text-align: center;
+/* intro */
+.intro { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; }
+.intro-meta { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; }
+.meta-item { font-weight: 800; color: rgba(255, 255, 255, 0.9); }
+.intro-question {
+  background: #fff; color: var(--uk-text);
+  border-radius: 24px; padding: 32px 44px; max-width: 1100px;
+  font-size: clamp(28px, 4.5vw, 52px); font-weight: 900; line-height: 1.3;
+  box-shadow: var(--uk-shadow-lg); white-space: pre-wrap; word-break: keep-all;
 }
+.uk-countdown.small { font-size: clamp(72px, 12vw, 120px); margin-top: 28px; }
 
-div.left {
-  width: 50%;
-  float: left;
+/* question */
+.question { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; padding: 20px 22px 22px; gap: 20px; min-height: 0; }
+.q-main { flex: 1.4; display: flex; min-height: 0; }
+.q-live { flex: 1; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 24px; }
+.q-card {
+  background: #fff; color: var(--uk-text);
+  border-radius: 24px; padding: 32px; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--uk-shadow-lg);
 }
+.q-card h2 { font-size: clamp(26px, 4vw, 52px); font-weight: 900; margin: 0; line-height: 1.3; white-space: pre-wrap; word-break: keep-all; }
+.submit-count {
+  width: 110px; text-align: center;
+  background: rgba(255, 255, 255, 0.14); border-radius: 18px; padding: 16px 8px;
+}
+.submit-count strong { display: block; font-size: 42px; font-weight: 900; line-height: 1; }
+.submit-count span { font-size: 13px; font-weight: 700; color: rgba(255, 255, 255, 0.8); }
+.q-result { flex: 1; display: flex; justify-content: center; }
+.result-card {
+  background: #fff; color: var(--uk-text);
+  border-radius: 24px; padding: 20px 24px; width: 100%; max-width: 900px;
+  display: flex; flex-direction: column; box-shadow: var(--uk-shadow-lg);
+}
+.result-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.result-head h3 { margin: 0; font-size: 20px; font-weight: 900; }
+.chart-box { flex: 1; position: relative; min-height: 240px; }
+.chart-box > div { height: 100%; }
+.answer-users { flex: 1; overflow-y: auto; max-height: 360px; }
+.answer-users .uk-rank-item { box-shadow: none; background: #f7f5fe; font-size: 17px; padding: 10px 16px; }
+.q-answers { flex: 1; min-height: 170px; }
 
-div.right {
-  width: 50%;
-  float: right;
+/* ranking */
+.ranking { position: relative; z-index: 1; flex: 1; padding: 24px; display: flex; flex-direction: column; align-items: center; }
+.rank-head { text-align: center; margin-bottom: 20px; }
+.rank-head h1 { font-size: 40px; font-weight: 900; margin: 0; }
+.stage-icon { font-size: 56px; }
+.rank-board { width: 100%; max-width: 720px; }
+
+@media (max-width: 768px) {
+  .q-live { grid-template-columns: 1fr; }
+  .submit-count { width: auto; }
 }
 </style>
