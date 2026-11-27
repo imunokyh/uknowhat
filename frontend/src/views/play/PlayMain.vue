@@ -1,5 +1,8 @@
 <template>
   <div class="h-100">
+    <b-alert :show="reconnecting" variant="warning" class="m-0 text-center" style="position: fixed; top: 0; left: 0; right: 0; z-index: 2000;">
+      연결이 끊어졌습니다. 재연결 중입니다... (게임은 계속 진행되고 있습니다)
+    </b-alert>
     <div style="height:5%">
       <div class="h-100 outer-center">
         <h2 class="tbb-p100 ml-1"> {{userName}} </h2>
@@ -130,8 +133,16 @@
 </template>
 
 <script>
-import Stomp from 'webstomp-client'
-import SockJS from 'sockjs-client'
+import GameSocket from "@/utils/gameSocket";
+import {
+  createToken,
+  saveParticipant,
+  loadParticipant,
+  clearParticipant,
+  errorMessage,
+} from "@/utils/gameSession";
+
+const EXAMINER_NAME = "★방 장★";
 
 export default {
   name: 'PlayMain',
@@ -149,8 +160,14 @@ export default {
     return {
       roomNum: "",
       userName: "",
+      token: "",
+      socket: null,
+      connected: false,
+      reconnecting: false,
+      leaving: false,
       show: true,
       pageType: 5,
+      questionIndex: -1,
       userList: [],
       resType: 0,
       score: 0,
@@ -159,11 +176,11 @@ export default {
       answer1Text: "",
       answer2Text: "",
       answer3Text: "",
-      answer3Text: "",
+      answer4Text: "",
       participants: [
         {
-          "id": "★방 장★",
-          "name": "★방 장★"
+          "id": EXAMINER_NAME,
+          "name": EXAMINER_NAME
         }
       ],
       messageList: [],
@@ -219,7 +236,7 @@ export default {
     document.onkeydown = function(e) {
       let key = (e) ? e.keyCode : event.keyCode;
       let ctrl = (e) ? e.ctrlKey  : event.ctrlKey;
-      
+
       if ((ctrl == true && (key == 78 || key == 82)) || key==116) {
         if (e) {
           e.preventDefault();
@@ -230,81 +247,136 @@ export default {
       }
     }
 
-    this.roomNum = this.number;
-    this.userName = this.nickname;
+    // 새로고침/재접속 시 라우터 params 가 사라지므로 저장된 참여 정보로 복원
+    const saved = loadParticipant();
+    if (this.number && this.nickname) {
+      this.roomNum = this.number;
+      this.userName = this.nickname;
+      this.token = (saved && saved.roomNum === this.number && saved.nickname === this.nickname && saved.token)
+        ? saved.token : createToken();
+    } else if (saved) {
+      this.roomNum = saved.roomNum;
+      this.userName = saved.nickname;
+      this.token = saved.token;
+    } else {
+      this.$router.replace({ name: "PtEnter" });
+      return;
+    }
+    saveParticipant({ roomNum: this.roomNum, nickname: this.userName, token: this.token });
 
-    this.connect()
+    this.connect();
   },
   destroyed() {
-    if (this.stompClient !== null) {
-        this.sendJoinMessage("UNJOIN");
-        this.stompClient.unsubscribe("/subscribe/play/room/" + this.roomNum, {});
-        this.stompClient.unsubscribe("/subscribe/play/room/" + this.roomNum + "/" + this.userName, {});
-        this.stompClient.disconnect();
-        this.stompClient = null;
+    window.removeEventListener('beforeunload', this.unLoadEvent);
+    if (this.socket) {
+      this.socket.close();
+      this.socket = null;
     }
   },
   methods: {
     connect() {
-        let sock = new SockJS("/stomp");
-        this.stompClient = Stomp.over(sock, {debug: false});
-        this.stompClient.connect(
-            {},
-            frame => {
-              // 소켓 연결 성공
-              this.connected = true;
-              //this.show = false;
-              this.pageType = 0;
-              // 서버의 메시지 전송 endpoint를 구독합니다.
-              // 이런형태를 pub sub 구조라고 합니다.                    
-              this.stompClient.subscribe("/subscribe/play/room/" + this.roomNum, res => {
-                // 받은 데이터를 json으로 파싱하고 리스트에 넣어줍니다.
-                this.receiveMessage(res.body);
-              });
-
-              this.stompClient.subscribe("/subscribe/play/room/" + this.roomNum + "/" + this.userName, res => {
-                // 받은 데이터를 json으로 파싱하고 리스트에 넣어줍니다.
-                this.receiveMessage(res.body);
-              });
-
-              this.$http
-                .get("/api/v1/room/check/ptlist?number=" + this.roomNum)
-                .then((res) => {
-                  for (const user of res.data.result) {
-                    let found = this.userList.find((iter) => iter === user);
-                    if (found === undefined)
-                      this.userList.push(user);
-
-                    if (user !== this.userName)
-                      this.participants = [ ...this.participants, { id: user,  name: user } ]
-                  }
-                })
-                .catch((error) => {console.log(error);});
-
-              this.sendJoinMessage("JOIN");
-            },
-            error => {
-                // 소켓 연결 실패
-                console.log('소켓 연결 실패', error);
-                this.connected = false;
-            }
-        );
+      this.socket = new GameSocket({
+        subscribe: (client) => {
+          client.subscribe("/subscribe/play/room/" + this.roomNum, res => this.receiveMessage(res.body));
+          client.subscribe("/subscribe/play/room/" + this.roomNum + "/" + this.userName, res => this.receiveMessage(res.body));
+          client.subscribe("/user/queue/errors", res => this.receiveError(res.body));
+        },
+        onConnect: () => {
+          this.connected = true;
+          this.reconnecting = false;
+          this.sendJoinMessage("JOIN");
+          this.syncState();
+        },
+        onDisconnect: () => {
+          this.connected = false;
+          if (!this.leaving) this.reconnecting = true;
+        },
+      });
+      this.socket.connect();
     },
     unLoadEvent(event) {
-      if (this.stompClient !== null) {
-        this.sendJoinMessage("UNJOIN");
-        this.stompClient.unsubscribe("/subscribe/play/room/" + this.roomNum, {});
-        this.stompClient.unsubscribe("/subscribe/play/room/" + this.roomNum + "/" + this.userName, {});
-        this.stompClient.disconnect();
-        this.stompClient = null;
+      // 새로고침/창 닫기는 퇴장이 아님 → UNJOIN 을 보내지 않아야 재접속 시 이어서 진행 가능
+      if (this.socket) {
+        this.socket.close();
+        this.socket = null;
       }
     },
-    submit(event) {    
-      let ans;
+    // 서버의 현재 진행 상태로 화면 복원
+    syncState() {
+      this.$http
+        .get("/api/v1/room/check/state", {
+          params: { number: this.roomNum, nickname: this.userName, token: this.token },
+        })
+        .then((res) => {
+          if (res.data.code !== 0) {
+            this.leaveWithMessage(res.data.message);
+            return;
+          }
+          this.applyState(res.data.result);
+        })
+        .catch((error) => {
+          if (error.response && error.response.status >= 400 && error.response.status < 500) {
+            // 방이 종료됐거나 참여 정보가 유효하지 않음
+            this.leaveWithMessage(errorMessage(error, "게임에 다시 참여할 수 없습니다."));
+          } else {
+            console.log(error);
+          }
+        });
+    },
+    applyState(state) {
+      this.userList = state.participants || [];
+      this.participants = [
+        { id: EXAMINER_NAME, name: EXAMINER_NAME },
+        ...this.userList.filter((u) => u !== this.userName).map((u) => ({ id: u, name: u })),
+      ];
+      this.scoreTotal = state.totalScore || 0;
+      this.questionIndex = state.questionIndex;
 
-      //this.show = true;
-      this.pageType = 5;
-      this.showLch = true;
+      switch (state.phase) {
+        case "WAITING":
+          this.pageType = 0;
+          this.showLch = true;
+          break;
+        case "COUNTDOWN":
+          this.pageType = 5;
+          this.showLch = true;
+          break;
+        case "QUESTION":
+          if (state.answered) {
+            this.pageType = 5;
+            this.showLch = true;
+          } else {
+            this.answer1Text = state.answer1Text;
+            this.answer2Text = state.answer2Text;
+            this.answer3Text = state.answer3Text;
+            this.answer4Text = state.answer4Text;
+            this.pageType = state.questionType === "OX" ? 1 : 2;
+            this.showLch = false;
+            this.closeChat();
+          }
+          break;
+        case "RESULT":
+        case "RANK":
+          this.pageType = 3;
+          this.showLch = true;
+          if (state.result === "CORRECT") {
+            this.resType = 0;
+            this.score = state.score;
+          } else if (state.result === "INCORRECT") {
+            this.resType = 1;
+          } else {
+            this.resType = 2;
+          }
+          break;
+        case "FINISHED":
+          this.pageType = 4;
+          this.showLch = true;
+          if (state.finalRank) this.grade = state.finalRank;
+          break;
+      }
+    },
+    submit(event) {
+      let ans;
 
       if (event.target.id === "true" || event.target.id === "one")
         ans = "1";
@@ -315,41 +387,64 @@ export default {
       else if (event.target.id === "four")
         ans = "4";
 
-      this.sendMessage("ANSWER", ans);
+      if (!this.sendMessage("ANSWER", ans, { questionIndex: this.questionIndex })) {
+        // 연결이 끊긴 상태: 화면을 유지해 재연결 후 다시 제출할 수 있게 한다.
+        this.toast("서버와 연결이 끊어져 답을 제출하지 못했습니다. 재연결 후 다시 선택해 주세요.", "danger");
+        return;
+      }
+
+      this.pageType = 5;
+      this.showLch = true;
+    },
+    receiveError(resBody) {
+      let msg;
+      try {
+        msg = JSON.parse(resBody);
+      } catch (e) {
+        return;
+      }
+      this.toast(msg.content, "warning");
+      // 서버와 화면 상태가 어긋났을 수 있으므로 다시 동기화
+      this.syncState();
     },
     receiveMessage(resBody) {
-      let msg = JSON.parse(resBody);
+      let msg;
+      try {
+        msg = JSON.parse(resBody);
+      } catch (e) {
+        console.log("잘못된 메시지", resBody);
+        return;
+      }
 
       if (msg.type === "JOIN") {
         let found = this.userList.find((user) => user === msg.participantName);
         if (found === undefined)
           this.userList.push(msg.participantName);
 
-        if (msg.participantName !== this.userName)
+        if (msg.participantName !== this.userName && !this.participants.find((p) => p.id === msg.participantName))
           this.participants = [ ...this.participants, { id: msg.participantName,  name: msg.participantName } ]
       } else if (msg.type === "UNJOIN") {
         this.userList = this.userList.filter((user) => user !== msg.participantName);
 
         this.participants = this.participants.filter((part) => part.id !== msg.participantName)
       } else if (msg.type === "START") {
-        //this.show = true;
         this.pageType = 5;
         this.showLch = true;
       } else if (msg.type === "WAITING") {
         this.pageType = 0;
         this.showLch = true;
-        //this.show = false;
-      } else if (msg.type === "LOADING") {
-        //this.show = true;
+      } else if (msg.type === "LOADING" || msg.type === "COUNTDOWN") {
         this.pageType = 5;
         this.showLch = true;
-      }else if (msg.type === "OXP") {
-        //this.show = false;
+        if (msg.questionIndex !== null && msg.questionIndex !== undefined)
+          this.questionIndex = msg.questionIndex;
+      } else if (msg.type === "OXP") {
+        this.questionIndex = msg.questionIndex;
         this.pageType = 1;
         this.showLch = false;
         this.closeChat();
       } else if (msg.type === "OBP") {
-        //this.show = false;
+        this.questionIndex = msg.questionIndex;
         this.pageType = 2;
         this.showLch = false;
         this.closeChat();
@@ -362,14 +457,15 @@ export default {
         this.showLch = true;
         this.resType = 2;
       } else if (msg.type === "CORRECT") {
-        //this.show = false;
         this.pageType = 3;
         this.showLch = true;
         this.resType = 0;
         this.score = msg.score;
-        this.scoreTotal += msg.score;
+        if (msg.result && msg.result.totalScore !== undefined)
+          this.scoreTotal = msg.result.totalScore;
+        else
+          this.scoreTotal += msg.score;
       } else if (msg.type === "INCORRECT") {
-        //this.show = false;
         this.pageType = 3;
         this.showLch = true;
         this.resType = 1;
@@ -380,51 +476,57 @@ export default {
         this.pageType = 4;
         this.showLch = true;
       } else if (msg.type === "EXIT") {
-        this.exit();
+        this.leaveWithMessage(null);
       }
     },
+    // 방 종료 등으로 더 이상 참여할 수 없을 때
+    leaveWithMessage(message) {
+      if (this.leaving) return;
+      this.leaving = true;
+      this.reconnecting = false;
+      clearParticipant();
+      if (message) alert(message);
+      this.$router.replace({ name: "Home" });
+    },
+    // 사용자가 직접 나가기
     exit(event) {
-      //this.$router.go(-1);
+      this.leaving = true;
+      this.sendJoinMessage("UNJOIN");
+      clearParticipant();
       this.$router.replace({ name: "Home" });
     },
     sendJoinMessage(type) {
-      if (this.stompClient && this.stompClient.connected) {
-        const msg = {
-          roomNumber: this.roomNum,
-          participantName: this.userName,
-          type: type,
-        };
-
-        this.stompClient.send("/publish/play/join", JSON.stringify(msg));
-      }
+      return this.socket ? this.socket.send("/publish/play/join", {
+        roomNumber: this.roomNum,
+        participantName: this.userName,
+        token: this.token,
+        type: type,
+      }) : false;
     },
-    sendMessage(type, message) {
-      if (this.stompClient && this.stompClient.connected) {
-        const msg = {
-          roomNumber: this.roomNum,
-          participantName: this.userName,
-          content: message,
-          type: type,
-        };
-
-        this.stompClient.send("/publish/play/message", JSON.stringify(msg));
-      }
+    sendMessage(type, message, extra) {
+      return this.socket ? this.socket.send("/publish/play/message", {
+        roomNumber: this.roomNum,
+        participantName: this.userName,
+        content: message,
+        type: type,
+        ...(extra || {}),
+      }) : false;
     },
     sendChatMessage(chatType, message) {
-      if (this.stompClient && this.stompClient.connected) {
-        const msg = {
-          roomNumber: this.roomNum,
-          participantName: this.userName,
-          content: message,
-          chatType: chatType,
-          type: 'CHAT',
-        };
-
-        this.stompClient.send("/publish/play/message", JSON.stringify(msg));
-      }
+      return this.sendMessage("CHAT", message, { chatType: chatType });
+    },
+    toast(message, variant) {
+      if (!message) return;
+      this.$bvToast.toast(message, {
+        title: "알림",
+        variant: variant || "info",
+        solid: true,
+        autoHideDelay: 3000,
+        toaster: "b-toaster-top-center",
+      });
     },
     recvChatMessage(nick, msgt, cont) {
-      if (cont.length > 0) {
+      if (cont && cont.length > 0) {
         if (nick !== this.userName) {
           this.newMessagesCount = this.isChatOpen ? this.newMessagesCount : this.newMessagesCount + 1
 
@@ -437,11 +539,16 @@ export default {
       }
     },
     onMessageWasSent(message) {
+      let sent = false;
       if (message.type === 'text')
-        this.sendChatMessage(message.type, message.data.text)
+        sent = this.sendChatMessage(message.type, message.data.text)
       else if (message.type === 'emoji')
-        this.sendChatMessage(message.type, message.data.emoji)
+        sent = this.sendChatMessage(message.type, message.data.emoji)
 
+      if (!sent) {
+        this.toast("연결이 끊어져 메시지를 보내지 못했습니다.", "danger");
+        return;
+      }
       this.messageList = [ ...this.messageList, message ]
     },
     openChat() {

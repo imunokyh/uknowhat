@@ -1,5 +1,7 @@
 package kr.or.uknowhat.api.ubusiness.question.web;
 
+import java.security.Principal;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import kr.or.uknowhat.api.framework.vo.Result;
 import kr.or.uknowhat.api.ubusiness.common.ErrorCode;
+import kr.or.uknowhat.api.ubusiness.question.service.GameService;
 import kr.or.uknowhat.api.ubusiness.question.service.PlayService;
 import kr.or.uknowhat.api.ubusiness.question.service.RoomQuestionService;
 import kr.or.uknowhat.api.ubusiness.question.vo.PlayAnswerVo;
@@ -25,6 +28,20 @@ public class PlayController {
 	
 	@Autowired
 	private PlayService playService;
+
+	@Autowired
+	private GameService gameService;
+
+	/**
+	 * 출제자 재접속 시 현재 게임 진행 상태 조회
+	 */
+	@GetMapping(value="/state")
+	public Result state(@RequestParam(value = "number", defaultValue = "") String roomNumber, Principal principal) {
+		Result res = new Result();
+		res.setCode(ErrorCode.SUCCESS);
+		res.setResult(gameService.examinerState(roomNumber, principal));
+		return res;
+	}
 
 	@GetMapping(value="/readprob")
 	public Result readProb(@RequestParam(value = "roomId", defaultValue = "10") int roomId,

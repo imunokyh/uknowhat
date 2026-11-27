@@ -57,6 +57,7 @@
 
 <script>
 import Vue from "vue";
+import { createToken, saveParticipant, loadParticipant, clearParticipant } from "@/utils/gameSession";
 import { BJumbotron } from "bootstrap-vue";
 Vue.component("b-jumbotron", BJumbotron);
 
@@ -87,7 +88,35 @@ export default {
       show: false,
     };
   },
+  created() {
+    this.checkResume();
+  },
   methods: {
+    // 이전에 참여 중이던 게임이 있으면 이어서 참여할지 확인
+    checkResume() {
+      const saved = loadParticipant();
+      if (!saved || !saved.roomNum || !saved.nickname || !saved.token) return;
+
+      this.$http
+        .get("/api/v1/room/check/nickname", {
+          params: { number: saved.roomNum, nickname: saved.nickname, token: saved.token },
+        })
+        .then((res) => {
+          if (res.data.code !== 0 || !res.data.result || !res.data.result.rejoin) {
+            clearParticipant();
+            return;
+          }
+          if (confirm(saved.roomNum + "번 방에 '" + saved.nickname + "'(으)로 참여 중이었습니다. 이어서 참여하시겠습니까?")) {
+            this.$router.push({
+              name: "PlayMain",
+              params: { number: saved.roomNum, nickname: saved.nickname },
+            });
+          } else {
+            clearParticipant();
+          }
+        })
+        .catch(() => clearParticipant());
+    },
     goExaminer() {
       this.$router.push({
         name: "ExamChat",
@@ -123,6 +152,7 @@ export default {
           })
           .catch((error) => {
             console.log(error);
+            alert("서버와 통신 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
             this.show = false;
           });
       } else {
@@ -130,15 +160,16 @@ export default {
           alert("닉네임을 입력하세요.");
           return;
         }
+        const saved = loadParticipant();
+        const token = (saved && saved.roomNum === this.roomNum && saved.nickname === this.participantName && saved.token)
+          ? saved.token : createToken();
         this.$http
-          .get(
-            "/api/v1/room/check/nickname?number=" +
-              this.roomNum +
-              "&nickname=" +
-              this.participantName
-          )
+          .get("/api/v1/room/check/nickname", {
+            params: { number: this.roomNum, nickname: this.participantName, token: token },
+          })
           .then((res) => {
             if (res.data.code === 0) {
+              saveParticipant({ roomNum: this.roomNum, nickname: this.participantName, token: token });
               this.$router.push({
                 name: "PlayMain",
                 params: {
@@ -152,6 +183,7 @@ export default {
           })
           .catch((error) => {
             console.log(error);
+            alert("서버와 통신 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
           });
       }
     },

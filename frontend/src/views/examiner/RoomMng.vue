@@ -50,7 +50,10 @@
               <b-button @click="deleteGroup(room.roomId)" variant="danger">
                 삭제
               </b-button>
-              <b-button @click="startGroup(room.roomId, room.roomTitle)" variant="success">
+              <b-button v-if="room.roomState === 'PLAY'" @click="resumeGroup(room)" variant="warning">
+                이어하기 ({{ room.roomNumber }})
+              </b-button>
+              <b-button v-else @click="startGroup(room.roomId, room.roomTitle)" variant="success">
                 시작
               </b-button>
             </b-card>
@@ -63,6 +66,8 @@
 </template>
 
 <script>
+import { errorMessage } from "@/utils/gameSession";
+
 export default {
   data() {
     return {
@@ -89,6 +94,9 @@ export default {
       promise.then((res) => {
         this.roomData = [];
         this.roomData = res.data.result;
+      }).catch((error) => {
+        console.log(error);
+        alert(errorMessage(error, "방 목록을 불러오지 못했습니다."));
       });
     },
     goProbBank() {
@@ -115,6 +123,9 @@ export default {
         
         alert("삭제 되었습니다");
         this.getRoomData();
+      }).catch((error) => {
+        console.log(error);
+        alert(errorMessage(error, "방 삭제 중 오류가 발생했습니다."));
       });
     },
     startGroup(roomId, roomTitle) {
@@ -135,7 +146,17 @@ export default {
             this.$router.push({ name: "RoomProc", params: { identification: roomId, number: res.data.result.roomNumber, examiner: sessionStorage.getItem("userId")} });
           }
         })
-        .catch((error) => { console.log(error); });
+        .catch((error) => {
+          console.log(error);
+          alert(errorMessage(error, "방 시작 중 오류가 발생했습니다."));
+        });
+    },
+    // 진행 중인 방에 출제자로 다시 들어가기 (연결 끊김/브라우저 종료 후 재접속)
+    resumeGroup(room) {
+      this.$router.push({
+        name: "RoomProc",
+        params: { identification: room.roomId, number: room.roomNumber, examiner: sessionStorage.getItem("userId") },
+      });
     },
     checkFormValidity() {
       const valid = this.$refs.form.checkValidity();

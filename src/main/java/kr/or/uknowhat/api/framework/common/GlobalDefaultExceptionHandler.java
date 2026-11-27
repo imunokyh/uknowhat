@@ -38,7 +38,7 @@ public class GlobalDefaultExceptionHandler {
             BizException.class,
     })
     public ResponseEntity<Object> bizException(BizException ex) {
-    	log.debug("BizException {}", ex);
+    	log.warn("BizException [{}]: {}", ex.getBizErrorCode(), ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(bizCodeUtil.error(ex.getMessage(),ex.getBizErrorCode()));
     }
     
@@ -48,7 +48,7 @@ public class GlobalDefaultExceptionHandler {
             NumberFormatException.class
     })
     public ResponseEntity<Object> badRequestException(Exception ex) {
-        log.debug("badRequestException {}", ex);
+        log.warn("badRequestException: {}", ex.toString(), ex);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(bizCodeUtil.error(ex.getMessage(), HttpStatus.BAD_REQUEST));
     }
 
@@ -63,7 +63,7 @@ public class GlobalDefaultExceptionHandler {
             MissingServletRequestParameterException.class
     })
     public ResponseEntity<Object> entityException(Exception ex) {
-        log.debug("entityException {}", ex);
+        log.warn("entityException: {}", ex.toString(), ex);
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(bizCodeUtil.error(ex.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY));
     }
 
@@ -72,7 +72,7 @@ public class GlobalDefaultExceptionHandler {
             HttpMessageNotReadableException.class
     })
     public ResponseEntity<Object> notReadableException(Exception ex) {
-        log.debug("notReadableException {}", ex);
+        log.warn("notReadableException: {}", ex.toString(), ex);
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(bizCodeUtil.error(ex.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY));
     }
 
@@ -82,7 +82,7 @@ public class GlobalDefaultExceptionHandler {
             DataAccessException.class
     })
     public ResponseEntity<Object> invalidDataAccessApiUsageException(Exception ex) {
-        log.debug("invalidDataAccessApiUsageException {}", ex);
+        log.warn("invalidDataAccessApiUsageException: {}", ex.toString(), ex);
 //        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("The given id must not be null!");
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(bizCodeUtil.error(ex.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY));
     }
@@ -93,7 +93,7 @@ public class GlobalDefaultExceptionHandler {
             AccessDeniedException.class
     })
     public ResponseEntity handleAccessDeniedException(Exception ex) {
-        log.debug("handleAccessDeniedException {}", ex);
+        log.warn("handleAccessDeniedException: {}", ex.toString(), ex);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(bizCodeUtil.error(ex.getMessage(), HttpStatus.UNAUTHORIZED));
     }
 
@@ -103,7 +103,7 @@ public class GlobalDefaultExceptionHandler {
             FileNotFoundException.class
     })
     public ResponseEntity notFoundException(Exception ex) {
-        log.debug("notFoundException {}", ex);
+        log.warn("notFoundException: {}", ex.toString(), ex);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(bizCodeUtil.error(ex.getMessage(), HttpStatus.NOT_FOUND));
     }
 
@@ -114,7 +114,7 @@ public class GlobalDefaultExceptionHandler {
             SQLGrammarException.class
     })
     public ResponseEntity<Object> handleAll(Exception ex) {
-        log.debug("handleAll {}", ex);
+        log.error("Unhandled exception", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(bizCodeUtil.error(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
